@@ -63,3 +63,33 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Estado:** ACCEPTED (provisional hasta la capa `Networking`, tarea 6)
 - **Decisión:** `CombatIntent` valida tipo, campos y tamaño del payload y aplica un rate limit por jugador (token bucket). El bloqueo tiene un tiempo mínimo entre activaciones para que el parry no se pueda encadenar pulsando repetidamente.
 - **Motivo:** §11. La lógica se moverá a la capa de red genérica cuando exista.
+
+## D-010 — La vida autoritativa vive en Character; se desactiva la regeneración de Roblox
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED
+- **Decisión:** `StarterCharacterScripts/Health` se sustituye por un script vacío (`src/CharacterScripts/Health.server.luau`). El `Humanoid` solo refleja la vida de `Character`. Las muertes ajenas al combate (`Humanoid.Died`, p. ej. caer al vacío) se propagan a `Character`.
+- **Motivo:** El script por defecto regeneraba el `Humanoid` sin pasar por `Character`, creando dos fuentes de verdad. La regeneración de vida, si se quiere, la decidirá el servidor (futuro ResourceService).
+
+## D-011 — Patrones de código para clases y servicios
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED
+- **Decisión:**
+  - **Clases** (objetos con varias instancias, p. ej. `Character`, `StateMachine`, `RateLimiter`):
+    ```lua
+    local Class = {}
+    Class.__index = Class
+    type ClassData = { _field: number }
+    export type Class = typeof(setmetatable({} :: ClassData, Class))
+    function Class.new(): Class return setmetatable({ _field = 0 }, Class) end
+    function Class.Method(self: Class): number return self._field end
+    ```
+  - **Servicios y controladores** (singletons): estado privado en variables locales del módulo; la tabla del módulo solo expone la API pública (`function Service:Init()`).
+  - Lecturas de mapas que pueden faltar se anotan como opcionales (`local x: Model? = map[key]`).
+  - Sin casts `(self :: any) :: Internal` ni redefinición de `self`.
+- **Motivo:** El patrón anterior producía 57 errores de tipo y 30 avisos de sombreado en luau-lsp y exponía el estado interno de los servicios. El nuevo patrón analiza sin errores en modo strict.
+
+## D-012 — Retirada del borrador de DataService y reducción de CombatIntent
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED
+- **Decisión:** Se elimina `DataService.luau` (no se inicializaba, dependía de paquetes ausentes y queda sustituido por D-004/D-005; sigue disponible en el historial de git). `CombatIntent` se reduce a `Type` + `ComboId` y `ServerCombatResponse` a `Status` + `Message`; `ComboDefinition` pierde `AnimationId` (la animación vive solo en `ClientComboCatalog`).
+- **Motivo:** Eliminar código muerto y campos que nadie leía. Los campos de habilidades (`AbilityId`, dirección) se definirán con el framework de habilidades (M2), no por adelantado.

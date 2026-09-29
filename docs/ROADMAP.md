@@ -2,11 +2,12 @@
 
 Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1 = vertical slice.
 
-## M0 — Higiene y toolchain (EN CURSO)
+## M0 — Higiene y toolchain (HECHO)
 - [x] Toolchain Rokit + selene + stylua + luau-lsp + lune.
 - [x] Constitución, DECISIONS.md y CHANGELOG.md en el repo.
 - [x] Bugs críticos de combate: aturdimiento permanente, golpes tras parry, fuga de tareas, recursos sin regeneración.
 - [x] Validación de payload y rate limit en `CombatIntent`; anti-spam de parry.
+- [x] Revisión completa: 0 errores de tipo, 0 avisos de lint, ciclo de vida de personajes corregido.
 
 ## M1 — Core Foundation (P0)
 - [ ] Loader de servicios (`Init`/`Start`), `Logger`, `Signal`.
@@ -28,4 +29,4 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 ## M6 — Descubrimiento de Zanpakuto, pulido y playtests (P1)
 
 ## Histórico
-- Prototipo inicial: `GameTypes`, `StateMachine`, `Character`, `CombatService`, `HitboxUtil`, `CombatController`, borrador de `DataService`.
+- Prototipo inicial: `GameTypes`, `StateMachine`, `Character`, `CombatService`, `HitboxUtil`, `CombatController` y un borrador de `DataService` (retirado, D-012).

@@ -1,42 +1,59 @@
-Architecture
-Engine
-Roblox
+# Architecture
 
-Language
-Luau
+Principios generales en [PROJECT_CONSTITUTION.md](PROJECT_CONSTITUTION.md) §10–13 y §66.
+Decisiones concretas en [DECISIONS.md](DECISIONS.md).
 
-Architecture
-Client / Server
+## Modelo cliente / servidor
+El servidor es autoritativo sobre todo el estado de juego (vida, recursos, estados, cooldowns, daño).
+El cliente envía **intenciones**; el servidor las valida y decide.
 
-Server Authority
-The server is authoritative over all gameplay-critical state.
+| Capa | Responsabilidades |
+|---|---|
+| Cliente | Input, cámara, UI, VFX locales, reproducción de animaciones |
+| Servidor | Validación, combate, daño, estado de personajes, persistencia, NPCs |
+| Shared | Tipos, módulos de lógica sin autoridad, catálogos de solo lectura |
 
-Client Responsibilities
-Input
-Camera
-UI
-Local visual effects
-Animation presentation
+## Mapeo Rojo
+| Carpeta | Destino en el juego |
+|---|---|
+| `src/Server` | `ServerScriptService.Server` |
+| `src/Client` | `StarterPlayer.StarterPlayerScripts.Client` |
+| `src/Shared` | `ReplicatedStorage.Shared` |
+| `src/CharacterScripts/Health.server.luau` | `StarterPlayer.StarterCharacterScripts.Health` (D-010) |
+| — | `ReplicatedStorage.Remotes.CombatIntent` (RemoteFunction, definida en `default.project.json`) |
 
-Server Responsibilities
-Combat validation
-Damage
-Player state
-Inventory
-Economy
-NPC state
-Persistence
+## Módulos actuales
+### Server
+- `init.server.luau` — arranque: registra combos, inicializa servicios y conecta el remote.
+- `Services/CharacterService` — ciclo de vida del personaje de cada jugador (crear, sincronizar con el `Humanoid`, liberar).
+- `Services/CombatService` — procesa `CombatIntent`: ataque, bloqueo/parry, Shunpo, aturdimientos, regeneración.
+- `Modules/HitboxUtil` — consultas espaciales y resolución de objetivos.
+- `Modules/CombatIntentValidator` — valida y sanea el payload del cliente.
+- `Modules/RateLimiter` — token bucket por clave (Luau puro).
+- `Combos/ExampleCombos` — definiciones autoritativas de combos.
 
-Shared
-Types
-Constants
-Configuration
-Pure utilities
+### Client
+- `init.client.luau` — arranque.
+- `Controllers/CombatController` — input provisional y animaciones de combo.
 
-Design Principles
-Prefer composition over deep inheritance.
-Use typed Luau.
-Keep modules focused.
-Validate all client requests on the server.
-Avoid global mutable state.
-Do not duplicate business logic between client and server.
+### Shared
+- `Types/GameTypes`, `Types/DataTypes` — tipos compartidos y borrador del esquema de datos.
+- `Modules/StateMachine` — máquina de estados genérica.
+- `Modules/Character` — vida, Reiatsu, postura y estado de un personaje.
+- `Network/CombatRemotes` — referencia al remote de combate.
+- `Combos/ClientComboCatalog` — animación por combo (solo presentación).
+
+## Flujo de un ataque
+1. El cliente envía `{ Type = "Attack", ComboId }` por `CombatIntent`.
+2. `CombatService` aplica rate limit → valida el payload → comprueba personaje vivo, estado, cooldown y recurso.
+3. Transición a `Attacking` y programación de los golpes (`task.delay` por ventana de golpe).
+4. Cada golpe consulta la hitbox en la posición actual del atacante y resuelve bloqueo, parry, daño y postura.
+5. Al salir de `Attacking` por cualquier motivo se cancelan los golpes pendientes.
+6. El cliente reproduce la animación solo si la respuesta es `Accepted`.
+
+## Convenciones de código
+- `--!strict` en todos los módulos; patrones de clase y servicio según D-011.
+- Identificadores en inglés; comentarios y documentación en español.
+- Composición sobre herencia. Módulos pequeños y con una responsabilidad.
+- Lógica pura (sin `game`/`Instance`) siempre que sea posible, para poder testearla con Lune (D-006).
+- No duplicar lógica de negocio entre cliente y servidor.

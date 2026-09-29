@@ -51,7 +51,10 @@ Managed by Rokit (rokit.toml). Run `rokit install` once.
 - Lint:    selene src
 - Format:  stylua src          (check: stylua --check src)
 - Sync:    rojo serve
-Run selene and stylua --check before committing Luau changes.
+- Types:   luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau src
+           (setup in README; must report 0 errors)
+Run selene, stylua --check and luau-lsp analyze before committing Luau changes.
+Follow the class/service patterns in docs/DECISIONS.md D-011.
 
 LANGUAGE OF THE PROJECT
 Code identifiers in English. Comments, docs and commit messages in Spanish.
