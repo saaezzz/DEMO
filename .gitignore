@@ -8,3 +8,6 @@
 sourcemap.json
 rojo_serve.log
 globalTypes.d.luau
+
+# Archivos de lugar generados con rojo build
+build/

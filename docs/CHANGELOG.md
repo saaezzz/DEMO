@@ -24,6 +24,7 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- `CharacterService` usa `LoadCharacterAsync` (sustituye a la API obsoleta `LoadCharacter`) en una tarea propia con `pcall`.
 - Las animaciones de combo se resuelven por clave vía `AnimationRegistry`; el marker del golpe de `BasicSlash` pasa a `Hit`.
 - Bloqueo por mantener pulsado: intent `Block` con `Active` e idempotente en el servidor (D-019).
 - Recursos genéricos por ID en `Character` (`SpendResource`, `RestoreResource`, `ResourceChanged`); costes `{ Resource, Amount }`; regeneración según la definición de cada recurso (D-017).

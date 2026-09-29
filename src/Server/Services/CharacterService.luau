@@ -69,10 +69,20 @@ local function buildAttributes(player: Player, data: PlayerData): CharacterAttri
 	}
 end
 
+-- LoadCharacterAsync cede y puede fallar: se lanza en su propia tarea para no ceder
+-- dentro de handlers de Signal (D-013).
 local function spawnCharacter(player: Player): ()
-	if isInGame(player) and DataService:IsLoaded(player) then
-		player:LoadCharacter()
+	if not (isInGame(player) and DataService:IsLoaded(player)) then
+		return
 	end
+	task.spawn(function()
+		local ok, err = pcall(function()
+			player:LoadCharacterAsync()
+		end)
+		if not ok then
+			log:Warn("No se pudo cargar el personaje de %s: %s", player.Name, tostring(err))
+		end
+	end)
 end
 
 -- Libera el personaje activo del jugador: desconecta, lo quita del combate y lo destruye.
