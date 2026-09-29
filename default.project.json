@@ -12,6 +12,11 @@
         "$path": "src/Server"
       }
     },
+    "Players": {
+      "$properties": {
+        "CharacterAutoLoads": false
+      }
+    },
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": {

@@ -13,7 +13,7 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] Loader de servicios (`Init`/`Start`), `Logger`, `Signal`.
 - [x] Capa `Networking` con validación de esquema y rate limit.
 - [x] Separar IP del núcleo; estados de personaje de §15 (adaptados, D-017); recursos genéricos.
-- [ ] DataService v1 con ProfileStore, `DataVersion`, migraciones y replicación privada.
+- [x] DataService v1 con ProfileStore, `DataVersion`, migraciones y replicación privada.
 - [x] Test runner (Lune), tests de la lógica pura y CI.
 - [ ] `InputService` (KBM, gamepad, táctil).
 - [ ] Registros: habilidades, animaciones, assets.

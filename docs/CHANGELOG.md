@@ -11,6 +11,8 @@ Las entradas nuevas van en `Unreleased`.
 - `Shared/Utils/ServiceLoader`: arranque en dos fases Init/Start (D-014).
 - Tests con Lune: runner con emulación del árbol de instancias desde el sourcemap y 51 tests de Signal, StateMachine, Character, Logger, ServiceLoader, RateLimiter y CombatIntentValidator (`docs/TESTING.md`).
 - CI en GitHub Actions: formato, lint, tipos, tests y build.
+- DataService v1 (D-018): ProfileStore 1.0.3, `DataVersion` y migraciones sobre copia, replicación al dueño (`PlayerData`), `PlayerDataController` en el cliente. Doc `DATA.md`.
+- Aparición controlada por el servidor tras cargar el perfil y reaparición tras morir (`CharacterAutoLoads` desactivado).
 - Capa de contenido (D-017): `Shared/Content` (razas, recursos, animaciones), `Server/Content` (combos, acciones), `Shared/Config/CharacterConfig` y tipos `ContentTypes`. Tests de frontera de IP e integridad de contenido.
 - Capa de red (D-016): `RemoteDefinitions`, `Schema`, `ServerNetwork`, `RemoteGuard`, `ClientNetwork`; remotes creados por código. Docs `NETWORKING.md` y `SECURITY.md`.
 - Toolchain fijado con Rokit (`rokit.toml`): rojo, selene, stylua, luau-lsp, lune.

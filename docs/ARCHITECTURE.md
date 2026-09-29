@@ -25,7 +25,10 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 ## Módulos actuales
 ### Server
 - `init.server.luau` — arranque: nivel de log y lista ordenada de servicios para `ServiceLoader`.
-- `Services/CharacterService` — ciclo de vida del personaje de cada jugador (crear, sincronizar con el `Humanoid`, liberar).
+- `Services/DataService` — perfiles con ProfileStore, migraciones y replicación al dueño (`docs/DATA.md`).
+- `Services/CharacterService` — aparición tras cargar el perfil, sincronización con el `Humanoid`, reaparición y liberación.
+- `Data/DataSchema`, `Data/Migrator` — versión, plantilla y migraciones del perfil.
+- `Packages/ProfileStore` — tercero, no se modifica.
 - `Services/CombatService` — carga los combos, atiende `CombatIntent`: ataque, bloqueo/parry, Shunpo, aturdimientos, regeneración.
 - `Modules/HitboxUtil` — consultas espaciales y resolución de objetivos.
 - `Network/ServerNetwork` — crea los remotes y registra handlers con validación obligatoria.
@@ -38,9 +41,10 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `init.client.luau` — arranque: nivel de log y lista de controladores.
 - `Controllers/CombatController` — input provisional y animaciones de combo.
 - `Network/ClientNetwork` — `Invoke`/`Fire`/`OnEvent` sobre los remotes.
+- `Controllers/PlayerDataController` — copia local de los datos del jugador.
 
 ### Shared
-- `Types/GameTypes`, `Types/ContentTypes` — tipos del núcleo y de las definiciones de contenido.
+- `Types/GameTypes`, `Types/ContentTypes`, `Types/PlayerDataTypes` — tipos del núcleo, del contenido y del perfil.
 - `Config/CharacterConfig` — valores base de balance (no IP).
 - `Content/Races`, `Content/Resources`, `Content/ComboAnimations` — contenido público (capa IP).
 - `Modules/StateMachine` — máquina de estados genérica.
@@ -53,7 +57,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `ServerNetwork` → `CombatService` → `CharacterService`. Cliente: `CombatController`.
+Servidor: `ServerNetwork` → `DataService` → `CombatService` → `CharacterService`. Cliente: `PlayerDataController` → `CombatController`.
 
 ## Flujo de un ataque
 1. El cliente envía `{ Type = "Attack", ComboId }` por `CombatIntent`.

@@ -53,11 +53,12 @@ Managed by Rokit (rokit.toml). Run `rokit install` once.
 - Format:  stylua src tests    (check: stylua --check src tests)
 - Tests:   lune run tests/runner   (docs/TESTING.md)
 - Sync:    rojo serve
-- Types:   luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau src
+- Types:   luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau --ignore="**/Packages/**" src
            (setup in README; must report 0 errors)
 Run selene, stylua --check, luau-lsp analyze and the Lune tests before committing Luau changes.
 Add or update tests for any pure-logic module you change (docs/TESTING.md).
 Follow the class/service patterns in docs/DECISIONS.md D-011.
+Never edit src/Server/Packages (third-party, see its README).
 
 LANGUAGE OF THE PROJECT
 Code identifiers in English. Comments, docs and commit messages in Spanish.

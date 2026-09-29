@@ -28,14 +28,14 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 
 ## D-004 — Persistencia con ProfileStore
 - **Fecha:** 2026-09-29
-- **Estado:** ACCEPTED (pendiente de implementar, tarea 8)
+- **Estado:** ACCEPTED (implementado, ver D-018)
 - **Decisión:** Sustituir ProfileService por [ProfileStore](https://github.com/MadStudioRoblox/ProfileStore) (sucesor del mismo autor).
 - **Motivo:** ProfileService ya no recibe desarrollo activo. Todavía no existen datos guardados, así que la migración no tiene coste de datos.
 - **Requisitos asociados:** `DataVersion` + migraciones (§59) desde la primera versión del esquema.
 
 ## D-005 — Replicación de datos propia y mínima
 - **Fecha:** 2026-09-29
-- **Estado:** ACCEPTED (pendiente de implementar, tarea 8)
+- **Estado:** ACCEPTED (implementado, ver D-018)
 - **Decisión:** No usar ReplicaService. Replicar al cliente solo sus propios datos mediante la capa de red del proyecto (snapshot inicial + deltas por ruta). Los datos públicos necesarios para otros jugadores (nivel, raza visible) se replicarán explícitamente, nunca por defecto.
 - **Alternativas:** ReplicaService (sin mantenimiento activo) o su sucesor `Replica`.
 - **Motivo:** Menos dependencias externas para un equipo pequeño, control total sobre qué se filtra (el `Replication = "All"` anterior exponía inventario y moneda de todos los jugadores).
@@ -135,3 +135,13 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
   - `Transformed` es un **flag/capa** de TransformationService (M2), no un estado exclusivo: un personaje transformado sigue atacando, bloqueando, etc. `Transforming` (la animación de transformación) sí es un estado.
   - Se añade `Dashing` (movimiento rápido tipo Shunpo), distinto de `Dodging` (esquiva con i-frames).
 - **Revisión:** esta adaptación cambia la lista de §15 de la constitución; el Lead Programmer debe confirmarla o pedir el modelo literal.
+
+## D-018 — DataService v1: versionado, migraciones y aparición tras cargar datos
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED
+- **Decisión:**
+  - ProfileStore 1.0.3 incluido en `src/Server/Packages` (commit fijado, licencia Apache-2.0, excluido de lint/formato/tipos). Se incluye el archivo en lugar de usar Wally: es una única dependencia y evita otra herramienta en el toolchain.
+  - Esquema con `DataVersion` obligatorio. `Migrator` migra **una copia**: si una migración falla o los datos son de una versión futura (p. ej. tras un rollback del servidor), el jugador es expulsado y los datos guardados no cambian.
+  - Replicación propia (D-005): copia completa al cargar y cambios por clave de primer nivel, solo al dueño, por el remote `PlayerData` (`ToClientEvent`).
+  - `Players.CharacterAutoLoads = false`: el personaje aparece cuando el perfil está cargado (usa su raza y nivel) y reaparece tras `CharacterConfig.RespawnSeconds`.
+- **Motivo:** §59 (no destruir datos), §10 (el servidor decide la aparición) y evitar la carrera entre `CharacterAdded` y la carga del perfil.

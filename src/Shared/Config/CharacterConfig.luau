@@ -6,6 +6,8 @@
 local CharacterConfig = {
 	BaseMaxHealth = 100,
 	MaxPosture = 100,
+	-- Segundos entre la muerte y la reaparición.
+	RespawnSeconds = 5,
 }
 
 return CharacterConfig

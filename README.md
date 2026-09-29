@@ -29,7 +29,7 @@ Análisis de tipos (debe dar 0 errores). La primera vez, descarga las definicion
 ```bash
 curl -L -o globalTypes.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
 rojo sourcemap default.project.json --include-non-scripts -o sourcemap.json
-luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau src
+luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau --ignore="**/Packages/**" src
 ```
 
 ## Estructura

@@ -22,10 +22,11 @@ Los remotes se crean por código en `ReplicatedStorage.Remotes` durante `ServerN
 ## Remotes actuales
 | Nombre | Tipo | Rate limit | Payload | Respuesta |
 |---|---|---|---|---|
-| `CombatIntent` | Function | ráfaga 10, 8/s | `{ Type: "Attack" \| "Block" \| "Shunpo", ComboId: string(≤64)? }` | `ServerCombatResponse` o `nil` |
+| `CombatIntent` | Function | ráfaga 10, 8/s | `{ Type: "Attack" \| "Block" \| "Dash", ComboId: string(≤64)? }` | `ServerCombatResponse` o `nil` |
+| `PlayerData` | ToClientEvent | — | `PlayerDataMessage` (copia completa o cambio por clave), solo al dueño | — |
 
 ## Añadir un remote
-1. Añade el nombre al tipo `RemoteName` y su definición en `RemoteDefinitions`.
+1. Añade el nombre al tipo `RemoteName` y su definición en `RemoteDefinitions` (`Function`, `ToServerEvent` o `ToClientEvent`; los que inicia el cliente necesitan `RateLimit`).
 2. Define su esquema con `Schema` (en un módulo propio si quieres testearlo con Lune).
 3. En el `Start` del servicio dueño:
    ```lua
@@ -40,4 +41,5 @@ Los remotes se crean por código en `ReplicatedStorage.Remotes` durante `ServerN
 - Rate limit superado, payload inválido o error del handler → el cliente recibe `nil` y el
   servidor lo registra (`Debug` para rechazos, `Error` para fallos del handler).
 - Un `RemoteFunction` sin handler registrado responde `nil` en lugar de bloquear al cliente.
+- Lo que un cliente emita en un `ToClientEvent` se descarta (y se registra en `Debug`).
 - Registrar dos handlers para el mismo remote, o un handler del tipo equivocado, aborta el arranque.

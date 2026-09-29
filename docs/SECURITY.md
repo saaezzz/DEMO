@@ -14,10 +14,12 @@ implementado** y los riesgos conocidos pendientes.
 | Acciones de personajes muertos | Se rechazan | `CombatService.getActiveCharacter` |
 | Parry encadenado pulsando bloqueo | Una ventana de parry cada 0,8 s | `CombatService` (D-009) |
 | Reiniciar cooldowns muriendo | Los cooldowns son por jugador, no por modelo | `CombatService` |
+| Sesiones concurrentes / duplicación de datos | Bloqueo de sesión de ProfileStore; si otro servidor toma la sesión, se expulsa al jugador | `DataService` |
+| Corrupción por migraciones o rollback | Migración sobre copia; versiones futuras no se tocan | `Migrator` (D-018) |
+| Datos de otros jugadores | Cada cliente solo recibe sus propios datos | `DataService` (D-005) |
 | Vida modificada fuera del servidor | Vida autoritativa en `Character`; regeneración de Roblox desactivada | D-010 |
 
 ## Riesgos conocidos (pendientes)
 - **Movimiento:** no hay validación de velocidad/teletransporte. Necesario antes de que Shunpo mueva al personaje (framework de movimiento, M2).
 - **Hitbox sin orientación:** el bloqueo protege también de golpes por la espalda.
 - **Friendly fire:** los jugadores pueden dañarse entre sí; falta la capa de facciones/objetivos válidos (juego PvE).
-- **Datos persistentes:** aún no existen; la tarea 8 (ProfileStore) debe incluir protección contra duplicados y sesiones concurrentes.
