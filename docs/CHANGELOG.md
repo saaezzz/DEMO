@@ -11,6 +11,12 @@ Las entradas nuevas van en `Unreleased`.
 - `.gitattributes` para forzar finales de línea LF.
 - `docs/PROJECT_CONSTITUTION.md`, `docs/DECISIONS.md`, `docs/CHANGELOG.md`.
 
+### Fixed
+- Combate: `Stunned` ya no es permanente; parry (0,8 s) y rotura de postura (1,5 s) tienen duración y vuelven a `Idle`.
+- Combate: los golpes y la recuperación de un ataque se cancelan al salir de `Attacking` (sin golpes tras recibir parry, y la recuperación de un combo anterior ya no corta el siguiente).
+- Combate: las tareas programadas se limpian al ejecutarse o al desregistrar el personaje (antes la lista crecía sin límite).
+- Recursos: el Reiatsu se regenera y la postura decae de forma pasiva; el M1 ya no consume Reiatsu (D-008).
+
 ### Removed
 - Scripts de prueba `RedCircle.server.luau` y `Hello.luau`.
 

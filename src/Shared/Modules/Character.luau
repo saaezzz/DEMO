@@ -47,6 +47,7 @@ export type Character = {
 	SpendReiatsu: (self: Character, amount: number) -> boolean,
 	RestoreReiatsu: (self: Character, amount: number) -> number,
 	ApplyPostureDamage: (self: Character, amount: number) -> number,
+	RecoverPosture: (self: Character, amount: number) -> number,
 	ResetPosture: (self: Character) -> (),
 
 	GetState: (self: Character) -> CharacterStateName,
@@ -223,9 +224,20 @@ function Character:ApplyPostureDamage(amount: number): number
 	self._posture = clamp(oldPosture + amount, 0, self._maxPosture)
 	self._postureChangedEvent:Fire(self._posture, oldPosture)
 
-	if self._posture >= self._maxPosture then
-		self._stateMachine:TransitionTo("Stunned")
+	-- La rotura de postura (aturdimiento y su duración) la resuelve CombatService.
+	return self._posture
+end
+
+function Character:RecoverPosture(amount: number): number
+	local self = (self :: any) :: CharacterInternal
+
+	if self._destroyed or amount <= 0 or self._posture <= 0 then
+		return self._posture
 	end
+
+	local oldPosture = self._posture
+	self._posture = clamp(oldPosture - amount, 0, self._maxPosture)
+	self._postureChangedEvent:Fire(self._posture, oldPosture)
 
 	return self._posture
 end

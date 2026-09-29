@@ -7,6 +7,7 @@ local Character = require(ReplicatedStorage.Shared.Modules.Character)
 local HitboxUtil = require(script.Parent.Parent.Modules.HitboxUtil)
 
 type Character = Character.Character
+type CharacterStateName = GameTypes.CharacterStateName
 type CombatIntent = GameTypes.CombatIntent
 type ServerCombatResponse = GameTypes.ServerCombatResponse
 type ComboDefinition = GameTypes.ComboDefinition
@@ -22,21 +23,37 @@ export type CombatService = {
 	Shutdown: (self: CombatService) -> (),
 }
 
+type TaskSet = { [thread]: boolean }
+
 type CombatServiceInternal = CombatService & {
 	_combos: { [string]: ComboDefinition },
 	_characters: { [Model]: Character },
 	_playerModels: { [Player]: Model },
 	_lastComboUse: { [Player]: { [string]: number } },
 	_blockStartTimes: { [Model]: number },
-	_pendingTasks: { thread },
+	-- Todas las tareas programadas de cada modelo, para cancelarlas al desregistrarlo.
+	_modelTasks: { [Model]: TaskSet },
+	-- Tareas del ataque en curso (golpes + recuperación); se cancelan si se sale de Attacking.
+	_attackTasks: { [Model]: { thread } },
+	_stunRecoveryTasks: { [Model]: thread },
+	_stateConnections: { [Model]: RBXScriptConnection },
+	_regenThread: thread?,
 	_connections: { RBXScriptConnection },
 }
 
 local SHUNPO_REIATSU_COST = 15
 local SHUNPO_DURATION_SECONDS = 0.4
 local PARRY_WINDOW_SECONDS = 0.3
+local PARRY_STUN_SECONDS = 0.8
+local POSTURE_BREAK_STUN_SECONDS = 1.5
 local BLOCK_DAMAGE_MULTIPLIER = 0.25
 local BLOCK_POSTURE_MULTIPLIER = 1.5
+
+-- Tick de baja frecuencia para regeneración pasiva (ver DECISIONS.md D-008).
+-- Provisional: se moverá a ResourceService cuando exista.
+local REGEN_TICK_SECONDS = 0.25
+local REIATSU_REGEN_PER_SECOND = 5
+local POSTURE_DECAY_PER_SECOND = 10
 
 local CombatService: CombatServiceInternal = {} :: CombatServiceInternal
 CombatService.__index = CombatService :: any
@@ -46,7 +63,11 @@ CombatService._characters = {}
 CombatService._playerModels = {}
 CombatService._lastComboUse = {}
 CombatService._blockStartTimes = {}
-CombatService._pendingTasks = {}
+CombatService._modelTasks = {}
+CombatService._attackTasks = {}
+CombatService._stunRecoveryTasks = {}
+CombatService._stateConnections = {}
+CombatService._regenThread = nil
 CombatService._connections = {}
 
 local function respond(status: GameTypes.ServerResponseStatus, message: string?): ServerCombatResponse
@@ -68,12 +89,108 @@ local function getComboDuration(combo: ComboDefinition): number
 	return duration
 end
 
+-- Programa una tarea asociada a un modelo. La tarea se elimina de su conjunto
+-- al ejecutarse, de modo que las listas no crecen indefinidamente.
+local function scheduleFor(self: CombatServiceInternal, model: Model, delaySeconds: number, callback: () -> ()): thread
+	local taskSet = self._modelTasks[model]
+	if taskSet == nil then
+		taskSet = {}
+		self._modelTasks[model] = taskSet
+	end
+
+	local thread: thread
+	thread = task.delay(delaySeconds, function()
+		taskSet[thread] = nil
+		callback()
+	end)
+	taskSet[thread] = true
+
+	return thread
+end
+
+-- Solo se cancelan hilos suspendidos: un hilo puede provocar su propia
+-- cancelación (p. ej. un golpe que recibe parry cancela el ataque en curso).
+local function cancelTask(self: CombatServiceInternal, model: Model, thread: thread): ()
+	local taskSet = self._modelTasks[model]
+	if taskSet ~= nil then
+		taskSet[thread] = nil
+	end
+	if coroutine.status(thread) == "suspended" then
+		task.cancel(thread)
+	end
+end
+
+local function cancelAllTasks(self: CombatServiceInternal, model: Model): ()
+	local taskSet = self._modelTasks[model]
+	if taskSet == nil then
+		return
+	end
+	for thread in pairs(taskSet) do
+		if coroutine.status(thread) == "suspended" then
+			task.cancel(thread)
+		end
+	end
+	self._modelTasks[model] = nil
+end
+
+local function cancelAttack(self: CombatServiceInternal, model: Model): ()
+	local attackTasks = self._attackTasks[model]
+	if attackTasks == nil then
+		return
+	end
+	self._attackTasks[model] = nil
+	for _, thread in ipairs(attackTasks) do
+		cancelTask(self, model, thread)
+	end
+end
+
+local function applyStun(self: CombatServiceInternal, model: Model, character: Character, duration: number): ()
+	if character:GetState() ~= "Stunned" then
+		local ok = character:TransitionTo("Stunned")
+		if not ok then
+			return
+		end
+	end
+
+	-- Un nuevo aturdimiento reinicia la duración en lugar de acumular salidas.
+	local previousRecovery = self._stunRecoveryTasks[model]
+	if previousRecovery ~= nil then
+		cancelTask(self, model, previousRecovery)
+	end
+
+	self._stunRecoveryTasks[model] = scheduleFor(self, model, duration, function()
+		self._stunRecoveryTasks[model] = nil
+		if character:GetState() == "Stunned" then
+			character:TransitionTo("Idle")
+		end
+	end)
+end
+
+local function onCharacterStateChanged(
+	self: CombatServiceInternal,
+	model: Model,
+	oldState: CharacterStateName,
+	_newState: CharacterStateName
+): ()
+	if oldState == "Attacking" then
+		cancelAttack(self, model)
+	elseif oldState == "Blocking" then
+		self._blockStartTimes[model] = nil
+	end
+end
+
 function CombatService:RegisterCombo(combo: ComboDefinition): ()
+	local self = (self :: any) :: CombatServiceInternal
 	self._combos[combo.Id] = combo
 end
 
 function CombatService:RegisterCharacter(player: Player?, model: Model, character: Character): ()
+	local self = (self :: any) :: CombatServiceInternal
 	self._characters[model] = character
+
+	self._stateConnections[model] = character:OnStateChanged(function(oldState, newState)
+		onCharacterStateChanged(self, model, oldState, newState)
+	end)
 
 	if player ~= nil then
 		self._playerModels[player] = model
@@ -82,6 +199,18 @@ function CombatService:RegisterCharacter(player: Player?, model: Model, characte
 end
 
 function CombatService:UnregisterCharacter(model: Model): ()
+	local self = (self :: any) :: CombatServiceInternal
+
+	cancelAllTasks(self, model)
+	self._attackTasks[model] = nil
+	self._stunRecoveryTasks[model] = nil
+
+	local stateConnection = self._stateConnections[model]
+	if stateConnection ~= nil then
+		stateConnection:Disconnect()
+		self._stateConnections[model] = nil
+	end
+
 	self._characters[model] = nil
 	self._blockStartTimes[model] = nil
 
@@ -113,7 +242,7 @@ local function resolveHit(
 		if blockStart ~= nil and (os.clock() - blockStart) <= PARRY_WINDOW_SECONDS then
 			local attackerCharacter = self._characters[attackerModel]
 			if attackerCharacter ~= nil and attackerCharacter:GetState() == "Attacking" then
-				attackerCharacter:TransitionTo("Stunned")
+				applyStun(self, attackerModel, attackerCharacter, PARRY_STUN_SECONDS)
 			end
 			return
 		end
@@ -124,35 +253,57 @@ local function resolveHit(
 
 	defenderCharacter:TakeDamage(damage)
 	defenderCharacter:ApplyPostureDamage(postureDamage)
+
+	if defenderCharacter:IsAlive() and defenderCharacter:GetPosture() >= defenderCharacter:GetMaxPosture() then
+		defenderCharacter:ResetPosture()
+		applyStun(self, target.Model, defenderCharacter, POSTURE_BREAK_STUN_SECONDS)
+	end
 end
 
-local function scheduleCombo(self: CombatServiceInternal, attackerModel: Model, combo: ComboDefinition): ()
+local function scheduleCombo(
+	self: CombatServiceInternal,
+	attackerModel: Model,
+	attackerCharacter: Character,
+	combo: ComboDefinition
+): ()
 	local ignoreList: { Instance } = { attackerModel }
 	local overlapParams = HitboxUtil.BuildOverlapParams(ignoreList)
+	local attackTasks: { thread } = {}
 
 	for _, hit in ipairs(combo.Hits) do
-		local thread = task.delay(hit.StartTime, function()
-			local rootPart = attackerModel.PrimaryPart
-			if rootPart == nil then
-				return
-			end
+		table.insert(
+			attackTasks,
+			scheduleFor(self, attackerModel, hit.StartTime, function()
+				if not attackerCharacter:IsAlive() or attackerCharacter:GetState() ~= "Attacking" then
+					return
+				end
 
-			local targets = HitboxUtil.FindTargets(hit.Hitbox, rootPart.CFrame, overlapParams)
-			for _, target in ipairs(targets) do
-				resolveHit(self, attackerModel, target, hit)
-			end
-		end)
-		table.insert(self._pendingTasks, thread)
+				local rootPart = attackerModel.PrimaryPart
+				if rootPart == nil then
+					return
+				end
+
+				local targets = HitboxUtil.FindTargets(hit.Hitbox, rootPart.CFrame, overlapParams)
+				for _, target in ipairs(targets) do
+					resolveHit(self, attackerModel, target, hit)
+				end
+			end)
+		)
 	end
 
 	local duration = getComboDuration(combo)
-	local recoveryThread = task.delay(duration, function()
-		local attackerCharacter = self._characters[attackerModel]
-		if attackerCharacter ~= nil and attackerCharacter:GetState() == "Attacking" then
-			attackerCharacter:TransitionTo("Idle")
-		end
-	end)
-	table.insert(self._pendingTasks, recoveryThread)
+	table.insert(
+		attackTasks,
+		scheduleFor(self, attackerModel, duration, function()
+			-- Se vacía antes de la transición para que cancelAttack no toque este hilo.
+			self._attackTasks[attackerModel] = nil
+			if attackerCharacter:GetState() == "Attacking" then
+				attackerCharacter:TransitionTo("Idle")
+			end
+		end)
+	)
+
+	self._attackTasks[attackerModel] = attackTasks
 end
 
 local function processAttack(self: CombatServiceInternal, player: Player, intent: CombatIntent): ServerCombatResponse
@@ -191,7 +342,7 @@ local function processAttack(self: CombatServiceInternal, player: Player, intent
 		return respond("OnCooldown", nil)
 	end
 
-	if not character:SpendReiatsu(combo.ReiatsuCost) then
+	if combo.ReiatsuCost > 0 and not character:SpendReiatsu(combo.ReiatsuCost) then
 		return respond("InsufficientResource", "Reiatsu insuficiente")
 	end
 
@@ -201,7 +352,7 @@ local function processAttack(self: CombatServiceInternal, player: Player, intent
 	end
 
 	playerCooldowns[combo.Id] = now
-	scheduleCombo(self, model, combo)
+	scheduleCombo(self, model, character, combo)
 
 	return respond("Accepted", nil)
 end
@@ -215,9 +366,6 @@ local function processBlock(self: CombatServiceInternal, player: Player, _intent
 
 	if character:GetState() == "Blocking" then
 		local ok = character:TransitionTo("Idle")
-		if ok then
-			self._blockStartTimes[model] = nil
-		end
 		return respond(ok and "Accepted" or "InvalidState", nil)
 	end
 
@@ -248,14 +396,28 @@ local function processShunpo(self: CombatServiceInternal, player: Player, _inten
 
 	character:TransitionTo("Shunpo")
 
-	local thread = task.delay(SHUNPO_DURATION_SECONDS, function()
+	scheduleFor(self, model, SHUNPO_DURATION_SECONDS, function()
 		if character:GetState() == "Shunpo" then
 			character:TransitionTo("Idle")
 		end
 	end)
-	table.insert(self._pendingTasks, thread)
 
 	return respond("Accepted", nil)
+end
+
+local function regenerate(self: CombatServiceInternal, deltaSeconds: number): ()
+	for _, character in pairs(self._characters) do
+		if character:IsAlive() then
+			if character:GetReiatsu() < character:GetMaxReiatsu() then
+				character:RestoreReiatsu(REIATSU_REGEN_PER_SECOND * deltaSeconds)
+			end
+
+			local state = character:GetState()
+			if character:GetPosture() > 0 and state ~= "Blocking" and state ~= "Stunned" then
+				character:RecoverPosture(POSTURE_DECAY_PER_SECOND * deltaSeconds)
+			end
+		end
+	end
 end
 
 function CombatService:ProcessIntent(player: Player, intent: CombatIntent): ServerCombatResponse
@@ -272,7 +434,20 @@ function CombatService:ProcessIntent(player: Player, intent: CombatIntent): Serv
 	end
 end
 
-function CombatService:Init(): () end
+function CombatService:Init(): ()
+	local self = (self :: any) :: CombatServiceInternal
+
+	if self._regenThread ~= nil then
+		return
+	end
+
+	self._regenThread = task.spawn(function()
+		while true do
+			local deltaSeconds = task.wait(REGEN_TICK_SECONDS)
+			regenerate(self, deltaSeconds)
+		end
+	end)
+end
 
 function CombatService:Shutdown(): ()
 	local self = (self :: any) :: CombatServiceInternal
@@ -282,18 +457,24 @@ function CombatService:Shutdown(): ()
 	end
 	table.clear(self._connections)
 
-	for _, thread in ipairs(self._pendingTasks) do
-		if coroutine.status(thread) ~= "dead" then
-			task.cancel(thread)
-		end
+	if self._regenThread ~= nil then
+		task.cancel(self._regenThread)
+		self._regenThread = nil
 	end
-	table.clear(self._pendingTasks)
+
+	for model in pairs(self._characters) do
+		self:UnregisterCharacter(model)
+	end
 
 	table.clear(self._combos)
 	table.clear(self._characters)
 	table.clear(self._playerModels)
 	table.clear(self._lastComboUse)
 	table.clear(self._blockStartTimes)
+	table.clear(self._modelTasks)
+	table.clear(self._attackTasks)
+	table.clear(self._stunRecoveryTasks)
+	table.clear(self._stateConnections)
 end
 
 return (CombatService :: any) :: CombatService

@@ -26,7 +26,7 @@ local BasicSlash: ComboDefinition = {
 		},
 	},
 	CooldownSeconds = 0.6,
-	ReiatsuCost = 5,
+	ReiatsuCost = 0,
 }
 
 local ExampleCombos: { ComboDefinition } = { BasicSlash }
