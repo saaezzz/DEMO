@@ -5,12 +5,6 @@
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/Shared"
-      },
-      "Remotes": {
-        "$className": "Folder",
-        "CombatIntent": {
-          "$className": "RemoteFunction"
-        }
       }
     },
     "ServerScriptService": {

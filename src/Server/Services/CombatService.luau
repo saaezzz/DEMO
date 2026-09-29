@@ -6,10 +6,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
 local HitboxUtil = require(script.Parent.Parent.Modules.HitboxUtil)
-local RateLimiter = require(script.Parent.Parent.Modules.RateLimiter)
 local CombatIntentValidator = require(script.Parent.Parent.Modules.CombatIntentValidator)
 local ExampleCombos = require(script.Parent.Parent.Combos.ExampleCombos)
-local CombatRemotes = require(ReplicatedStorage.Shared.Network.CombatRemotes)
+local ServerNetwork = require(script.Parent.Parent.Network.ServerNetwork)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 local Signal = require(ReplicatedStorage.Shared.Utils.Signal)
 
@@ -39,10 +38,6 @@ local REGEN_TICK_SECONDS = 0.25
 local REIATSU_REGEN_PER_SECOND = 5
 local POSTURE_DECAY_PER_SECOND = 10
 
--- Rate limit de CombatIntent por jugador: ráfaga de 10, 8 intents/s sostenidos.
-local INTENT_BURST = 10
-local INTENTS_PER_SECOND = 8
-
 type TaskSet = { [thread]: boolean }
 
 local combos: { [string]: ComboDefinition } = {}
@@ -59,7 +54,6 @@ local modelTasks: { [Model]: TaskSet } = {}
 local attackTasks: { [Model]: { thread } } = {}
 local stunRecoveryTasks: { [Model]: thread } = {}
 local stateConnections: { [Model]: Signal.Connection } = {}
-local intentLimiter = RateLimiter.new(INTENT_BURST, INTENTS_PER_SECOND)
 
 local log = Logger.new("CombatService")
 
@@ -391,22 +385,11 @@ local function regenerate(deltaSeconds: number): ()
 end
 
 local function onPlayerRemoving(player: Player): ()
-	intentLimiter:Remove(player)
 	lastComboUse[player] = nil
 end
 
-local function processIntent(player: Player, payload: unknown): ServerCombatResponse
-	if not intentLimiter:Consume(player) then
-		log:Debug("Rate limit superado por %s", player.Name)
-		return respond("Rejected", "Demasiadas peticiones")
-	end
-
-	local intent, validationError = CombatIntentValidator.Validate(payload)
-	if intent == nil then
-		log:Debug("Intent inválido de %s: %s", player.Name, tostring(validationError))
-		return respond("Rejected", validationError)
-	end
-
+-- El intent llega ya validado y saneado por ServerNetwork (rate limit + esquema).
+local function processIntent(player: Player, intent: CombatIntent): ServerCombatResponse
 	if intent.Type == "Attack" then
 		return processAttack(player, intent)
 	elseif intent.Type == "Block" then
@@ -424,11 +407,12 @@ function CombatService:Init(): ()
 	for _, combo in ExampleCombos do
 		combos[combo.Id] = combo
 	end
+	log:Debug("%d combos cargados", #ExampleCombos)
 end
 
 function CombatService:Start(): ()
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
-	CombatRemotes.CombatIntent.OnServerInvoke = processIntent
+	ServerNetwork:HandleFunction("CombatIntent", CombatIntentValidator.Validate, processIntent)
 
 	task.spawn(function()
 		while true do

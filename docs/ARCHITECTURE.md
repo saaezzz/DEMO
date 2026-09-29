@@ -20,7 +20,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 | `src/Client` | `StarterPlayer.StarterPlayerScripts.Client` |
 | `src/Shared` | `ReplicatedStorage.Shared` |
 | `src/CharacterScripts/Health.server.luau` | `StarterPlayer.StarterCharacterScripts.Health` (D-010) |
-| — | `ReplicatedStorage.Remotes.CombatIntent` (RemoteFunction, definida en `default.project.json`) |
+| — | `ReplicatedStorage.Remotes` — creada por `ServerNetwork` al arrancar (D-016) |
 
 ## Módulos actuales
 ### Server
@@ -28,19 +28,23 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Services/CharacterService` — ciclo de vida del personaje de cada jugador (crear, sincronizar con el `Humanoid`, liberar).
 - `Services/CombatService` — carga los combos, atiende `CombatIntent`: ataque, bloqueo/parry, Shunpo, aturdimientos, regeneración.
 - `Modules/HitboxUtil` — consultas espaciales y resolución de objetivos.
-- `Modules/CombatIntentValidator` — valida y sanea el payload del cliente.
+- `Network/ServerNetwork` — crea los remotes y registra handlers con validación obligatoria.
+- `Network/RemoteGuard` — rate limit + validación + `pcall` para cada handler.
+- `Modules/CombatIntentValidator` — esquema del payload de `CombatIntent`.
 - `Modules/RateLimiter` — token bucket por clave (Luau puro).
 - `Combos/ExampleCombos` — definiciones autoritativas de combos.
 
 ### Client
 - `init.client.luau` — arranque: nivel de log y lista de controladores.
 - `Controllers/CombatController` — input provisional y animaciones de combo.
+- `Network/ClientNetwork` — `Invoke`/`Fire`/`OnEvent` sobre los remotes.
 
 ### Shared
 - `Types/GameTypes`, `Types/DataTypes` — tipos compartidos y borrador del esquema de datos.
 - `Modules/StateMachine` — máquina de estados genérica.
 - `Modules/Character` — vida, Reiatsu, postura y estado de un personaje.
-- `Network/CombatRemotes` — referencia al remote de combate.
+- `Network/RemoteDefinitions` — catálogo de remotes y rate limits (D-016).
+- `Network/Schema` — validadores declarativos de payloads.
 - `Utils/Signal` — señal síncrona en Luau puro (D-013).
 - `Utils/Logger` — logs con niveles (D-015).
 - `Utils/ServiceLoader` — arranque Init/Start (D-014).
@@ -48,11 +52,11 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `CombatService` → `CharacterService`. Cliente: `CombatController`.
+Servidor: `ServerNetwork` → `CombatService` → `CharacterService`. Cliente: `CombatController`.
 
 ## Flujo de un ataque
 1. El cliente envía `{ Type = "Attack", ComboId }` por `CombatIntent`.
-2. `CombatService` aplica rate limit → valida el payload → comprueba personaje vivo, estado, cooldown y recurso.
+2. `RemoteGuard` aplica rate limit y valida el payload; `CombatService` comprueba personaje vivo, estado, cooldown y recurso.
 3. Transición a `Attacking` y programación de los golpes (`task.delay` por ventana de golpe).
 4. Cada golpe consulta la hitbox en la posición actual del atacante y resuelve bloqueo, parry, daño y postura.
 5. Al salir de `Attacking` por cualquier motivo se cancelan los golpes pendientes.

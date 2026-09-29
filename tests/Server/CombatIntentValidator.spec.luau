@@ -1,8 +1,8 @@
 local Validator = require(game:GetService("ServerScriptService").Server.Modules.CombatIntentValidator)
 
 local function isValid(payload)
-	local intent = Validator.Validate(payload)
-	return intent ~= nil
+	local ok = Validator.Validate(payload)
+	return ok
 end
 
 return {
@@ -14,7 +14,7 @@ return {
 
 	["devuelve una copia saneada, no la tabla del cliente"] = function()
 		local payload = { Type = "Attack", ComboId = "BasicSlash" }
-		local intent = Validator.Validate(payload)
+		local _, intent = Validator.Validate(payload)
 		expect(intent == payload).toBe(false)
 		expect(intent).toEqual({ Type = "Attack", ComboId = "BasicSlash" })
 	end,
@@ -41,8 +41,8 @@ return {
 		for index = 1, 100 do
 			payload[index] = index
 		end
-		local _, reason = Validator.Validate(payload)
-		expect(isValid(payload)).toBe(false)
+		local ok, reason = Validator.Validate(payload)
+		expect(ok).toBe(false)
 		expect(reason).toBeTruthy()
 	end,
 

@@ -11,6 +11,7 @@ Las entradas nuevas van en `Unreleased`.
 - `Shared/Utils/ServiceLoader`: arranque en dos fases Init/Start (D-014).
 - Tests con Lune: runner con emulación del árbol de instancias desde el sourcemap y 51 tests de Signal, StateMachine, Character, Logger, ServiceLoader, RateLimiter y CombatIntentValidator (`docs/TESTING.md`).
 - CI en GitHub Actions: formato, lint, tipos, tests y build.
+- Capa de red (D-016): `RemoteDefinitions`, `Schema`, `ServerNetwork`, `RemoteGuard`, `ClientNetwork`; remotes creados por código. Docs `NETWORKING.md` y `SECURITY.md`.
 - Toolchain fijado con Rokit (`rokit.toml`): rojo, selene, stylua, luau-lsp, lune.
 - Configuración de lint (`selene.toml`), formato (`stylua.toml`) y tipos (`.luaurc`).
 - `.gitattributes` para forzar finales de línea LF.
@@ -19,6 +20,7 @@ Las entradas nuevas van en `Unreleased`.
 
 ### Changed
 - `Character` y `StateMachine` usan `Signal` en lugar de `BindableEvent` (eventos síncronos y deterministas).
+- `CombatIntent` pasa por `ServerNetwork`; `CombatIntentValidator` es ahora un esquema de `Schema`; se elimina `Shared/Network/CombatRemotes` y el remote del `default.project.json`.
 - Servicios y controladores arrancan con `ServiceLoader`; `CombatService` carga sus combos y conecta su remote; se eliminan los `Shutdown`/`Destroy` sin uso.
 - Clases y servicios reescritos con el patrón de D-011: 0 errores de tipo en luau-lsp (antes 57) y 0 avisos de Selene.
 - `CombatIntent` reducido a `Type` + `ComboId`; `ServerCombatResponse` a `Status` + `Message`; `AnimationId` solo en `ClientComboCatalog` (D-012).

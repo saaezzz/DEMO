@@ -116,3 +116,11 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Estado:** ACCEPTED
 - **Decisión:** `Shared/Utils/Logger` con niveles `Debug < Info < Warn < Error` y ámbito por módulo (`[Info][CombatService] ...`). Nivel global: `Debug` en Studio, `Info` en servidores publicados. `Error` escribe con `warn`, no lanza. La salida es inyectable para tests.
 - **Motivo:** sustituir `print` sueltos por mensajes filtrables y con origen.
+
+## D-016 — Capa de red con definiciones, esquemas y guardas
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED (sustituye la parte provisional de D-009)
+- **Decisión:** Todos los remotes se declaran en `Shared/Network/RemoteDefinitions` (tipo y rate limit) y el servidor los crea por código. Un handler solo se puede registrar con `ServerNetwork:HandleFunction/HandleEvent` junto a un validador de `Shared/Network/Schema`; `RemoteGuard` aplica rate limit, validación y `pcall`. Los rechazos devuelven `nil` al cliente.
+- **Alternativas:** librerías de red externas (ByteNet, Zap, Blink): aportan serialización binaria y tipado generado, pero añaden dependencia y paso de build; no hacen falta con el tráfico actual. Se reconsiderará si el ancho de banda lo exige.
+- **Motivo:** §11 exige validar tipo, tamaño y ritmo en cada remote; centralizarlo evita que un remote nuevo olvide alguna comprobación. `CombatIntentValidator` pasa a ser un esquema (§67: un mecanismo reutilizable).
+- **Pendiente:** `CombatIntent` sigue siendo `RemoteFunction` (el cliente espera la respuesta antes de animar). Pasar a evento + predicción del cliente se decidirá con el framework de combate (M2).

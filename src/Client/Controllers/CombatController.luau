@@ -4,9 +4,10 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local CombatRemotes = require(ReplicatedStorage.Shared.Network.CombatRemotes)
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local ClientComboCatalog = require(ReplicatedStorage.Shared.Combos.ClientComboCatalog)
+
+local ClientNetwork = require(script.Parent.Parent.Network.ClientNetwork)
 
 type CombatIntent = GameTypes.CombatIntent
 type CombatIntentType = GameTypes.CombatIntentType
@@ -32,17 +33,12 @@ local function sendIntent(intentType: CombatIntentType, comboId: string?): Serve
 		ComboId = comboId,
 	}
 
-	local ok, result = pcall(function()
-		return CombatRemotes.CombatIntent:InvokeServer(intent)
-	end)
-	if not ok then
-		return {
-			Status = "Rejected",
-			Message = "Fallo de comunicación con el servidor",
-		}
+	-- nil = rechazado por la capa de red (rate limit, payload inválido) o fallo de comunicación.
+	local response: ServerCombatResponse? = ClientNetwork.Invoke("CombatIntent", intent)
+	if response == nil then
+		return { Status = "Rejected", Message = nil }
 	end
-
-	return result :: ServerCombatResponse
+	return response
 end
 
 local function getComboTrack(currentAnimator: Animator, comboId: string): AnimationTrack?
