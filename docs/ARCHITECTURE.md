@@ -24,16 +24,16 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Módulos actuales
 ### Server
-- `init.server.luau` — arranque: registra combos, inicializa servicios y conecta el remote.
+- `init.server.luau` — arranque: nivel de log y lista ordenada de servicios para `ServiceLoader`.
 - `Services/CharacterService` — ciclo de vida del personaje de cada jugador (crear, sincronizar con el `Humanoid`, liberar).
-- `Services/CombatService` — procesa `CombatIntent`: ataque, bloqueo/parry, Shunpo, aturdimientos, regeneración.
+- `Services/CombatService` — carga los combos, atiende `CombatIntent`: ataque, bloqueo/parry, Shunpo, aturdimientos, regeneración.
 - `Modules/HitboxUtil` — consultas espaciales y resolución de objetivos.
 - `Modules/CombatIntentValidator` — valida y sanea el payload del cliente.
 - `Modules/RateLimiter` — token bucket por clave (Luau puro).
 - `Combos/ExampleCombos` — definiciones autoritativas de combos.
 
 ### Client
-- `init.client.luau` — arranque.
+- `init.client.luau` — arranque: nivel de log y lista de controladores.
 - `Controllers/CombatController` — input provisional y animaciones de combo.
 
 ### Shared
@@ -41,7 +41,14 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Modules/StateMachine` — máquina de estados genérica.
 - `Modules/Character` — vida, Reiatsu, postura y estado de un personaje.
 - `Network/CombatRemotes` — referencia al remote de combate.
+- `Utils/Signal` — señal síncrona en Luau puro (D-013).
+- `Utils/Logger` — logs con niveles (D-015).
+- `Utils/ServiceLoader` — arranque Init/Start (D-014).
 - `Combos/ClientComboCatalog` — animación por combo (solo presentación).
+
+## Arranque
+`ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
+Servidor: `CombatService` → `CharacterService`. Cliente: `CombatController`.
 
 ## Flujo de un ataque
 1. El cliente envía `{ Type = "Attack", ComboId }` por `CombatIntent`.

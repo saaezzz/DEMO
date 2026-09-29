@@ -6,6 +6,9 @@ Las entradas nuevas van en `Unreleased`.
 ## [Unreleased]
 
 ### Added
+- `Shared/Utils/Signal`: señal síncrona en Luau puro (D-013).
+- `Shared/Utils/Logger`: logs con niveles y ámbito (D-015).
+- `Shared/Utils/ServiceLoader`: arranque en dos fases Init/Start (D-014).
 - Toolchain fijado con Rokit (`rokit.toml`): rojo, selene, stylua, luau-lsp, lune.
 - Configuración de lint (`selene.toml`), formato (`stylua.toml`) y tipos (`.luaurc`).
 - `.gitattributes` para forzar finales de línea LF.
@@ -13,6 +16,8 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- `Character` y `StateMachine` usan `Signal` en lugar de `BindableEvent` (eventos síncronos y deterministas).
+- Servicios y controladores arrancan con `ServiceLoader`; `CombatService` carga sus combos y conecta su remote; se eliminan los `Shutdown`/`Destroy` sin uso.
 - Clases y servicios reescritos con el patrón de D-011: 0 errores de tipo en luau-lsp (antes 57) y 0 avisos de Selene.
 - `CombatIntent` reducido a `Type` + `ComboId`; `ServerCombatResponse` a `Status` + `Message`; `AnimationId` solo en `ClientComboCatalog` (D-012).
 - Los cooldowns de combate se mantienen al morir (antes morir los reiniciaba).

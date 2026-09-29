@@ -15,12 +15,12 @@ local CHARACTER_PARTS_TIMEOUT_SECONDS = 5
 type CharacterRecord = {
 	Model: Model,
 	Character: Character,
+	-- Conexiones a eventos de Roblox (Humanoid/modelo) de este personaje.
 	Connections: { RBXScriptConnection },
 }
 
 local records: { [Player]: CharacterRecord } = {}
 local characterAddedConnections: { [Player]: RBXScriptConnection } = {}
-local connections: { RBXScriptConnection } = {}
 
 -- Libera el personaje activo del jugador: desconecta, lo quita del combate y lo destruye.
 local function releaseCharacter(player: Player): ()
@@ -63,12 +63,10 @@ local function onCharacterAdded(player: Player, model: Model): ()
 	}
 	records[player] = record
 
-	table.insert(
-		record.Connections,
-		character.HealthChanged:Connect(function(newHealth: number)
-			humanoid.Health = math.clamp(newHealth, 0, humanoid.MaxHealth)
-		end)
-	)
+	-- Character:Destroy() desconecta sus propias señales; no hace falta guardarla.
+	character.HealthChanged:Connect(function(newHealth: number)
+		humanoid.Health = math.clamp(newHealth, 0, humanoid.MaxHealth)
+	end)
 
 	-- Muertes ajenas al combate (p. ej. caer al vacío) también matan al Character.
 	table.insert(
@@ -112,31 +110,22 @@ local function onPlayerRemoving(player: Player): ()
 	releaseCharacter(player)
 end
 
-local CharacterService = {}
+local CharacterService = {
+	Name = "CharacterService",
+}
 
-function CharacterService:GetCharacter(player: Player): Character?
-	local record: CharacterRecord? = records[player]
-	return if record ~= nil then record.Character else nil
-end
-
-function CharacterService:Init(): ()
-	table.insert(connections, Players.PlayerAdded:Connect(onPlayerAdded))
-	table.insert(connections, Players.PlayerRemoving:Connect(onPlayerRemoving))
+function CharacterService:Start(): ()
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	Players.PlayerRemoving:Connect(onPlayerRemoving)
 
 	for _, player in Players:GetPlayers() do
 		onPlayerAdded(player)
 	end
 end
 
-function CharacterService:Shutdown(): ()
-	for _, connection in connections do
-		connection:Disconnect()
-	end
-	table.clear(connections)
-
-	for player in characterAddedConnections do
-		onPlayerRemoving(player)
-	end
+function CharacterService:GetCharacter(player: Player): Character?
+	local record: CharacterRecord? = records[player]
+	return if record ~= nil then record.Character else nil
 end
 
 return CharacterService

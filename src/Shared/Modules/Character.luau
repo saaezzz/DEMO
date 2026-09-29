@@ -1,13 +1,16 @@
 --!strict
 
-local StateMachine = require(script.Parent.StateMachine)
-local GameTypes = require(script.Parent.Parent.Types.GameTypes)
+local Shared = game:GetService("ReplicatedStorage").Shared
+local StateMachine = require(Shared.Modules.StateMachine)
+local GameTypes = require(Shared.Types.GameTypes)
+local Signal = require(Shared.Utils.Signal)
 
 type CharacterAttributes = GameTypes.CharacterAttributes
 type CharacterRace = GameTypes.CharacterRace
 type CharacterStateName = GameTypes.CharacterStateName
 type StateTransitionTable = GameTypes.StateTransitionTable
 type StateMachine = StateMachine.StateMachine
+type Signal<T...> = Signal.Signal<T...>
 
 -- Tabla de transiciones permitidas para cualquier personaje del juego.
 -- Desde Ragdoll solo se puede volver a Idle.
@@ -28,11 +31,11 @@ type CharacterData = {
 	Race: CharacterRace,
 	Level: number,
 
-	-- Señales: (newValue: number, oldValue: number) para vida, Reiatsu y postura.
-	HealthChanged: RBXScriptSignal,
-	ReiatsuChanged: RBXScriptSignal,
-	PostureChanged: RBXScriptSignal,
-	Died: RBXScriptSignal,
+	-- Señales síncronas (newValue, oldValue) para vida, Reiatsu y postura.
+	HealthChanged: Signal<number, number>,
+	ReiatsuChanged: Signal<number, number>,
+	PostureChanged: Signal<number, number>,
+	Died: Signal<>,
 
 	_health: number,
 	_maxHealth: number,
@@ -42,29 +45,20 @@ type CharacterData = {
 	_maxPosture: number,
 	_isAlive: boolean,
 	_stateMachine: StateMachine,
-	_healthChangedEvent: BindableEvent,
-	_reiatsuChangedEvent: BindableEvent,
-	_postureChangedEvent: BindableEvent,
-	_diedEvent: BindableEvent,
 	_destroyed: boolean,
 }
 
 export type Character = typeof(setmetatable({} :: CharacterData, Character))
 
 function Character.new(attributes: CharacterAttributes): Character
-	local healthChangedEvent = Instance.new("BindableEvent")
-	local reiatsuChangedEvent = Instance.new("BindableEvent")
-	local postureChangedEvent = Instance.new("BindableEvent")
-	local diedEvent = Instance.new("BindableEvent")
-
 	return setmetatable({
 		Race = attributes.Race,
 		Level = attributes.Level,
 
-		HealthChanged = healthChangedEvent.Event,
-		ReiatsuChanged = reiatsuChangedEvent.Event,
-		PostureChanged = postureChangedEvent.Event,
-		Died = diedEvent.Event,
+		HealthChanged = Signal.new(),
+		ReiatsuChanged = Signal.new(),
+		PostureChanged = Signal.new(),
+		Died = Signal.new(),
 
 		_health = math.clamp(attributes.Health, 0, attributes.MaxHealth),
 		_maxHealth = attributes.MaxHealth,
@@ -74,10 +68,6 @@ function Character.new(attributes: CharacterAttributes): Character
 		_maxPosture = attributes.MaxPosture,
 		_isAlive = attributes.Health > 0,
 		_stateMachine = StateMachine.new("Idle", DEFAULT_STATE_TRANSITIONS),
-		_healthChangedEvent = healthChangedEvent,
-		_reiatsuChangedEvent = reiatsuChangedEvent,
-		_postureChangedEvent = postureChangedEvent,
-		_diedEvent = diedEvent,
 		_destroyed = false,
 	}, Character)
 end
@@ -117,11 +107,11 @@ function Character.TakeDamage(self: Character, amount: number): number
 
 	local oldHealth = self._health
 	self._health = math.clamp(oldHealth - amount, 0, self._maxHealth)
-	self._healthChangedEvent:Fire(self._health, oldHealth)
+	self.HealthChanged:Fire(self._health, oldHealth)
 
 	if self._health <= 0 then
 		self._isAlive = false
-		self._diedEvent:Fire()
+		self.Died:Fire()
 	end
 
 	return self._health
@@ -134,7 +124,7 @@ function Character.Heal(self: Character, amount: number): number
 
 	local oldHealth = self._health
 	self._health = math.clamp(oldHealth + amount, 0, self._maxHealth)
-	self._healthChangedEvent:Fire(self._health, oldHealth)
+	self.HealthChanged:Fire(self._health, oldHealth)
 
 	return self._health
 end
@@ -146,7 +136,7 @@ function Character.SpendReiatsu(self: Character, amount: number): boolean
 
 	local oldReiatsu = self._reiatsu
 	self._reiatsu = math.clamp(oldReiatsu - amount, 0, self._maxReiatsu)
-	self._reiatsuChangedEvent:Fire(self._reiatsu, oldReiatsu)
+	self.ReiatsuChanged:Fire(self._reiatsu, oldReiatsu)
 
 	return true
 end
@@ -158,7 +148,7 @@ function Character.RestoreReiatsu(self: Character, amount: number): number
 
 	local oldReiatsu = self._reiatsu
 	self._reiatsu = math.clamp(oldReiatsu + amount, 0, self._maxReiatsu)
-	self._reiatsuChangedEvent:Fire(self._reiatsu, oldReiatsu)
+	self.ReiatsuChanged:Fire(self._reiatsu, oldReiatsu)
 
 	return self._reiatsu
 end
@@ -171,7 +161,7 @@ function Character.ApplyPostureDamage(self: Character, amount: number): number
 
 	local oldPosture = self._posture
 	self._posture = math.clamp(oldPosture + amount, 0, self._maxPosture)
-	self._postureChangedEvent:Fire(self._posture, oldPosture)
+	self.PostureChanged:Fire(self._posture, oldPosture)
 
 	return self._posture
 end
@@ -183,7 +173,7 @@ function Character.RecoverPosture(self: Character, amount: number): number
 
 	local oldPosture = self._posture
 	self._posture = math.clamp(oldPosture - amount, 0, self._maxPosture)
-	self._postureChangedEvent:Fire(self._posture, oldPosture)
+	self.PostureChanged:Fire(self._posture, oldPosture)
 
 	return self._posture
 end
@@ -195,7 +185,7 @@ function Character.ResetPosture(self: Character): ()
 
 	local oldPosture = self._posture
 	self._posture = 0
-	self._postureChangedEvent:Fire(self._posture, oldPosture)
+	self.PostureChanged:Fire(self._posture, oldPosture)
 end
 
 function Character.GetState(self: Character): CharacterStateName
@@ -210,7 +200,7 @@ function Character.TransitionTo(self: Character, newState: CharacterStateName): 
 	return self._stateMachine:TransitionTo(newState)
 end
 
-function Character.OnStateChanged(self: Character, callback: StateMachine.StateChangedCallback): RBXScriptConnection
+function Character.OnStateChanged(self: Character, callback: StateMachine.StateChangedCallback): Signal.Connection
 	return self._stateMachine:OnStateChanged(callback)
 end
 
@@ -223,10 +213,10 @@ function Character.Destroy(self: Character): ()
 
 	self._destroyed = true
 	self._stateMachine:Destroy()
-	self._healthChangedEvent:Destroy()
-	self._reiatsuChangedEvent:Destroy()
-	self._postureChangedEvent:Destroy()
-	self._diedEvent:Destroy()
+	self.HealthChanged:DisconnectAll()
+	self.ReiatsuChanged:DisconnectAll()
+	self.PostureChanged:DisconnectAll()
+	self.Died:DisconnectAll()
 end
 
 return Character

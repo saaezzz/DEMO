@@ -1,9 +1,12 @@
 --!strict
 
-local GameTypes = require(script.Parent.Parent.Types.GameTypes)
+local Shared = game:GetService("ReplicatedStorage").Shared
+local GameTypes = require(Shared.Types.GameTypes)
+local Signal = require(Shared.Utils.Signal)
 
 type CharacterStateName = GameTypes.CharacterStateName
 type StateTransitionTable = GameTypes.StateTransitionTable
+type Connection = Signal.Connection
 
 export type StateChangedCallback = (oldState: CharacterStateName, newState: CharacterStateName) -> ()
 
@@ -13,7 +16,7 @@ StateMachine.__index = StateMachine
 type StateMachineData = {
 	_state: CharacterStateName,
 	_transitionTable: StateTransitionTable,
-	_changedEvent: BindableEvent,
+	_changed: Signal.Signal<CharacterStateName, CharacterStateName>,
 	_destroyed: boolean,
 }
 
@@ -23,7 +26,7 @@ function StateMachine.new(initialState: CharacterStateName, transitionTable: Sta
 	return setmetatable({
 		_state = initialState,
 		_transitionTable = transitionTable,
-		_changedEvent = Instance.new("BindableEvent"),
+		_changed = Signal.new(),
 		_destroyed = false,
 	}, StateMachine)
 end
@@ -58,25 +61,26 @@ function StateMachine.TransitionTo(self: StateMachine, newState: CharacterStateN
 		return false, string.format("Transición bloqueada: %s -> %s", self._state, newState)
 	end
 
-	local oldState = self._state
+	local oldState: CharacterStateName = self._state
 	self._state = newState
-	self._changedEvent:Fire(oldState, newState)
+	self._changed:Fire(oldState, newState)
 
 	return true, nil
 end
 
-function StateMachine.OnStateChanged(self: StateMachine, callback: StateChangedCallback): RBXScriptConnection
-	return self._changedEvent.Event:Connect(callback)
+-- Los callbacks se ejecutan de forma síncrona dentro de TransitionTo.
+function StateMachine.OnStateChanged(self: StateMachine, callback: StateChangedCallback): Connection
+	return self._changed:Connect(callback)
 end
 
--- Destruir el BindableEvent desconecta todas las conexiones de OnStateChanged.
+-- Desconecta todas las conexiones de OnStateChanged.
 function StateMachine.Destroy(self: StateMachine): ()
 	if self._destroyed then
 		return
 	end
 
 	self._destroyed = true
-	self._changedEvent:Destroy()
+	self._changed:DisconnectAll()
 end
 
 return StateMachine

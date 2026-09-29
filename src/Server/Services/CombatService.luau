@@ -8,6 +8,10 @@ local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
 local HitboxUtil = require(script.Parent.Parent.Modules.HitboxUtil)
 local RateLimiter = require(script.Parent.Parent.Modules.RateLimiter)
 local CombatIntentValidator = require(script.Parent.Parent.Modules.CombatIntentValidator)
+local ExampleCombos = require(script.Parent.Parent.Combos.ExampleCombos)
+local CombatRemotes = require(ReplicatedStorage.Shared.Network.CombatRemotes)
+local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
+local Signal = require(ReplicatedStorage.Shared.Utils.Signal)
 
 type Character = CharacterModule.Character
 type CharacterStateName = GameTypes.CharacterStateName
@@ -54,10 +58,10 @@ local modelTasks: { [Model]: TaskSet } = {}
 -- Tareas del ataque en curso (golpes + recuperación); se cancelan al salir de Attacking.
 local attackTasks: { [Model]: { thread } } = {}
 local stunRecoveryTasks: { [Model]: thread } = {}
-local stateConnections: { [Model]: RBXScriptConnection } = {}
+local stateConnections: { [Model]: Signal.Connection } = {}
 local intentLimiter = RateLimiter.new(INTENT_BURST, INTENTS_PER_SECOND)
-local regenThread: thread? = nil
-local connections: { RBXScriptConnection } = {}
+
+local log = Logger.new("CombatService")
 
 local function respond(status: ServerResponseStatus, message: string?): ServerCombatResponse
 	return {
@@ -180,7 +184,7 @@ local function unregisterCharacter(model: Model): ()
 	attackTasks[model] = nil
 	stunRecoveryTasks[model] = nil
 
-	local stateConnection: RBXScriptConnection? = stateConnections[model]
+	local stateConnection: Signal.Connection? = stateConnections[model]
 	if stateConnection ~= nil then
 		stateConnection:Disconnect()
 		stateConnections[model] = nil
@@ -391,10 +395,46 @@ local function onPlayerRemoving(player: Player): ()
 	lastComboUse[player] = nil
 end
 
-local CombatService = {}
+local function processIntent(player: Player, payload: unknown): ServerCombatResponse
+	if not intentLimiter:Consume(player) then
+		log:Debug("Rate limit superado por %s", player.Name)
+		return respond("Rejected", "Demasiadas peticiones")
+	end
 
-function CombatService:RegisterCombo(combo: ComboDefinition): ()
-	combos[combo.Id] = combo
+	local intent, validationError = CombatIntentValidator.Validate(payload)
+	if intent == nil then
+		log:Debug("Intent inválido de %s: %s", player.Name, tostring(validationError))
+		return respond("Rejected", validationError)
+	end
+
+	if intent.Type == "Attack" then
+		return processAttack(player, intent)
+	elseif intent.Type == "Block" then
+		return processBlock(player)
+	else
+		return processShunpo(player)
+	end
+end
+
+local CombatService = {
+	Name = "CombatService",
+}
+
+function CombatService:Init(): ()
+	for _, combo in ExampleCombos do
+		combos[combo.Id] = combo
+	end
+end
+
+function CombatService:Start(): ()
+	Players.PlayerRemoving:Connect(onPlayerRemoving)
+	CombatRemotes.CombatIntent.OnServerInvoke = processIntent
+
+	task.spawn(function()
+		while true do
+			regenerate(task.wait(REGEN_TICK_SECONDS))
+		end
+	end)
 end
 
 function CombatService:RegisterCharacter(player: Player?, model: Model, character: Character): ()
@@ -411,59 +451,6 @@ end
 
 function CombatService:UnregisterCharacter(model: Model): ()
 	unregisterCharacter(model)
-end
-
-function CombatService:ProcessIntent(player: Player, payload: unknown): ServerCombatResponse
-	if not intentLimiter:Consume(player) then
-		return respond("Rejected", "Demasiadas peticiones")
-	end
-
-	local intent, validationError = CombatIntentValidator.Validate(payload)
-	if intent == nil then
-		return respond("Rejected", validationError)
-	end
-
-	if intent.Type == "Attack" then
-		return processAttack(player, intent)
-	elseif intent.Type == "Block" then
-		return processBlock(player)
-	else
-		return processShunpo(player)
-	end
-end
-
-function CombatService:Init(): ()
-	if regenThread ~= nil then
-		return
-	end
-
-	table.insert(connections, Players.PlayerRemoving:Connect(onPlayerRemoving))
-
-	regenThread = task.spawn(function()
-		while true do
-			regenerate(task.wait(REGEN_TICK_SECONDS))
-		end
-	end)
-end
-
-function CombatService:Shutdown(): ()
-	for _, connection in connections do
-		connection:Disconnect()
-	end
-	table.clear(connections)
-
-	if regenThread ~= nil then
-		task.cancel(regenThread)
-		regenThread = nil
-	end
-
-	for model in characters do
-		unregisterCharacter(model)
-	end
-
-	table.clear(combos)
-	table.clear(lastComboUse)
-	intentLimiter:Clear()
 end
 
 return CombatService

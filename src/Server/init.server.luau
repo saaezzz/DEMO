@@ -1,25 +1,20 @@
 --!strict
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CombatRemotes = require(ReplicatedStorage.Shared.Network.CombatRemotes)
-local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
+local RunService = game:GetService("RunService")
+
+local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
+local ServiceLoader = require(ReplicatedStorage.Shared.Utils.ServiceLoader)
 
 local CombatService = require(script.Services.CombatService)
 local CharacterService = require(script.Services.CharacterService)
-local ExampleCombos = require(script.Combos.ExampleCombos)
 
-type ServerCombatResponse = GameTypes.ServerCombatResponse
+Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
 
-for _, combo in ipairs(ExampleCombos) do
-	CombatService:RegisterCombo(combo)
-end
+-- Orden explícito: un servicio va después de aquellos de los que depende.
+ServiceLoader.Run({
+	CombatService,
+	CharacterService,
+})
 
-CombatService:Init()
-CharacterService:Init()
-
--- El payload llega sin tipar desde el cliente: CombatService lo valida antes de usarlo.
-CombatRemotes.CombatIntent.OnServerInvoke = function(player: Player, payload: unknown): ServerCombatResponse
-	return CombatService:ProcessIntent(player, payload)
-end
-
-print("[Server] Demo_RPG combat bootstrap listo.")
+Logger.new("Server"):Info("Servicios iniciados")

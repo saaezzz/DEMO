@@ -25,7 +25,6 @@ local animator: Animator? = nil
 -- Tracks cargados en el Animator actual, por combo. Se vacía al cambiar de personaje.
 local comboTracks: { [string]: AnimationTrack } = {}
 local currentTrack: AnimationTrack? = nil
-local connections: { RBXScriptConnection } = {}
 
 local function sendIntent(intentType: CombatIntentType, comboId: string?): ServerCombatResponse
 	local intent: CombatIntent = {
@@ -121,30 +120,18 @@ local function onInputBegan(input: InputObject, gameProcessed: boolean): ()
 	end
 end
 
-local CombatController = {}
+local CombatController = {
+	Name = "CombatController",
+}
 
-function CombatController:Init(): ()
-	table.insert(connections, player.CharacterAdded:Connect(bindCharacter))
-	table.insert(connections, UserInputService.InputBegan:Connect(onInputBegan))
+function CombatController:Start(): ()
+	player.CharacterAdded:Connect(bindCharacter)
+	UserInputService.InputBegan:Connect(onInputBegan)
 
 	local existingModel = player.Character
 	if existingModel ~= nil then
 		task.spawn(bindCharacter, existingModel)
 	end
-end
-
-function CombatController:Destroy(): ()
-	for _, connection in connections do
-		connection:Disconnect()
-	end
-	table.clear(connections)
-
-	if currentTrack ~= nil then
-		currentTrack:Stop()
-		currentTrack = nil
-	end
-	table.clear(comboTracks)
-	animator = nil
 end
 
 return CombatController

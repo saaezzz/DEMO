@@ -1,6 +1,7 @@
 --!strict
 
-local GameTypes = require(script.Parent.GameTypes)
+local Shared = game:GetService("ReplicatedStorage").Shared
+local GameTypes = require(Shared.Types.GameTypes)
 
 type CharacterAttributes = GameTypes.CharacterAttributes
 type CharacterRace = GameTypes.CharacterRace
