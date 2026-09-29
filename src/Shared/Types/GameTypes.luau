@@ -17,16 +17,18 @@ export type CharacterAttributes = {
 	Level: number,
 }
 
--- Ventana temporal de un golpe dentro de un combo, referenciada a un Keyframe Marker.
 export type HitboxShape = "Box" | "Sphere" | "Cylinder"
 
 export type HitboxDefinition = {
 	Shape: HitboxShape,
 	Size: Vector3,
 	Offset: CFrame,
+	-- 0 = sin límite de objetivos.
 	MaxTargets: number,
 }
 
+-- Ventana temporal de un golpe dentro de un combo. MarkerName es el Keyframe
+-- Marker de la animación que corresponde a este golpe.
 export type ComboHitWindow = {
 	MarkerName: string,
 	StartTime: number,
@@ -36,21 +38,21 @@ export type ComboHitWindow = {
 	Hitbox: HitboxDefinition,
 }
 
+-- Definición autoritativa (solo servidor). La animación asociada vive en
+-- Shared/Combos/ClientComboCatalog, indexada por el mismo Id.
 export type ComboDefinition = {
 	Id: string,
-	AnimationId: string,
 	Hits: { ComboHitWindow },
 	CooldownSeconds: number,
 	ReiatsuCost: number,
 }
 
+export type CombatIntentType = "Attack" | "Block" | "Shunpo"
+
 -- Intención enviada por el cliente al servidor; nunca contiene datos resolutivos como daño.
 export type CombatIntent = {
-	Type: "Attack" | "Block" | "Shunpo" | "CastAbility",
+	Type: CombatIntentType,
 	ComboId: string?,
-	AbilityId: string?,
-	TargetDirection: Vector3?,
-	ClientTimestamp: number,
 }
 
 export type ServerResponseStatus = "Accepted" | "Rejected" | "OnCooldown" | "InsufficientResource" | "InvalidState"
@@ -58,8 +60,6 @@ export type ServerResponseStatus = "Accepted" | "Rejected" | "OnCooldown" | "Ins
 export type ServerCombatResponse = {
 	Status: ServerResponseStatus,
 	Message: string?,
-	AppliedDamage: number?,
-	TargetUserId: number?,
 }
 
 export type StateTransitionTable = { [CharacterStateName]: { CharacterStateName } }

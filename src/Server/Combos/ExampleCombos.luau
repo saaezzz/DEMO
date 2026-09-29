@@ -9,7 +9,6 @@ type ComboDefinition = GameTypes.ComboDefinition
 -- Combo de demostración: tajo simple de una sola fase con hitbox frontal en caja.
 local BasicSlash: ComboDefinition = {
 	Id = "BasicSlash",
-	AnimationId = "rbxassetid://0",
 	Hits = {
 		{
 			MarkerName = "Hit1",

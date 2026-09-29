@@ -7,116 +7,76 @@ type StateTransitionTable = GameTypes.StateTransitionTable
 
 export type StateChangedCallback = (oldState: CharacterStateName, newState: CharacterStateName) -> ()
 
-export type StateMachine = {
-	CurrentState: CharacterStateName,
-	StateChanged: RBXScriptSignal,
-
-	GetState: (self: StateMachine) -> CharacterStateName,
-	CanTransition: (self: StateMachine, newState: CharacterStateName) -> boolean,
-	TransitionTo: (self: StateMachine, newState: CharacterStateName) -> (boolean, string?),
-	OnStateChanged: (self: StateMachine, callback: StateChangedCallback) -> RBXScriptConnection,
-	Destroy: (self: StateMachine) -> (),
-}
-
-type StateMachineInternal = StateMachine & {
-	_transitionTable: StateTransitionTable,
-	_changedEvent: BindableEvent,
-	_connections: { RBXScriptConnection },
-	_destroyed: boolean,
-}
-
 local StateMachine = {}
 StateMachine.__index = StateMachine
 
+type StateMachineData = {
+	_state: CharacterStateName,
+	_transitionTable: StateTransitionTable,
+	_changedEvent: BindableEvent,
+	_destroyed: boolean,
+}
+
+export type StateMachine = typeof(setmetatable({} :: StateMachineData, StateMachine))
+
 function StateMachine.new(initialState: CharacterStateName, transitionTable: StateTransitionTable): StateMachine
-	local changedEvent = Instance.new("BindableEvent")
-
-	local self = setmetatable({
-		CurrentState = initialState,
-		StateChanged = changedEvent.Event,
+	return setmetatable({
+		_state = initialState,
 		_transitionTable = transitionTable,
-		_changedEvent = changedEvent,
-		_connections = {},
+		_changedEvent = Instance.new("BindableEvent"),
 		_destroyed = false,
-	}, StateMachine) :: StateMachineInternal
-
-	return (self :: any) :: StateMachine
+	}, StateMachine)
 end
 
-function StateMachine:GetState(): CharacterStateName
-	local self = (self :: any) :: StateMachineInternal
-	return self.CurrentState
+function StateMachine.GetState(self: StateMachine): CharacterStateName
+	return self._state
 end
 
-function StateMachine:CanTransition(newState: CharacterStateName): boolean
-	local self = (self :: any) :: StateMachineInternal
-
+function StateMachine.CanTransition(self: StateMachine, newState: CharacterStateName): boolean
 	if self._destroyed then
 		return false
 	end
 
-	local allowedStates = self._transitionTable[self.CurrentState]
+	local allowedStates = self._transitionTable[self._state]
 	if allowedStates == nil then
 		return false
 	end
 
-	for _, allowedState in ipairs(allowedStates) do
-		if allowedState == newState then
-			return true
-		end
-	end
-
-	return false
+	return table.find(allowedStates, newState) ~= nil
 end
 
-function StateMachine:TransitionTo(newState: CharacterStateName): (boolean, string?)
-	local self = (self :: any) :: StateMachineInternal
-
+function StateMachine.TransitionTo(self: StateMachine, newState: CharacterStateName): (boolean, string?)
 	if self._destroyed then
 		return false, "StateMachine destruida"
 	end
 
-	if self.CurrentState == newState then
+	if self._state == newState then
 		return false, "Ya se encuentra en el estado solicitado"
 	end
 
 	if not self:CanTransition(newState) then
-		return false, string.format("Transición bloqueada: %s -> %s", self.CurrentState, newState)
+		return false, string.format("Transición bloqueada: %s -> %s", self._state, newState)
 	end
 
-	local oldState = self.CurrentState
-	self.CurrentState = newState
+	local oldState = self._state
+	self._state = newState
 	self._changedEvent:Fire(oldState, newState)
 
 	return true, nil
 end
 
-function StateMachine:OnStateChanged(callback: StateChangedCallback): RBXScriptConnection
-	local self = (self :: any) :: StateMachineInternal
-
-	local connection = self.StateChanged:Connect(callback)
-	table.insert(self._connections, connection)
-
-	return connection
+function StateMachine.OnStateChanged(self: StateMachine, callback: StateChangedCallback): RBXScriptConnection
+	return self._changedEvent.Event:Connect(callback)
 end
 
-function StateMachine:Destroy(): ()
-	local self = (self :: any) :: StateMachineInternal
-
+-- Destruir el BindableEvent desconecta todas las conexiones de OnStateChanged.
+function StateMachine.Destroy(self: StateMachine): ()
 	if self._destroyed then
 		return
 	end
 
-	for _, connection in ipairs(self._connections) do
-		connection:Disconnect()
-	end
-	table.clear(self._connections)
-
-	self._changedEvent:Destroy()
-	self._transitionTable = {} :: any
-
 	self._destroyed = true
-	setmetatable(self :: any, nil)
+	self._changedEvent:Destroy()
 end
 
 return StateMachine

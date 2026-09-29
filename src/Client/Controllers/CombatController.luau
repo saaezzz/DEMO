@@ -9,198 +9,142 @@ local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local ClientComboCatalog = require(ReplicatedStorage.Shared.Combos.ClientComboCatalog)
 
 type CombatIntent = GameTypes.CombatIntent
+type CombatIntentType = GameTypes.CombatIntentType
 type ServerCombatResponse = GameTypes.ServerCombatResponse
-type CombatIntentType = "Attack" | "Block" | "Shunpo" | "CastAbility"
 
-export type ComboHitMarkerCallback = (comboId: string, markerName: string) -> ()
+local ANIMATOR_TIMEOUT_SECONDS = 5
 
-export type CombatController = {
-	OnComboHitMarker: (self: CombatController, callback: ComboHitMarkerCallback) -> RBXScriptConnection,
-	Init: (self: CombatController) -> (),
-	Destroy: (self: CombatController) -> (),
-}
-
-type CombatControllerInternal = CombatController & {
-	_player: Player,
-	_humanoid: Humanoid?,
-	_animator: Animator?,
-	_currentTrack: AnimationTrack?,
-	_markerConnection: RBXScriptConnection?,
-	_hitMarkerEvent: BindableEvent,
-	_isBlocking: boolean,
-	_connections: { RBXScriptConnection },
-}
-
-local ATTACK_COMBO_ID = "BasicSlash"
-local ATTACK_KEY = Enum.UserInputType.MouseButton1
+-- Provisional hasta InputService (tarea 10 del roadmap): solo teclado y ratón.
+local ATTACK_INPUT = Enum.UserInputType.MouseButton1
 local BLOCK_KEY = Enum.KeyCode.F
 local SHUNPO_KEY = Enum.KeyCode.Q
+local ATTACK_COMBO_ID = "BasicSlash"
 
-local CombatController: CombatControllerInternal = {} :: CombatControllerInternal
-CombatController.__index = CombatController :: any
+local player = Players.LocalPlayer
+local animator: Animator? = nil
+-- Tracks cargados en el Animator actual, por combo. Se vacía al cambiar de personaje.
+local comboTracks: { [string]: AnimationTrack } = {}
+local currentTrack: AnimationTrack? = nil
+local connections: { RBXScriptConnection } = {}
 
-local hitMarkerEvent = Instance.new("BindableEvent")
-
-CombatController._player = Players.LocalPlayer
-CombatController._humanoid = nil
-CombatController._animator = nil
-CombatController._currentTrack = nil
-CombatController._markerConnection = nil
-CombatController._hitMarkerEvent = hitMarkerEvent
-CombatController._isBlocking = false
-CombatController._connections = {}
-
-local function buildIntent(intentType: CombatIntentType, comboId: string?): CombatIntent
-	return {
+local function sendIntent(intentType: CombatIntentType, comboId: string?): ServerCombatResponse
+	local intent: CombatIntent = {
 		Type = intentType,
 		ComboId = comboId,
-		AbilityId = nil,
-		TargetDirection = nil,
-		ClientTimestamp = os.clock(),
 	}
-end
 
-local function sendIntent(intent: CombatIntent): ServerCombatResponse
 	local ok, result = pcall(function()
 		return CombatRemotes.CombatIntent:InvokeServer(intent)
 	end)
-
 	if not ok then
 		return {
 			Status = "Rejected",
 			Message = "Fallo de comunicación con el servidor",
-			AppliedDamage = nil,
-			TargetUserId = nil,
 		}
 	end
 
 	return result :: ServerCombatResponse
 end
 
-local function playComboAnimation(self: CombatControllerInternal, comboId: string)
-	local animator = self._animator
-	if animator == nil then
-		return
+local function getComboTrack(currentAnimator: Animator, comboId: string): AnimationTrack?
+	local cached: AnimationTrack? = comboTracks[comboId]
+	if cached ~= nil then
+		return cached
 	end
 
-	local animationId = ClientComboCatalog[comboId]
+	local animationId: string? = ClientComboCatalog[comboId]
 	if animationId == nil then
-		return
-	end
-
-	if self._currentTrack ~= nil then
-		self._currentTrack:Stop()
-	end
-	if self._markerConnection ~= nil then
-		self._markerConnection:Disconnect()
-		self._markerConnection = nil
+		return nil
 	end
 
 	local animation = Instance.new("Animation")
 	animation.AnimationId = animationId
+	local track = currentAnimator:LoadAnimation(animation)
+	comboTracks[comboId] = track
+	return track
+end
 
-	local track = animator:LoadAnimation(animation)
-	self._currentTrack = track
+local function playComboAnimation(comboId: string): ()
+	local currentAnimator = animator
+	if currentAnimator == nil then
+		return
+	end
 
-	self._markerConnection = track:GetMarkerReachedSignal("Hit1"):Connect(function()
-		self._hitMarkerEvent:Fire(comboId, "Hit1")
-	end)
+	local track = getComboTrack(currentAnimator, comboId)
+	if track == nil then
+		return
+	end
 
+	if currentTrack ~= nil and currentTrack ~= track then
+		currentTrack:Stop()
+	end
+	currentTrack = track
 	track:Play()
 end
 
-local function onAttackInput(self: CombatControllerInternal)
-	local response = sendIntent(buildIntent("Attack", ATTACK_COMBO_ID))
+local function onAttackInput(): ()
+	local response = sendIntent("Attack", ATTACK_COMBO_ID)
 	if response.Status == "Accepted" then
-		playComboAnimation(self, ATTACK_COMBO_ID)
+		playComboAnimation(ATTACK_COMBO_ID)
 	end
 end
 
-local function onBlockInput(self: CombatControllerInternal)
-	local response = sendIntent(buildIntent("Block", nil))
-	if response.Status == "Accepted" then
-		self._isBlocking = not self._isBlocking
-	end
-end
+local function bindCharacter(model: Model): ()
+	-- Los tracks del personaje anterior pertenecen a un Animator destruido.
+	table.clear(comboTracks)
+	currentTrack = nil
+	animator = nil
 
-local function onShunpoInput(_self: CombatControllerInternal)
-	sendIntent(buildIntent("Shunpo", nil))
-end
-
-local function bindCharacter(self: CombatControllerInternal, model: Model)
-	local humanoid = model:WaitForChild("Humanoid", 5) :: Humanoid?
+	local humanoid = model:WaitForChild("Humanoid", ANIMATOR_TIMEOUT_SECONDS) :: Humanoid?
 	if humanoid == nil then
 		return
 	end
 
-	local animator = humanoid:FindFirstChildOfClass("Animator")
-	if animator == nil then
-		animator = Instance.new("Animator")
-		animator.Parent = humanoid
+	-- El Animator lo crea el servidor; uno creado en el cliente no replicaría las animaciones.
+	local foundAnimator = humanoid:WaitForChild("Animator", ANIMATOR_TIMEOUT_SECONDS) :: Animator?
+	if foundAnimator ~= nil and player.Character == model then
+		animator = foundAnimator
+	end
+end
+
+local function onInputBegan(input: InputObject, gameProcessed: boolean): ()
+	if gameProcessed then
+		return
 	end
 
-	self._humanoid = humanoid
-	self._animator = animator
+	if input.UserInputType == ATTACK_INPUT then
+		onAttackInput()
+	elseif input.KeyCode == BLOCK_KEY then
+		sendIntent("Block", nil)
+	elseif input.KeyCode == SHUNPO_KEY then
+		sendIntent("Shunpo", nil)
+	end
 end
 
-function CombatController:OnComboHitMarker(callback: ComboHitMarkerCallback): RBXScriptConnection
-	local self = (self :: any) :: CombatControllerInternal
-	local connection = self._hitMarkerEvent.Event:Connect(callback)
-	table.insert(self._connections, connection)
-	return connection
-end
+local CombatController = {}
 
 function CombatController:Init(): ()
-	local self = (self :: any) :: CombatControllerInternal
+	table.insert(connections, player.CharacterAdded:Connect(bindCharacter))
+	table.insert(connections, UserInputService.InputBegan:Connect(onInputBegan))
 
-	local player = self._player
-	if player.Character ~= nil then
-		bindCharacter(self, player.Character)
+	local existingModel = player.Character
+	if existingModel ~= nil then
+		task.spawn(bindCharacter, existingModel)
 	end
-	table.insert(
-		self._connections,
-		player.CharacterAdded:Connect(function(model)
-			bindCharacter(self, model)
-		end)
-	)
-
-	table.insert(
-		self._connections,
-		UserInputService.InputBegan:Connect(function(input, gameProcessed)
-			if gameProcessed then
-				return
-			end
-
-			if input.UserInputType == ATTACK_KEY then
-				onAttackInput(self)
-			elseif input.KeyCode == BLOCK_KEY then
-				onBlockInput(self)
-			elseif input.KeyCode == SHUNPO_KEY then
-				onShunpoInput(self)
-			end
-		end)
-	)
 end
 
 function CombatController:Destroy(): ()
-	local self = (self :: any) :: CombatControllerInternal
-
-	for _, connection in ipairs(self._connections) do
+	for _, connection in connections do
 		connection:Disconnect()
 	end
-	table.clear(self._connections)
+	table.clear(connections)
 
-	if self._markerConnection ~= nil then
-		self._markerConnection:Disconnect()
-		self._markerConnection = nil
+	if currentTrack ~= nil then
+		currentTrack:Stop()
+		currentTrack = nil
 	end
-
-	if self._currentTrack ~= nil then
-		self._currentTrack:Stop()
-		self._currentTrack = nil
-	end
-
-	self._hitMarkerEvent:Destroy()
+	table.clear(comboTracks)
+	animator = nil
 end
 
-return (CombatController :: any) :: CombatController
+return CombatController

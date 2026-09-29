@@ -1,5 +1,1 @@
 std = "roblox"
-
-[lints]
-# Los servicios usan `self` redefinido para castear a su tipo interno.
-shadowing = "allow"

@@ -10,7 +10,7 @@ type StateTransitionTable = GameTypes.StateTransitionTable
 type StateMachine = StateMachine.StateMachine
 
 -- Tabla de transiciones permitidas para cualquier personaje del juego.
--- Ragdoll es un estado terminal por golpe: solo puede volver a Idle.
+-- Desde Ragdoll solo se puede volver a Idle.
 local DEFAULT_STATE_TRANSITIONS: StateTransitionTable = {
 	Idle = { "Attacking", "Blocking", "Shunpo", "Casting", "Stunned", "Ragdoll" },
 	Attacking = { "Idle", "Stunned", "Ragdoll" },
@@ -21,44 +21,19 @@ local DEFAULT_STATE_TRANSITIONS: StateTransitionTable = {
 	Ragdoll = { "Idle" },
 }
 
-export type NumericStatChangedCallback = (newValue: number, oldValue: number) -> ()
-export type DiedCallback = () -> ()
+local Character = {}
+Character.__index = Character
 
-export type Character = {
-	UserId: number,
+type CharacterData = {
 	Race: CharacterRace,
 	Level: number,
 
+	-- Señales: (newValue: number, oldValue: number) para vida, Reiatsu y postura.
 	HealthChanged: RBXScriptSignal,
 	ReiatsuChanged: RBXScriptSignal,
 	PostureChanged: RBXScriptSignal,
 	Died: RBXScriptSignal,
 
-	GetHealth: (self: Character) -> number,
-	GetMaxHealth: (self: Character) -> number,
-	GetReiatsu: (self: Character) -> number,
-	GetMaxReiatsu: (self: Character) -> number,
-	GetPosture: (self: Character) -> number,
-	GetMaxPosture: (self: Character) -> number,
-	IsAlive: (self: Character) -> boolean,
-
-	TakeDamage: (self: Character, amount: number) -> number,
-	Heal: (self: Character, amount: number) -> number,
-	SpendReiatsu: (self: Character, amount: number) -> boolean,
-	RestoreReiatsu: (self: Character, amount: number) -> number,
-	ApplyPostureDamage: (self: Character, amount: number) -> number,
-	RecoverPosture: (self: Character, amount: number) -> number,
-	ResetPosture: (self: Character) -> (),
-
-	GetState: (self: Character) -> CharacterStateName,
-	CanTransitionTo: (self: Character, newState: CharacterStateName) -> boolean,
-	TransitionTo: (self: Character, newState: CharacterStateName) -> (boolean, string?),
-	OnStateChanged: (self: Character, callback: StateMachine.StateChangedCallback) -> RBXScriptConnection,
-
-	Destroy: (self: Character) -> (),
-}
-
-type CharacterInternal = Character & {
 	_health: number,
 	_maxHealth: number,
 	_reiatsu: number,
@@ -71,30 +46,18 @@ type CharacterInternal = Character & {
 	_reiatsuChangedEvent: BindableEvent,
 	_postureChangedEvent: BindableEvent,
 	_diedEvent: BindableEvent,
-	_connections: { RBXScriptConnection },
 	_destroyed: boolean,
 }
 
-local Character = {}
-Character.__index = Character
+export type Character = typeof(setmetatable({} :: CharacterData, Character))
 
-local function clamp(value: number, min: number, max: number): number
-	if value < min then
-		return min
-	elseif value > max then
-		return max
-	end
-	return value
-end
-
-function Character.new(userId: number, attributes: CharacterAttributes): Character
+function Character.new(attributes: CharacterAttributes): Character
 	local healthChangedEvent = Instance.new("BindableEvent")
 	local reiatsuChangedEvent = Instance.new("BindableEvent")
 	local postureChangedEvent = Instance.new("BindableEvent")
 	local diedEvent = Instance.new("BindableEvent")
 
-	local self = setmetatable({
-		UserId = userId,
+	return setmetatable({
 		Race = attributes.Race,
 		Level = attributes.Level,
 
@@ -103,67 +66,60 @@ function Character.new(userId: number, attributes: CharacterAttributes): Charact
 		PostureChanged = postureChangedEvent.Event,
 		Died = diedEvent.Event,
 
-		_health = clamp(attributes.Health, 0, attributes.MaxHealth),
+		_health = math.clamp(attributes.Health, 0, attributes.MaxHealth),
 		_maxHealth = attributes.MaxHealth,
-		_reiatsu = clamp(attributes.Reiatsu, 0, attributes.MaxReiatsu),
+		_reiatsu = math.clamp(attributes.Reiatsu, 0, attributes.MaxReiatsu),
 		_maxReiatsu = attributes.MaxReiatsu,
-		_posture = clamp(attributes.Posture, 0, attributes.MaxPosture),
+		_posture = math.clamp(attributes.Posture, 0, attributes.MaxPosture),
 		_maxPosture = attributes.MaxPosture,
 		_isAlive = attributes.Health > 0,
-
 		_stateMachine = StateMachine.new("Idle", DEFAULT_STATE_TRANSITIONS),
-
 		_healthChangedEvent = healthChangedEvent,
 		_reiatsuChangedEvent = reiatsuChangedEvent,
 		_postureChangedEvent = postureChangedEvent,
 		_diedEvent = diedEvent,
-		_connections = {},
 		_destroyed = false,
-	}, Character) :: CharacterInternal
-
-	return (self :: any) :: Character
+	}, Character)
 end
 
-function Character:GetHealth(): number
-	return ((self :: any) :: CharacterInternal)._health
+function Character.GetHealth(self: Character): number
+	return self._health
 end
 
-function Character:GetMaxHealth(): number
-	return ((self :: any) :: CharacterInternal)._maxHealth
+function Character.GetMaxHealth(self: Character): number
+	return self._maxHealth
 end
 
-function Character:GetReiatsu(): number
-	return ((self :: any) :: CharacterInternal)._reiatsu
+function Character.GetReiatsu(self: Character): number
+	return self._reiatsu
 end
 
-function Character:GetMaxReiatsu(): number
-	return ((self :: any) :: CharacterInternal)._maxReiatsu
+function Character.GetMaxReiatsu(self: Character): number
+	return self._maxReiatsu
 end
 
-function Character:GetPosture(): number
-	return ((self :: any) :: CharacterInternal)._posture
+function Character.GetPosture(self: Character): number
+	return self._posture
 end
 
-function Character:GetMaxPosture(): number
-	return ((self :: any) :: CharacterInternal)._maxPosture
+function Character.GetMaxPosture(self: Character): number
+	return self._maxPosture
 end
 
-function Character:IsAlive(): boolean
-	return ((self :: any) :: CharacterInternal)._isAlive
+function Character.IsAlive(self: Character): boolean
+	return self._isAlive
 end
 
-function Character:TakeDamage(amount: number): number
-	local self = (self :: any) :: CharacterInternal
-
+function Character.TakeDamage(self: Character, amount: number): number
 	if self._destroyed or not self._isAlive or amount <= 0 then
 		return self._health
 	end
 
 	local oldHealth = self._health
-	self._health = clamp(oldHealth - amount, 0, self._maxHealth)
+	self._health = math.clamp(oldHealth - amount, 0, self._maxHealth)
 	self._healthChangedEvent:Fire(self._health, oldHealth)
 
-	if self._health <= 0 and self._isAlive then
+	if self._health <= 0 then
 		self._isAlive = false
 		self._diedEvent:Fire()
 	end
@@ -171,80 +127,68 @@ function Character:TakeDamage(amount: number): number
 	return self._health
 end
 
-function Character:Heal(amount: number): number
-	local self = (self :: any) :: CharacterInternal
-
+function Character.Heal(self: Character, amount: number): number
 	if self._destroyed or not self._isAlive or amount <= 0 then
 		return self._health
 	end
 
 	local oldHealth = self._health
-	self._health = clamp(oldHealth + amount, 0, self._maxHealth)
+	self._health = math.clamp(oldHealth + amount, 0, self._maxHealth)
 	self._healthChangedEvent:Fire(self._health, oldHealth)
 
 	return self._health
 end
 
-function Character:SpendReiatsu(amount: number): boolean
-	local self = (self :: any) :: CharacterInternal
-
+function Character.SpendReiatsu(self: Character, amount: number): boolean
 	if self._destroyed or amount <= 0 or self._reiatsu < amount then
 		return false
 	end
 
 	local oldReiatsu = self._reiatsu
-	self._reiatsu = clamp(oldReiatsu - amount, 0, self._maxReiatsu)
+	self._reiatsu = math.clamp(oldReiatsu - amount, 0, self._maxReiatsu)
 	self._reiatsuChangedEvent:Fire(self._reiatsu, oldReiatsu)
 
 	return true
 end
 
-function Character:RestoreReiatsu(amount: number): number
-	local self = (self :: any) :: CharacterInternal
-
-	if self._destroyed or amount <= 0 then
+function Character.RestoreReiatsu(self: Character, amount: number): number
+	if self._destroyed or amount <= 0 or self._reiatsu >= self._maxReiatsu then
 		return self._reiatsu
 	end
 
 	local oldReiatsu = self._reiatsu
-	self._reiatsu = clamp(oldReiatsu + amount, 0, self._maxReiatsu)
+	self._reiatsu = math.clamp(oldReiatsu + amount, 0, self._maxReiatsu)
 	self._reiatsuChangedEvent:Fire(self._reiatsu, oldReiatsu)
 
 	return self._reiatsu
 end
 
-function Character:ApplyPostureDamage(amount: number): number
-	local self = (self :: any) :: CharacterInternal
-
+-- La rotura de postura (aturdimiento y su duración) la resuelve CombatService.
+function Character.ApplyPostureDamage(self: Character, amount: number): number
 	if self._destroyed or amount <= 0 then
 		return self._posture
 	end
 
 	local oldPosture = self._posture
-	self._posture = clamp(oldPosture + amount, 0, self._maxPosture)
+	self._posture = math.clamp(oldPosture + amount, 0, self._maxPosture)
 	self._postureChangedEvent:Fire(self._posture, oldPosture)
 
-	-- La rotura de postura (aturdimiento y su duración) la resuelve CombatService.
 	return self._posture
 end
 
-function Character:RecoverPosture(amount: number): number
-	local self = (self :: any) :: CharacterInternal
-
+function Character.RecoverPosture(self: Character, amount: number): number
 	if self._destroyed or amount <= 0 or self._posture <= 0 then
 		return self._posture
 	end
 
 	local oldPosture = self._posture
-	self._posture = clamp(oldPosture - amount, 0, self._maxPosture)
+	self._posture = math.clamp(oldPosture - amount, 0, self._maxPosture)
 	self._postureChangedEvent:Fire(self._posture, oldPosture)
 
 	return self._posture
 end
 
-function Character:ResetPosture(): ()
-	local self = (self :: any) :: CharacterInternal
-
+function Character.ResetPosture(self: Character): ()
 	if self._destroyed or self._posture == 0 then
 		return
 	end
@@ -254,47 +198,35 @@ function Character:ResetPosture(): ()
 	self._postureChangedEvent:Fire(self._posture, oldPosture)
 end
 
-function Character:GetState(): CharacterStateName
-	local self = (self :: any) :: CharacterInternal
+function Character.GetState(self: Character): CharacterStateName
 	return self._stateMachine:GetState()
 end
 
-function Character:CanTransitionTo(newState: CharacterStateName): boolean
-	local self = (self :: any) :: CharacterInternal
+function Character.CanTransitionTo(self: Character, newState: CharacterStateName): boolean
 	return self._stateMachine:CanTransition(newState)
 end
 
-function Character:TransitionTo(newState: CharacterStateName): (boolean, string?)
-	local self = (self :: any) :: CharacterInternal
+function Character.TransitionTo(self: Character, newState: CharacterStateName): (boolean, string?)
 	return self._stateMachine:TransitionTo(newState)
 end
 
-function Character:OnStateChanged(callback: StateMachine.StateChangedCallback): RBXScriptConnection
-	local self = (self :: any) :: CharacterInternal
+function Character.OnStateChanged(self: Character, callback: StateMachine.StateChangedCallback): RBXScriptConnection
 	return self._stateMachine:OnStateChanged(callback)
 end
 
-function Character:Destroy(): ()
-	local self = (self :: any) :: CharacterInternal
-
+-- Tras Destroy, los métodos siguen siendo seguros de llamar: no mutan estado
+-- ni emiten señales.
+function Character.Destroy(self: Character): ()
 	if self._destroyed then
 		return
 	end
 
-	for _, connection in ipairs(self._connections) do
-		connection:Disconnect()
-	end
-	table.clear(self._connections)
-
+	self._destroyed = true
 	self._stateMachine:Destroy()
-
 	self._healthChangedEvent:Destroy()
 	self._reiatsuChangedEvent:Destroy()
 	self._postureChangedEvent:Destroy()
 	self._diedEvent:Destroy()
-
-	self._destroyed = true
-	setmetatable(self :: any, nil)
 end
 
 return Character

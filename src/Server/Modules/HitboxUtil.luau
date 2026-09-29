@@ -8,47 +8,49 @@ type HitboxDefinition = GameTypes.HitboxDefinition
 
 export type HitboxTarget = {
 	Model: Model,
-	Humanoid: Humanoid,
 	Distance: number,
 }
 
-local function resolveTargetModel(part: BasePart, origin: Vector3, seen: { [Model]: boolean }): HitboxTarget?
+-- Busca el primer Model ancestro con un Humanoid vivo. Recorre toda la cadena
+-- porque la pieza puede pertenecer a un sub-modelo del personaje (arma, accesorio).
+local function findCharacterModel(part: BasePart): Model?
 	local model = part:FindFirstAncestorOfClass("Model")
-	if model == nil or seen[model] then
-		return nil
+	while model ~= nil do
+		local humanoid = model:FindFirstChildOfClass("Humanoid")
+		if humanoid ~= nil then
+			return if humanoid.Health > 0 then model else nil
+		end
+		model = model:FindFirstAncestorOfClass("Model")
 	end
-
-	local humanoid = model:FindFirstChildOfClass("Humanoid")
-	if humanoid == nil or humanoid.Health <= 0 then
-		return nil
-	end
-
-	seen[model] = true
-
-	local rootPart = model.PrimaryPart or part
-	return {
-		Model = model,
-		Humanoid = humanoid,
-		Distance = (rootPart.Position - origin).Magnitude,
-	}
+	return nil
 end
 
-local function sortByDistance(targets: { HitboxTarget })
+-- Agrupa las piezas por personaje, ordena por distancia al origen y recorta a
+-- maxTargets (0 = sin límite).
+local function collectTargets(parts: { BasePart }, origin: Vector3, maxTargets: number): { HitboxTarget }
+	local seen: { [Model]: boolean } = {}
+	local targets: { HitboxTarget } = {}
+
+	for _, part in parts do
+		local model = findCharacterModel(part)
+		if model ~= nil and not seen[model] then
+			seen[model] = true
+			local rootPart = model.PrimaryPart or part
+			table.insert(targets, {
+				Model = model,
+				Distance = (rootPart.Position - origin).Magnitude,
+			})
+		end
+	end
+
 	table.sort(targets, function(a, b)
 		return a.Distance < b.Distance
 	end)
-end
 
-local function trimToMax(targets: { HitboxTarget }, maxTargets: number): { HitboxTarget }
-	if maxTargets <= 0 or #targets <= maxTargets then
-		return targets
+	if maxTargets > 0 and #targets > maxTargets then
+		return table.move(targets, 1, maxTargets, 1, {})
 	end
-
-	local trimmed = table.create(maxTargets)
-	for index = 1, maxTargets do
-		trimmed[index] = targets[index]
-	end
-	return trimmed
+	return targets
 end
 
 local HitboxUtil = {}
@@ -68,19 +70,7 @@ function HitboxUtil.FindTargetsInBox(
 	maxTargets: number
 ): { HitboxTarget }
 	local parts = Workspace:GetPartBoundsInBox(cframe, size, params)
-
-	local seen: { [Model]: boolean } = {}
-	local targets: { HitboxTarget } = {}
-
-	for _, part in ipairs(parts) do
-		local target = resolveTargetModel(part, cframe.Position, seen)
-		if target ~= nil then
-			table.insert(targets, target)
-		end
-	end
-
-	sortByDistance(targets)
-	return trimToMax(targets, maxTargets)
+	return collectTargets(parts, cframe.Position, maxTargets)
 end
 
 function HitboxUtil.FindTargetsInRadius(
@@ -90,19 +80,7 @@ function HitboxUtil.FindTargetsInRadius(
 	maxTargets: number
 ): { HitboxTarget }
 	local parts = Workspace:GetPartBoundsInRadius(position, radius, params)
-
-	local seen: { [Model]: boolean } = {}
-	local targets: { HitboxTarget } = {}
-
-	for _, part in ipairs(parts) do
-		local target = resolveTargetModel(part, position, seen)
-		if target ~= nil then
-			table.insert(targets, target)
-		end
-	end
-
-	sortByDistance(targets)
-	return trimToMax(targets, maxTargets)
+	return collectTargets(parts, position, maxTargets)
 end
 
 -- No existe una query nativa de cilindro en el motor de físicas: se aproxima
