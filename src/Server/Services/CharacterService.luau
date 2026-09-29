@@ -124,12 +124,18 @@ end
 function CharacterService:Init(): ()
 	local self = (self :: any) :: CharacterServiceInternal
 
-	table.insert(self._connections, Players.PlayerAdded:Connect(function(player)
-		onPlayerAdded(self, player)
-	end))
-	table.insert(self._connections, Players.PlayerRemoving:Connect(function(player)
-		onPlayerRemoving(self, player)
-	end))
+	table.insert(
+		self._connections,
+		Players.PlayerAdded:Connect(function(player)
+			onPlayerAdded(self, player)
+		end)
+	)
+	table.insert(
+		self._connections,
+		Players.PlayerRemoving:Connect(function(player)
+			onPlayerRemoving(self, player)
+		end)
+	)
 
 	for _, player in ipairs(Players:GetPlayers()) do
 		onPlayerAdded(self, player)

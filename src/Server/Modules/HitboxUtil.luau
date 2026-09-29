@@ -61,7 +61,12 @@ function HitboxUtil.BuildOverlapParams(ignoreList: { Instance }): OverlapParams
 	return params
 end
 
-function HitboxUtil.FindTargetsInBox(cframe: CFrame, size: Vector3, params: OverlapParams, maxTargets: number): { HitboxTarget }
+function HitboxUtil.FindTargetsInBox(
+	cframe: CFrame,
+	size: Vector3,
+	params: OverlapParams,
+	maxTargets: number
+): { HitboxTarget }
 	local parts = Workspace:GetPartBoundsInBox(cframe, size, params)
 
 	local seen: { [Model]: boolean } = {}
@@ -78,7 +83,12 @@ function HitboxUtil.FindTargetsInBox(cframe: CFrame, size: Vector3, params: Over
 	return trimToMax(targets, maxTargets)
 end
 
-function HitboxUtil.FindTargetsInRadius(position: Vector3, radius: number, params: OverlapParams, maxTargets: number): { HitboxTarget }
+function HitboxUtil.FindTargetsInRadius(
+	position: Vector3,
+	radius: number,
+	params: OverlapParams,
+	maxTargets: number
+): { HitboxTarget }
 	local parts = Workspace:GetPartBoundsInRadius(position, radius, params)
 
 	local seen: { [Model]: boolean } = {}

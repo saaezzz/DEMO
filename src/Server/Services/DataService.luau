@@ -80,10 +80,8 @@ local function buildReplicatedData(profile: Profile): ReplicatedPlayerData
 end
 
 local function onPlayerAdded(player: Player)
-	local profile = DataService._profileStore:LoadProfileAsync(
-		"Player_" .. tostring(player.UserId),
-		NOT_RELEASED_HANDLER
-	)
+	local profile =
+		DataService._profileStore:LoadProfileAsync("Player_" .. tostring(player.UserId), NOT_RELEASED_HANDLER)
 
 	if profile == nil then
 		player:Kick("No se pudieron cargar tus datos. Vuelve a intentarlo.")

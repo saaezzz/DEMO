@@ -157,23 +157,29 @@ function CombatController:Init(): ()
 	if player.Character ~= nil then
 		bindCharacter(self, player.Character)
 	end
-	table.insert(self._connections, player.CharacterAdded:Connect(function(model)
-		bindCharacter(self, model)
-	end))
+	table.insert(
+		self._connections,
+		player.CharacterAdded:Connect(function(model)
+			bindCharacter(self, model)
+		end)
+	)
 
-	table.insert(self._connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
-		if gameProcessed then
-			return
-		end
+	table.insert(
+		self._connections,
+		UserInputService.InputBegan:Connect(function(input, gameProcessed)
+			if gameProcessed then
+				return
+			end
 
-		if input.UserInputType == ATTACK_KEY then
-			onAttackInput(self)
-		elseif input.KeyCode == BLOCK_KEY then
-			onBlockInput(self)
-		elseif input.KeyCode == SHUNPO_KEY then
-			onShunpoInput(self)
-		end
-	end))
+			if input.UserInputType == ATTACK_KEY then
+				onAttackInput(self)
+			elseif input.KeyCode == BLOCK_KEY then
+				onBlockInput(self)
+			elseif input.KeyCode == SHUNPO_KEY then
+				onShunpoInput(self)
+			end
+		end)
+	)
 end
 
 function CombatController:Destroy(): ()

@@ -1,14 +1,7 @@
 --!strict
 
 -- Estados posibles de la máquina de estados de combate de un personaje.
-export type CharacterStateName =
-	"Idle"
-	| "Attacking"
-	| "Blocking"
-	| "Stunned"
-	| "Shunpo"
-	| "Casting"
-	| "Ragdoll"
+export type CharacterStateName = "Idle" | "Attacking" | "Blocking" | "Stunned" | "Shunpo" | "Casting" | "Ragdoll"
 
 -- Razas jugables del universo Bleach.
 export type CharacterRace = "Human" | "Shinigami" | "Hollow" | "Quincy" | "Fullbring"

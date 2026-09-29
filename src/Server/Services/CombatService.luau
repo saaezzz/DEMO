@@ -272,8 +272,7 @@ function CombatService:ProcessIntent(player: Player, intent: CombatIntent): Serv
 	end
 end
 
-function CombatService:Init(): ()
-end
+function CombatService:Init(): () end
 
 function CombatService:Shutdown(): ()
 	local self = (self :: any) :: CombatServiceInternal
