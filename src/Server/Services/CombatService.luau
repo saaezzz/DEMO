@@ -34,7 +34,7 @@ type CombatServiceInternal = CombatService & {
 
 local SHUNPO_REIATSU_COST = 15
 local SHUNPO_DURATION_SECONDS = 0.4
-local PARRY_WINDOW_SECONDS = 5 -- TEMPORAL para pruebas manuales, volver a 0.3 después
+local PARRY_WINDOW_SECONDS = 0.3
 local BLOCK_DAMAGE_MULTIPLIER = 0.25
 local BLOCK_POSTURE_MULTIPLIER = 1.5
 
@@ -111,7 +111,6 @@ local function resolveHit(
 		local blockStart = self._blockStartTimes[target.Model]
 
 		if blockStart ~= nil and (os.clock() - blockStart) <= PARRY_WINDOW_SECONDS then
-			print(string.format("[CombatService] PARRY de %s contra %s", target.Model.Name, attackerModel.Name))
 			local attackerCharacter = self._characters[attackerModel]
 			if attackerCharacter ~= nil and attackerCharacter:GetState() == "Attacking" then
 				attackerCharacter:TransitionTo("Stunned")
@@ -119,7 +118,6 @@ local function resolveHit(
 			return
 		end
 
-		print(string.format("[CombatService] Bloqueo mitigado de %s contra %s", target.Model.Name, attackerModel.Name))
 		damage *= BLOCK_DAMAGE_MULTIPLIER
 		postureDamage *= BLOCK_POSTURE_MULTIPLIER
 	end
@@ -140,7 +138,6 @@ local function scheduleCombo(self: CombatServiceInternal, attackerModel: Model, 
 			end
 
 			local targets = HitboxUtil.FindTargets(hit.Hitbox, rootPart.CFrame, overlapParams)
-			print(string.format("[CombatService] %s golpe '%s' encontró %d objetivo(s)", attackerModel.Name, hit.MarkerName, #targets))
 			for _, target in ipairs(targets) do
 				resolveHit(self, attackerModel, target, hit)
 			end
