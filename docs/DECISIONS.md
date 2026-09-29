@@ -153,3 +153,10 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Decisión:** Acciones abstractas (`InputBindings`) con controles por plataforma como datos; `InputController` las enlaza con `ContextActionService` y emite `ActionBegan`/`ActionEnded`. Los botones táctiles son los de `ContextActionService` (sin UI propia hasta que el equipo de UI la diseñe). El bloqueo pasa de alternar a **mantener pulsado**: el cliente envía `Block` con `Active = true/false` y el servidor lo aplica de forma idempotente.
 - **Alternativas:** `UserInputService.InputBegan` (no crea botones táctiles; cada sistema tendría que filtrar teclas) o una UI táctil propia (depende del equipo de UI; se podrá sustituir sin tocar los sistemas de juego).
 - **Motivo:** §51 (teclado, mando y táctil sin código específico por plataforma). El bloqueo alternado podía desincronizarse entre cliente y servidor si se perdía un intent.
+
+## D-020 — Manifiesto de assets y registro de animaciones; registro de habilidades en M2
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED
+- **Decisión:** `Content/Assets` es el manifiesto de §54 y la única fuente de IDs de Roblox, con convención de nombres `<PREFIJO>_<Grupo>_<Nombre>` validada por tests. `Content/Animations` asocia claves de juego a assets, prioridad y markers estándar de §53; `AssetRegistry` y `AnimationRegistry` dan acceso a ambos. Los combos referencian animaciones por clave y sus `MarkerName` deben existir en la animación.
+- **Registro de habilidades:** §70 lo incluye en CORE FOUNDATION, pero se implementará con el framework de habilidades (M2): definir `AbilityDefinition` antes de diseñar ese framework sería especulativo y probablemente se reharía. Los combos actuales ya son definiciones de datos validadas.
+- **Motivo:** que ningún sistema escriba IDs a mano, que el equipo de arte tenga un flujo de estados trazable y que los errores de referencias se detecten en CI, no en una prueba en Studio.

@@ -13,6 +13,7 @@ Las entradas nuevas van en `Unreleased`.
 - CI en GitHub Actions: formato, lint, tipos, tests y build.
 - DataService v1 (D-018): ProfileStore 1.0.3, `DataVersion` y migraciones sobre copia, replicación al dueño (`PlayerData`), `PlayerDataController` en el cliente. Doc `DATA.md`.
 - Aparición controlada por el servidor tras cargar el perfil y reaparición tras morir (`CharacterAutoLoads` desactivado).
+- Manifiesto de assets con convención de nombres y flujo de estados, registro de animaciones con markers estándar (D-020). Docs `ASSETS.md` y `ANIMATIONS.md`.
 - Capa de input (D-019): acciones abstractas, controles para teclado/ratón, mando y botones táctiles; `InputController`. Doc `INPUT.md`.
 - Capa de contenido (D-017): `Shared/Content` (razas, recursos, animaciones), `Server/Content` (combos, acciones), `Shared/Config/CharacterConfig` y tipos `ContentTypes`. Tests de frontera de IP e integridad de contenido.
 - Capa de red (D-016): `RemoteDefinitions`, `Schema`, `ServerNetwork`, `RemoteGuard`, `ClientNetwork`; remotes creados por código. Docs `NETWORKING.md` y `SECURITY.md`.
@@ -23,6 +24,7 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- Las animaciones de combo se resuelven por clave vía `AnimationRegistry`; el marker del golpe de `BasicSlash` pasa a `Hit`.
 - Bloqueo por mantener pulsado: intent `Block` con `Active` e idempotente en el servidor (D-019).
 - Recursos genéricos por ID en `Character` (`SpendResource`, `RestoreResource`, `ResourceChanged`); costes `{ Resource, Amount }`; regeneración según la definición de cada recurso (D-017).
 - Estados de acción de §15 adaptados (D-017); morir pasa a `Dead` (terminal) y cancela la acción en curso.

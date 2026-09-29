@@ -16,6 +16,43 @@ export type ResourceDefinition = {
 	RegenPerSecond: number,
 }
 
+-- Manifiesto de assets (§54, D-020) ------------------------------------------
+
+export type AssetCategory = "Animation" | "Model" | "VFX" | "SFX" | "Music" | "UI" | "Texture"
+
+export type AssetStatus = "TODO" | "BLOCKED" | "IN_PROGRESS" | "REVIEW" | "APPROVED" | "INTEGRATED"
+
+export type AssetEntry = {
+	-- Nombre único según la convención <PREFIJO>_<Grupo>_<Nombre> (docs/ASSETS.md).
+	Name: string,
+	Category: AssetCategory,
+	-- ID numérico de Roblox; nil hasta que el asset se sube.
+	AssetId: number?,
+	Owner: string,
+	Status: AssetStatus,
+	Version: number,
+	-- Nombres de otros assets del manifiesto que necesita.
+	Dependencies: { string },
+	-- Qué lo usa (p. ej. "Combo:BasicSlash"), para saber qué se rompe si cambia.
+	UsedBy: { string },
+	Notes: string?,
+}
+
+-- Animaciones (§53, D-020) ---------------------------------------------------
+
+-- Markers estándar de las animaciones. Un marker puede llevar un sufijo
+-- numérico si se repite en la misma animación (Hit1, Hit2...).
+export type AnimationMarker = "Startup" | "Hit" | "Active" | "Recovery" | "VFX" | "SFX" | "IFrameStart" | "IFrameEnd"
+
+export type AnimationDefinition = {
+	-- Nombre del asset en el manifiesto (categoría Animation).
+	Asset: string,
+	Priority: "Core" | "Idle" | "Movement" | "Action",
+	Looped: boolean,
+	-- Markers que la animación debe tener (con sufijo si aplica).
+	Markers: { string },
+}
+
 export type RaceDefinition = {
 	Id: RaceId,
 	DisplayName: string,

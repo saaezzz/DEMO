@@ -9,17 +9,18 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] Validación de payload y rate limit en `CombatIntent`; anti-spam de parry.
 - [x] Revisión completa: 0 errores de tipo, 0 avisos de lint, ciclo de vida de personajes corregido.
 
-## M1 — Core Foundation (P0)
+## M1 — Core Foundation (P0) — HECHO (pendiente de verificación en Studio)
 - [x] Loader de servicios (`Init`/`Start`), `Logger`, `Signal`.
 - [x] Capa `Networking` con validación de esquema y rate limit.
 - [x] Separar IP del núcleo; estados de personaje de §15 (adaptados, D-017); recursos genéricos.
 - [x] DataService v1 con ProfileStore, `DataVersion`, migraciones y replicación privada.
 - [x] Test runner (Lune), tests de la lógica pura y CI.
 - [x] `InputController` (KBM, gamepad, táctil).
-- [ ] Registros: habilidades, animaciones, assets.
+- [x] Registros de animaciones y assets (D-020).
+- [ ] Registro de habilidades → se hace con el framework de habilidades en M2 (D-020).
 
 ## M2 — Combat Foundation (P0/P1)
-- Framework de habilidades, Hitbox/Damage/Cooldown/Resource, dodge, heavy, stamina, dummy de entrenamiento, framework de movimiento.
+- Framework y registro de habilidades, Hitbox/Damage/Cooldown/Resource, dodge, heavy, stamina, dummy de entrenamiento, framework de movimiento.
 
 ## M3 — Loop PvE mínimo (P1)
 - Enemigos + IA básica, EXP/nivel data-driven, muerte/respawn, HUD, cámara + lock-on.

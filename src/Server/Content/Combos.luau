@@ -14,7 +14,7 @@ local BasicSlash: ComboDefinition = {
 	Id = "BasicSlash",
 	Hits = {
 		{
-			MarkerName = "Hit1",
+			MarkerName = "Hit",
 			StartTime = 0.2,
 			EndTime = 0.35,
 			BaseDamage = 12,

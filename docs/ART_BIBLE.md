@@ -4,7 +4,8 @@
 Blender (según `CLAUDE.md`).
 
 ## Convenciones de assets
-Por definir. Los assets se organizan en `assets/`:
+Nombres y flujo de estados en [ASSETS.md](ASSETS.md); animaciones y markers en [ANIMATIONS.md](ANIMATIONS.md).
+Los archivos fuente se organizan en `assets/`:
 - `Characters/`
 - `Weapons/`
 - `Environment/`
@@ -13,4 +14,4 @@ Por definir. Los assets se organizan en `assets/`:
 
 ## Pendiente de definir
 - Paleta de color y dirección de arte.
-- Convenciones de nombres y escala de modelos.
+- Escala de modelos.

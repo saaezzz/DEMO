@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local ComboAnimations = require(ReplicatedStorage.Shared.Content.ComboAnimations)
+local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
 
 local ClientNetwork = require(script.Parent.Parent.Network.ClientNetwork)
 local InputController = require(script.Parent.InputController)
@@ -50,14 +51,19 @@ local function getComboTrack(currentAnimator: Animator, comboId: string): Animat
 		return cached
 	end
 
-	local animationId: string? = ComboAnimations[comboId]
-	if animationId == nil then
+	-- Sin animación asignada o con el asset aún sin subir: el combo funciona sin animar.
+	local animationKey: string? = ComboAnimations[comboId]
+	local definition = if animationKey ~= nil then AnimationRegistry.Get(animationKey) else nil
+	local contentId = if animationKey ~= nil then AnimationRegistry.GetContentId(animationKey) else nil
+	if definition == nil or contentId == nil then
 		return nil
 	end
 
 	local animation = Instance.new("Animation")
-	animation.AnimationId = animationId
+	animation.AnimationId = contentId
 	local track = currentAnimator:LoadAnimation(animation)
+	track.Priority = AnimationRegistry.GetEnumPriority(definition)
+	track.Looped = definition.Looped
 	comboTracks[comboId] = track
 	return track
 end

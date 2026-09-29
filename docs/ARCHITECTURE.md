@@ -48,9 +48,11 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 ### Shared
 - `Types/GameTypes`, `Types/ContentTypes`, `Types/PlayerDataTypes` — tipos del núcleo, del contenido y del perfil.
 - `Config/CharacterConfig` — valores base de balance (no IP).
-- `Content/Races`, `Content/Resources`, `Content/ComboAnimations` — contenido público (capa IP).
+- `Content/Races`, `Content/Resources` — contenido público (capa IP).
+- `Content/Assets`, `Content/Animations`, `Content/ComboAnimations` — manifiesto de assets y animaciones (`docs/ASSETS.md`, `docs/ANIMATIONS.md`).
 - `Modules/StateMachine` — máquina de estados genérica.
 - `Modules/Character` — vida, recursos genéricos, postura y estado de un personaje.
+- `Modules/AssetRegistry`, `Modules/AnimationRegistry` — acceso al manifiesto de assets y a las animaciones (D-020).
 - `Network/RemoteDefinitions` — catálogo de remotes y rate limits (D-016).
 - `Network/Schema` — validadores declarativos de payloads.
 - `Utils/Signal` — señal síncrona en Luau puro (D-013).

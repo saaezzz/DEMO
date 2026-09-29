@@ -6,6 +6,10 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Races = require(ReplicatedStorage.Shared.Content.Races)
 local Resources = require(ReplicatedStorage.Shared.Content.Resources)
 local ComboAnimations = require(ReplicatedStorage.Shared.Content.ComboAnimations)
+local Animations = require(ReplicatedStorage.Shared.Content.Animations)
+local Assets = require(ReplicatedStorage.Shared.Content.Assets)
+local AssetRegistry = require(ReplicatedStorage.Shared.Modules.AssetRegistry)
+local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
 local Combos = require(ServerScriptService.Server.Content.Combos)
 local CombatActions = require(ServerScriptService.Server.Content.CombatActions)
 
@@ -62,13 +66,77 @@ return {
 		end
 	end,
 
-	["las animaciones de combo apuntan a combos existentes"] = function()
+	["las animaciones de combo apuntan a combos y animaciones existentes"] = function()
 		local comboIds = {}
 		for _, combo in Combos do
 			comboIds[combo.Id] = true
 		end
-		for comboId in ComboAnimations do
+		for comboId, animationKey in ComboAnimations do
 			expect(comboIds[comboId]).toBe(true)
+			if Animations[animationKey] == nil then
+				error(`combo {comboId}: animación desconocida "{animationKey}"`)
+			end
+		end
+	end,
+
+	["los markers de cada golpe existen en la animación del combo"] = function()
+		for _, combo in Combos do
+			local animationKey = ComboAnimations[combo.Id]
+			local animation = if animationKey ~= nil then Animations[animationKey] else nil
+			if animation ~= nil then
+				for _, hit in combo.Hits do
+					if not table.find(animation.Markers, hit.MarkerName) then
+						error(`combo {combo.Id}: marker "{hit.MarkerName}" no está en {animationKey}`)
+					end
+				end
+			end
+		end
+	end,
+
+	["cada asset cumple la convención de nombres y tiene datos válidos"] = function()
+		local validStatus = { "TODO", "BLOCKED", "IN_PROGRESS", "REVIEW", "APPROVED", "INTEGRATED" }
+		for _, entry in Assets do
+			if not AssetRegistry.IsValidName(entry.Name, entry.Category) then
+				error(`nombre de asset inválido: {entry.Name} ({entry.Category})`)
+			end
+			expect(table.find(validStatus, entry.Status) ~= nil).toBe(true)
+			expect(entry.Version >= 0 and entry.Version % 1 == 0).toBe(true)
+			expect(#entry.Owner > 0).toBe(true)
+			if entry.AssetId ~= nil then
+				expect(entry.AssetId > 0 and entry.AssetId % 1 == 0).toBe(true)
+			end
+		end
+	end,
+
+	["un asset aprobado o integrado ya tiene AssetId"] = function()
+		for _, entry in Assets do
+			if (entry.Status == "APPROVED" or entry.Status == "INTEGRATED") and entry.AssetId == nil then
+				error(`{entry.Name} está {entry.Status} pero no tiene AssetId`)
+			end
+		end
+	end,
+
+	["las dependencias de los assets existen"] = function()
+		for _, entry in Assets do
+			for _, dependency in entry.Dependencies do
+				if AssetRegistry.Get(dependency) == nil then
+					error(`{entry.Name}: dependencia desconocida {dependency}`)
+				end
+			end
+		end
+	end,
+
+	["cada animación usa un asset de categoría Animation y markers estándar"] = function()
+		for key, animation in Animations do
+			local asset = AssetRegistry.Get(animation.Asset)
+			if asset == nil or asset.Category ~= "Animation" then
+				error(`{key}: asset "{animation.Asset}" inexistente o no es Animation`)
+			end
+			for _, marker in animation.Markers do
+				if not AnimationRegistry.IsValidMarker(marker) then
+					error(`{key}: marker no estándar "{marker}"`)
+				end
+			end
 		end
 	end,
 
