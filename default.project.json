@@ -2,7 +2,6 @@
   "name": "Demo_RPG",
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/Shared"
@@ -14,25 +13,24 @@
         }
       }
     },
-
     "ServerScriptService": {
       "Server": {
         "$path": "src/Server"
       }
     },
-
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": {
           "$path": "src/Client"
         }
+      },
+      "StarterCharacterScripts": {
+        "Health": {
+          "$path": "src/CharacterScripts/Health.server.luau"
+        }
       }
     },
-
     "Workspace": {
-      "$properties": {
-        "FilteringEnabled": true
-      },
       "Baseplate": {
         "$className": "Part",
         "$properties": {
