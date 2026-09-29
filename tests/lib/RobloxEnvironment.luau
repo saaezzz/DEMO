@@ -201,6 +201,11 @@ function RobloxEnvironment.new(sourcemap: SourcemapNode): Environment
 		game = proxyOf(root),
 
 		require = function(target: any): any
+			-- Las librerías de Lune (p. ej. "@lune/fs") se permiten para los specs.
+			if typeof(target) == "string" and string.sub(target, 1, 6) == "@lune/" then
+				return require(target)
+			end
+
 			local node = nodesByProxy[target]
 			if node == nil then
 				error("require: se esperaba una instancia del proyecto", 2)

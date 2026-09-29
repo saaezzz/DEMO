@@ -7,10 +7,12 @@ local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
 local HitboxUtil = require(script.Parent.Parent.Modules.HitboxUtil)
 local CombatIntentValidator = require(script.Parent.Parent.Modules.CombatIntentValidator)
-local ExampleCombos = require(script.Parent.Parent.Combos.ExampleCombos)
+local Combos = require(script.Parent.Parent.Content.Combos)
+local CombatActions = require(script.Parent.Parent.Content.CombatActions)
 local ServerNetwork = require(script.Parent.Parent.Network.ServerNetwork)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 local Signal = require(ReplicatedStorage.Shared.Utils.Signal)
+local Resources = require(ReplicatedStorage.Shared.Content.Resources)
 
 type Character = CharacterModule.Character
 type CharacterStateName = GameTypes.CharacterStateName
@@ -20,9 +22,8 @@ type ServerResponseStatus = GameTypes.ServerResponseStatus
 type ComboDefinition = GameTypes.ComboDefinition
 type ComboHitWindow = GameTypes.ComboHitWindow
 type HitboxTarget = HitboxUtil.HitboxTarget
+type ResourceCost = GameTypes.ResourceCost
 
-local SHUNPO_REIATSU_COST = 15
-local SHUNPO_DURATION_SECONDS = 0.4
 local PARRY_WINDOW_SECONDS = 0.3
 -- Tiempo mínimo entre ventanas de parry: pulsar bloqueo repetidamente no
 -- encadena parries; el bloqueo sigue funcionando, pero sin ventana (D-009).
@@ -32,10 +33,10 @@ local POSTURE_BREAK_STUN_SECONDS = 1.5
 local BLOCK_DAMAGE_MULTIPLIER = 0.25
 local BLOCK_POSTURE_MULTIPLIER = 1.5
 
--- Tick de baja frecuencia para regeneración pasiva (D-008).
+-- Tick de baja frecuencia para regeneración pasiva (D-008). El ritmo de cada
+-- recurso viene de su definición en Content/Resources.
 -- Provisional: se moverá a ResourceService cuando exista.
 local REGEN_TICK_SECONDS = 0.25
-local REIATSU_REGEN_PER_SECOND = 5
 local POSTURE_DECAY_PER_SECOND = 10
 
 type TaskSet = { [thread]: boolean }
@@ -265,6 +266,19 @@ local function scheduleCombo(attackerModel: Model, attacker: Character, combo: C
 	attackTasks[attackerModel] = tasks
 end
 
+-- Cobra el coste completo o nada. Sin coste, siempre tiene éxito.
+local function trySpendCost(character: Character, cost: ResourceCost?): (boolean, string?)
+	if cost == nil or cost.Amount <= 0 then
+		return true, nil
+	end
+	if character:SpendResource(cost.Resource, cost.Amount) then
+		return true, nil
+	end
+	local definition = Resources[cost.Resource]
+	local displayName = if definition ~= nil then definition.DisplayName else cost.Resource
+	return false, `{displayName} insuficiente`
+end
+
 -- Devuelve el personaje del jugador solo si está registrado y vivo.
 local function getActiveCharacter(player: Player): (Model?, Character?)
 	local model: Model? = playerModels[player]
@@ -307,8 +321,9 @@ local function processAttack(player: Player, intent: CombatIntent): ServerCombat
 		return respond("OnCooldown", nil)
 	end
 
-	if combo.ReiatsuCost > 0 and not character:SpendReiatsu(combo.ReiatsuCost) then
-		return respond("InsufficientResource", "Reiatsu insuficiente")
+	local paid, costError = trySpendCost(character, combo.Cost)
+	if not paid then
+		return respond("InsufficientResource", costError)
 	end
 
 	if not character:TransitionTo("Attacking") then
@@ -346,24 +361,26 @@ local function processBlock(player: Player): ServerCombatResponse
 	return respond("Accepted", nil)
 end
 
-local function processShunpo(player: Player): ServerCombatResponse
+local function processDash(player: Player): ServerCombatResponse
 	local model, character = getActiveCharacter(player)
 	if model == nil or character == nil then
 		return respond("Rejected", "Personaje no disponible")
 	end
 
-	if not character:CanTransitionTo("Shunpo") then
-		return respond("InvalidState", string.format("No se puede usar Shunpo desde %s", character:GetState()))
+	if not character:CanTransitionTo("Dashing") then
+		return respond("InvalidState", string.format("No se puede hacer dash desde %s", character:GetState()))
 	end
 
-	if not character:SpendReiatsu(SHUNPO_REIATSU_COST) then
-		return respond("InsufficientResource", "Reiatsu insuficiente")
+	local dash = CombatActions.Dash
+	local paid, costError = trySpendCost(character, dash.Cost)
+	if not paid then
+		return respond("InsufficientResource", costError)
 	end
 
-	character:TransitionTo("Shunpo")
+	character:TransitionTo("Dashing")
 
-	scheduleFor(model, SHUNPO_DURATION_SECONDS, function()
-		if character:GetState() == "Shunpo" then
+	scheduleFor(model, dash.DurationSeconds, function()
+		if character:GetState() == "Dashing" then
 			character:TransitionTo("Idle")
 		end
 	end)
@@ -374,7 +391,12 @@ end
 local function regenerate(deltaSeconds: number): ()
 	for _, character in characters do
 		if character:IsAlive() then
-			character:RestoreReiatsu(REIATSU_REGEN_PER_SECOND * deltaSeconds)
+			for _, resourceId in character:GetResourceIds() do
+				local definition = Resources[resourceId]
+				if definition ~= nil and definition.RegenPerSecond > 0 then
+					character:RestoreResource(resourceId, definition.RegenPerSecond * deltaSeconds)
+				end
+			end
 
 			local state = character:GetState()
 			if state ~= "Blocking" and state ~= "Stunned" then
@@ -395,7 +417,7 @@ local function processIntent(player: Player, intent: CombatIntent): ServerCombat
 	elseif intent.Type == "Block" then
 		return processBlock(player)
 	else
-		return processShunpo(player)
+		return processDash(player)
 	end
 end
 
@@ -404,10 +426,10 @@ local CombatService = {
 }
 
 function CombatService:Init(): ()
-	for _, combo in ExampleCombos do
+	for _, combo in Combos do
 		combos[combo.Id] = combo
 	end
-	log:Debug("%d combos cargados", #ExampleCombos)
+	log:Debug("%d combos cargados", #Combos)
 end
 
 function CombatService:Start(): ()

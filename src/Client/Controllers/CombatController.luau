@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
-local ClientComboCatalog = require(ReplicatedStorage.Shared.Combos.ClientComboCatalog)
+local ComboAnimations = require(ReplicatedStorage.Shared.Content.ComboAnimations)
 
 local ClientNetwork = require(script.Parent.Parent.Network.ClientNetwork)
 
@@ -18,7 +18,7 @@ local ANIMATOR_TIMEOUT_SECONDS = 5
 -- Provisional hasta InputService (tarea 10 del roadmap): solo teclado y ratón.
 local ATTACK_INPUT = Enum.UserInputType.MouseButton1
 local BLOCK_KEY = Enum.KeyCode.F
-local SHUNPO_KEY = Enum.KeyCode.Q
+local DASH_KEY = Enum.KeyCode.Q
 local ATTACK_COMBO_ID = "BasicSlash"
 
 local player = Players.LocalPlayer
@@ -47,7 +47,7 @@ local function getComboTrack(currentAnimator: Animator, comboId: string): Animat
 		return cached
 	end
 
-	local animationId: string? = ClientComboCatalog[comboId]
+	local animationId: string? = ComboAnimations[comboId]
 	if animationId == nil then
 		return nil
 	end
@@ -111,8 +111,8 @@ local function onInputBegan(input: InputObject, gameProcessed: boolean): ()
 		onAttackInput()
 	elseif input.KeyCode == BLOCK_KEY then
 		sendIntent("Block", nil)
-	elseif input.KeyCode == SHUNPO_KEY then
-		sendIntent("Shunpo", nil)
+	elseif input.KeyCode == DASH_KEY then
+		sendIntent("Dash", nil)
 	end
 end
 

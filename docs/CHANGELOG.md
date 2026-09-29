@@ -11,6 +11,7 @@ Las entradas nuevas van en `Unreleased`.
 - `Shared/Utils/ServiceLoader`: arranque en dos fases Init/Start (D-014).
 - Tests con Lune: runner con emulación del árbol de instancias desde el sourcemap y 51 tests de Signal, StateMachine, Character, Logger, ServiceLoader, RateLimiter y CombatIntentValidator (`docs/TESTING.md`).
 - CI en GitHub Actions: formato, lint, tipos, tests y build.
+- Capa de contenido (D-017): `Shared/Content` (razas, recursos, animaciones), `Server/Content` (combos, acciones), `Shared/Config/CharacterConfig` y tipos `ContentTypes`. Tests de frontera de IP e integridad de contenido.
 - Capa de red (D-016): `RemoteDefinitions`, `Schema`, `ServerNetwork`, `RemoteGuard`, `ClientNetwork`; remotes creados por código. Docs `NETWORKING.md` y `SECURITY.md`.
 - Toolchain fijado con Rokit (`rokit.toml`): rojo, selene, stylua, luau-lsp, lune.
 - Configuración de lint (`selene.toml`), formato (`stylua.toml`) y tipos (`.luaurc`).
@@ -19,6 +20,9 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- Recursos genéricos por ID en `Character` (`SpendResource`, `RestoreResource`, `ResourceChanged`); costes `{ Resource, Amount }`; regeneración según la definición de cada recurso (D-017).
+- Estados de acción de §15 adaptados (D-017); morir pasa a `Dead` (terminal) y cancela la acción en curso.
+- El intent `Shunpo` pasa a ser `Dash` (estado `Dashing`); Shunpo queda como contenido.
 - `Character` y `StateMachine` usan `Signal` en lugar de `BindableEvent` (eventos síncronos y deterministas).
 - `CombatIntent` pasa por `ServerNetwork`; `CombatIntentValidator` es ahora un esquema de `Schema`; se elimina `Shared/Network/CombatRemotes` y el remote del `default.project.json`.
 - Servicios y controladores arrancan con `ServiceLoader`; `CombatService` carga sus combos y conecta su remote; se eliminan los `Shutdown`/`Destroy` sin uso.
@@ -45,6 +49,7 @@ Las entradas nuevas van en `Unreleased`.
 - Los intents de un personaje muerto se rechazan.
 
 ### Removed
+- `Shared/Types/DataTypes` (borrador de perfil; se rediseña en la tarea 8).
 - Scripts de prueba `RedCircle.server.luau` y `Hello.luau`.
 - Borrador de `DataService` y `Packages/README.md` (D-012).
 - ID de animación de relleno `rbxassetid://0` del catálogo del cliente.

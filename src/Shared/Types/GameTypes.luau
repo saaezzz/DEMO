@@ -1,20 +1,48 @@
 --!strict
 
--- Estados posibles de la máquina de estados de combate de un personaje.
-export type CharacterStateName = "Idle" | "Attacking" | "Blocking" | "Stunned" | "Shunpo" | "Casting" | "Ragdoll"
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Razas jugables del universo Bleach.
-export type CharacterRace = "Human" | "Shinigami" | "Hollow" | "Quincy" | "Fullbring"
+local ContentTypes = require(ReplicatedStorage.Shared.Types.ContentTypes)
 
+type RaceId = ContentTypes.RaceId
+type ResourceId = ContentTypes.ResourceId
+
+-- Estados de acción de un personaje (§15, adaptado en D-017). Son exclusivos
+-- entre sí. La locomoción (Moving/Running/Sprinting) y la forma transformada
+-- (Transformed) son capas independientes, no estados de esta máquina.
+export type CharacterStateName =
+	"Idle"
+	| "Attacking"
+	| "Blocking"
+	| "Parrying"
+	| "Dodging"
+	| "Dashing"
+	| "Casting"
+	| "Transforming"
+	| "Stunned"
+	| "Knocked"
+	| "Ragdolled"
+	| "Disabled"
+	| "Dead"
+
+export type ResourcePool = {
+	Current: number,
+	Max: number,
+}
+
+-- Atributos con los que se crea un Character. La vida empieza al máximo y la
+-- postura a 0.
 export type CharacterAttributes = {
-	Health: number,
-	MaxHealth: number,
-	Reiatsu: number,
-	MaxReiatsu: number,
-	Posture: number,
-	MaxPosture: number,
-	Race: CharacterRace,
+	Race: RaceId,
 	Level: number,
+	MaxHealth: number,
+	MaxPosture: number,
+	Resources: { [ResourceId]: ResourcePool },
+}
+
+export type ResourceCost = {
+	Resource: ResourceId,
+	Amount: number,
 }
 
 export type HitboxShape = "Box" | "Sphere" | "Cylinder"
@@ -39,15 +67,15 @@ export type ComboHitWindow = {
 }
 
 -- Definición autoritativa (solo servidor). La animación asociada vive en
--- Shared/Combos/ClientComboCatalog, indexada por el mismo Id.
+-- Shared/Content/ComboAnimations, indexada por el mismo Id.
 export type ComboDefinition = {
 	Id: string,
 	Hits: { ComboHitWindow },
 	CooldownSeconds: number,
-	ReiatsuCost: number,
+	Cost: ResourceCost?,
 }
 
-export type CombatIntentType = "Attack" | "Block" | "Shunpo"
+export type CombatIntentType = "Attack" | "Block" | "Dash"
 
 -- Intención enviada por el cliente al servidor; nunca contiene datos resolutivos como daño.
 export type CombatIntent = {

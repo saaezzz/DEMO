@@ -13,7 +13,7 @@ local CombatIntentValidator = {}
 
 -- (true, CombatIntent) o (false, motivo).
 CombatIntentValidator.Validate = Schema.record({
-	Type = Schema.literal({ "Attack", "Block", "Shunpo" }),
+	Type = Schema.literal({ "Attack", "Block", "Dash" }),
 	ComboId = Schema.optional(Schema.string(MAX_ID_LENGTH)),
 })
 

@@ -32,7 +32,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Network/RemoteGuard` — rate limit + validación + `pcall` para cada handler.
 - `Modules/CombatIntentValidator` — esquema del payload de `CombatIntent`.
 - `Modules/RateLimiter` — token bucket por clave (Luau puro).
-- `Combos/ExampleCombos` — definiciones autoritativas de combos.
+- `Content/Combos`, `Content/CombatActions` — contenido autoritativo (combos, parámetros del dash).
 
 ### Client
 - `init.client.luau` — arranque: nivel de log y lista de controladores.
@@ -40,15 +40,16 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Network/ClientNetwork` — `Invoke`/`Fire`/`OnEvent` sobre los remotes.
 
 ### Shared
-- `Types/GameTypes`, `Types/DataTypes` — tipos compartidos y borrador del esquema de datos.
+- `Types/GameTypes`, `Types/ContentTypes` — tipos del núcleo y de las definiciones de contenido.
+- `Config/CharacterConfig` — valores base de balance (no IP).
+- `Content/Races`, `Content/Resources`, `Content/ComboAnimations` — contenido público (capa IP).
 - `Modules/StateMachine` — máquina de estados genérica.
-- `Modules/Character` — vida, Reiatsu, postura y estado de un personaje.
+- `Modules/Character` — vida, recursos genéricos, postura y estado de un personaje.
 - `Network/RemoteDefinitions` — catálogo de remotes y rate limits (D-016).
 - `Network/Schema` — validadores declarativos de payloads.
 - `Utils/Signal` — señal síncrona en Luau puro (D-013).
 - `Utils/Logger` — logs con niveles (D-015).
 - `Utils/ServiceLoader` — arranque Init/Start (D-014).
-- `Combos/ClientComboCatalog` — animación por combo (solo presentación).
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
@@ -61,6 +62,11 @@ Servidor: `ServerNetwork` → `CombatService` → `CharacterService`. Cliente: `
 4. Cada golpe consulta la hitbox en la posición actual del atacante y resuelve bloqueo, parry, daño y postura.
 5. Al salir de `Attacking` por cualquier motivo se cancelan los golpes pendientes.
 6. El cliente reproduce la animación solo si la respuesta es `Accepted`.
+
+## Capa de contenido (IP)
+Constitución §4 y D-017. El núcleo (servicios, módulos, tipos, red) no contiene nombres de la IP;
+los datos concretos viven en carpetas `Content` y se referencian por ID. `tests/Content/IpBoundary.spec.luau`
+lo hace cumplir y `ContentIntegrity.spec.luau` valida las referencias entre definiciones.
 
 ## Convenciones de código
 - `--!strict` en todos los módulos; patrones de clase y servicio según D-011.

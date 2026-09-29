@@ -9,7 +9,8 @@ return {
 	["acepta intents válidos"] = function()
 		expect(isValid({ Type = "Attack", ComboId = "BasicSlash" })).toBe(true)
 		expect(isValid({ Type = "Block" })).toBe(true)
-		expect(isValid({ Type = "Shunpo" })).toBe(true)
+		expect(isValid({ Type = "Dash" })).toBe(true)
+		expect(isValid({ Type = "Shunpo" })).toBe(false)
 	end,
 
 	["devuelve una copia saneada, no la tabla del cliente"] = function()

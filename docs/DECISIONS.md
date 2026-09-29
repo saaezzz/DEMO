@@ -124,3 +124,14 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Alternativas:** librerías de red externas (ByteNet, Zap, Blink): aportan serialización binaria y tipado generado, pero añaden dependencia y paso de build; no hacen falta con el tráfico actual. Se reconsiderará si el ancho de banda lo exige.
 - **Motivo:** §11 exige validar tipo, tamaño y ritmo en cada remote; centralizarlo evita que un remote nuevo olvide alguna comprobación. `CombatIntentValidator` pasa a ser un esquema (§67: un mecanismo reutilizable).
 - **Pendiente:** `CombatIntent` sigue siendo `RemoteFunction` (el cliente espera la respuesta antes de animar). Pasar a evento + predicción del cliente se decidirá con el framework de combate (M2).
+
+## D-017 — Capa de contenido, recursos genéricos y estados de acción
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED
+- **Decisión (IP, §4):** Todo nombre propio de la IP vive en carpetas `Content`: `Shared/Content` (datos públicos: razas, recursos, animaciones) y `Server/Content` (datos autoritativos: combos, acciones). El núcleo solo maneja identificadores opacos (`RaceId`, `ResourceId`) y los tipos de `Shared/Types/ContentTypes`. El test `tests/Content/IpBoundary.spec.luau` falla si aparece un término de la IP fuera de `Content`; `ContentIntegrity.spec.luau` comprueba que todos los IDs referenciados existen. Los valores de balance que no son IP van en `Shared/Config`.
+- **Decisión (recursos):** `Character` gestiona recursos genéricos por ID (`SpendResource`, `RestoreResource`, `ResourceChanged`). Los costes son `{ Resource, Amount }` y la regeneración usa `RegenPerSecond` de cada definición. La postura sigue siendo un medidor de combate propio de `Character`.
+- **Decisión (estados, adaptación de §15):** la máquina de estados modela **acciones exclusivas**: `Idle`, `Attacking`, `Blocking`, `Parrying`, `Dodging`, `Dashing`, `Casting`, `Transforming`, `Stunned`, `Knocked`, `Ragdolled`, `Disabled`, `Dead`. Las interrupciones (`Stunned`, `Knocked`, `Ragdolled`, `Disabled`, `Dead`) son alcanzables desde cualquier estado vivo; `Dead` es terminal y morir transiciona a él. **Diferencias con §15:**
+  - `Moving`, `Running`, `Sprinting` no son estados de acción sino una **capa de locomoción** independiente (MovementService, M2): un personaje puede atacar mientras se mueve, y meterlos en la misma máquina obligaría a duplicar cada acción por modo de movimiento.
+  - `Transformed` es un **flag/capa** de TransformationService (M2), no un estado exclusivo: un personaje transformado sigue atacando, bloqueando, etc. `Transforming` (la animación de transformación) sí es un estado.
+  - Se añade `Dashing` (movimiento rápido tipo Shunpo), distinto de `Dodging` (esquiva con i-frames).
+- **Revisión:** esta adaptación cambia la lista de §15 de la constitución; el Lead Programmer debe confirmarla o pedir el modelo literal.

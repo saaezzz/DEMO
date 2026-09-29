@@ -1,28 +1,27 @@
 local Character = require(game:GetService("ReplicatedStorage").Shared.Modules.Character)
 
-local function newCharacter(overrides)
-	local attributes = {
-		Health = 100,
-		MaxHealth = 100,
-		Reiatsu = 50,
-		MaxReiatsu = 100,
-		Posture = 0,
-		MaxPosture = 100,
-		Race = "Shinigami",
+local function newCharacter(resources)
+	return Character.new({
+		Race = "TestRace",
 		Level = 1,
-	}
-	for key, value in overrides or {} do
-		attributes[key] = value
-	end
-	return Character.new(attributes)
+		MaxHealth = 100,
+		MaxPosture = 100,
+		Resources = resources or { Energy = { Current = 50, Max = 100 } },
+	})
 end
 
 return {
-	["limita los valores iniciales a sus máximos"] = function()
-		local character = newCharacter({ Health = 500, Reiatsu = 500, Posture = 500 })
+	["empieza con vida máxima, postura 0 y estado Idle"] = function()
+		local character = newCharacter()
 		expect(character:GetHealth()).toBe(100)
-		expect(character:GetReiatsu()).toBe(100)
-		expect(character:GetPosture()).toBe(100)
+		expect(character:GetPosture()).toBe(0)
+		expect(character:GetState()).toBe("Idle")
+		expect(character:IsAlive()).toBe(true)
+	end,
+
+	["limita los recursos iniciales a su máximo"] = function()
+		local character = newCharacter({ Energy = { Current = 500, Max = 100 } })
+		expect(character:GetResource("Energy")).toBe(100)
 	end,
 
 	["TakeDamage reduce la vida y emite HealthChanged"] = function()
@@ -45,7 +44,7 @@ return {
 		expect(character:GetHealth()).toBe(100)
 	end,
 
-	["la vida llega a 0 y emite Died una sola vez"] = function()
+	["morir emite Died una vez y pasa a Dead"] = function()
 		local character = newCharacter()
 		local deaths = 0
 		character.Died:Connect(function()
@@ -57,7 +56,28 @@ return {
 
 		expect(character:GetHealth()).toBe(0)
 		expect(character:IsAlive()).toBe(false)
+		expect(character:GetState()).toBe("Dead")
 		expect(deaths).toBe(1)
+	end,
+
+	["Dead es terminal"] = function()
+		local character = newCharacter()
+		character:TakeDamage(100)
+		expect(character:CanTransitionTo("Idle")).toBe(false)
+		expect(character:CanTransitionTo("Stunned")).toBe(false)
+	end,
+
+	["morir durante un ataque sale de Attacking"] = function()
+		local character = newCharacter()
+		local seen = {}
+		character:OnStateChanged(function(oldState, newState)
+			table.insert(seen, oldState .. "->" .. newState)
+		end)
+
+		character:TransitionTo("Attacking")
+		character:TakeDamage(100)
+
+		expect(seen).toEqual({ "Idle->Attacking", "Attacking->Dead" })
 	end,
 
 	["un personaje muerto no se cura"] = function()
@@ -68,29 +88,61 @@ return {
 	end,
 
 	["Heal no supera la vida máxima"] = function()
-		local character = newCharacter({ Health = 90 })
+		local character = newCharacter()
+		character:TakeDamage(10)
 		character:Heal(50)
 		expect(character:GetHealth()).toBe(100)
 	end,
 
-	["SpendReiatsu falla sin recurso suficiente y no gasta nada"] = function()
-		local character = newCharacter({ Reiatsu = 10 })
-		expect(character:SpendReiatsu(20)).toBe(false)
-		expect(character:GetReiatsu()).toBe(10)
-		expect(character:SpendReiatsu(10)).toBe(true)
-		expect(character:GetReiatsu()).toBe(0)
+	["SpendResource cobra todo o nada"] = function()
+		local character = newCharacter({ Energy = { Current = 10, Max = 100 } })
+		expect(character:SpendResource("Energy", 20)).toBe(false)
+		expect(character:GetResource("Energy")).toBe(10)
+		expect(character:SpendResource("Energy", 10)).toBe(true)
+		expect(character:GetResource("Energy")).toBe(0)
 	end,
 
-	["RestoreReiatsu no emite si ya está al máximo"] = function()
-		local character = newCharacter({ Reiatsu = 100 })
-		local emitted = false
-		character.ReiatsuChanged:Connect(function()
-			emitted = true
+	["SpendResource falla con recursos inexistentes"] = function()
+		local character = newCharacter()
+		expect(character:HasResource("Missing")).toBe(false)
+		expect(character:SpendResource("Missing", 1)).toBe(false)
+		expect(character:GetResource("Missing")).toBe(0)
+		expect(character:GetMaxResource("Missing")).toBe(0)
+		expect(character:RestoreResource("Missing", 5)).toBe(0)
+	end,
+
+	["ResourceChanged informa del recurso y los valores"] = function()
+		local character = newCharacter()
+		local changes = {}
+		character.ResourceChanged:Connect(function(resourceId, newValue, oldValue)
+			table.insert(changes, { resourceId, newValue, oldValue })
 		end)
 
-		character:RestoreReiatsu(10)
+		character:SpendResource("Energy", 20)
+		character:RestoreResource("Energy", 5)
 
-		expect(emitted).toBe(false)
+		expect(changes).toEqual({ { "Energy", 30, 50 }, { "Energy", 35, 30 } })
+	end,
+
+	["RestoreResource no supera el máximo ni emite si ya está lleno"] = function()
+		local character = newCharacter({ Energy = { Current = 95, Max = 100 } })
+		local emissions = 0
+		character.ResourceChanged:Connect(function()
+			emissions += 1
+		end)
+
+		character:RestoreResource("Energy", 50)
+		character:RestoreResource("Energy", 50)
+
+		expect(character:GetResource("Energy")).toBe(100)
+		expect(emissions).toBe(1)
+	end,
+
+	["GetResourceIds lista los recursos del personaje"] = function()
+		local character = newCharacter({ A = { Current = 1, Max = 1 }, B = { Current = 1, Max = 1 } })
+		local ids = character:GetResourceIds()
+		table.sort(ids)
+		expect(ids).toEqual({ "A", "B" })
 	end,
 
 	["la postura sube con daño, baja con RecoverPosture y se vacía con ResetPosture"] = function()
@@ -113,18 +165,20 @@ return {
 		expect(character:GetState()).toBe("Idle")
 	end,
 
-	["delegación de estados a la máquina de estados"] = function()
+	["las interrupciones son alcanzables desde cualquier acción"] = function()
+		for _, action in { "Attacking", "Blocking", "Dashing", "Casting", "Transforming" } do
+			local character = newCharacter()
+			expect(character:TransitionTo(action)).toBe(true)
+			expect(character:CanTransitionTo("Stunned")).toBe(true)
+			expect(character:CanTransitionTo("Dead")).toBe(true)
+		end
+	end,
+
+	["no se encadenan acciones sin volver a Idle"] = function()
 		local character = newCharacter()
-		local changes = {}
-		character:OnStateChanged(function(oldState, newState)
-			table.insert(changes, oldState .. "->" .. newState)
-		end)
-
-		expect(character:CanTransitionTo("Attacking")).toBe(true)
 		character:TransitionTo("Attacking")
-
-		expect(character:GetState()).toBe("Attacking")
-		expect(changes).toEqual({ "Idle->Attacking" })
+		expect(character:CanTransitionTo("Dashing")).toBe(false)
+		expect(character:CanTransitionTo("Blocking")).toBe(false)
 	end,
 
 	["tras Destroy es seguro llamar a sus métodos y no emite señales"] = function()

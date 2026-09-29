@@ -6,6 +6,9 @@ local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 
 type ComboDefinition = GameTypes.ComboDefinition
 
+-- Contenido: combos autoritativos (capa IP, §4). La animación de cada combo
+-- está en Shared/Content/ComboAnimations.
+
 -- Combo de demostración: tajo simple de una sola fase con hitbox frontal en caja.
 local BasicSlash: ComboDefinition = {
 	Id = "BasicSlash",
@@ -25,9 +28,8 @@ local BasicSlash: ComboDefinition = {
 		},
 	},
 	CooldownSeconds = 0.6,
-	ReiatsuCost = 0,
 }
 
-local ExampleCombos: { ComboDefinition } = { BasicSlash }
+local Combos: { ComboDefinition } = { BasicSlash }
 
-return ExampleCombos
+return Combos

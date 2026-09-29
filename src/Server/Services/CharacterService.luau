@@ -3,12 +3,17 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local DataTypes = require(ReplicatedStorage.Shared.Types.DataTypes)
 local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
+local CharacterConfig = require(ReplicatedStorage.Shared.Config.CharacterConfig)
+local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
+local Races = require(ReplicatedStorage.Shared.Content.Races)
+local Resources = require(ReplicatedStorage.Shared.Content.Resources)
 
 local CombatService = require(script.Parent.CombatService)
 
 type Character = CharacterModule.Character
+type CharacterAttributes = GameTypes.CharacterAttributes
+type ResourcePool = GameTypes.ResourcePool
 
 local CHARACTER_PARTS_TIMEOUT_SECONDS = 5
 
@@ -21,6 +26,28 @@ type CharacterRecord = {
 
 local records: { [Player]: CharacterRecord } = {}
 local characterAddedConnections: { [Player]: RBXScriptConnection } = {}
+
+-- Atributos iniciales: valores base de CharacterConfig y recursos de la raza.
+-- Provisional hasta DataService v1 (tarea 8): todos empiezan con la raza por defecto.
+local function buildAttributes(raceId: string): CharacterAttributes
+	local race = Races.Definitions[raceId]
+	assert(race ~= nil, `[CharacterService] raza desconocida: {raceId}`)
+
+	local resources: { [string]: ResourcePool } = {}
+	for _, resourceId in race.Resources do
+		local definition = Resources[resourceId]
+		assert(definition ~= nil, `[CharacterService] recurso desconocido: {resourceId}`)
+		resources[resourceId] = { Current = definition.DefaultMax, Max = definition.DefaultMax }
+	end
+
+	return {
+		Race = raceId,
+		Level = 1,
+		MaxHealth = CharacterConfig.BaseMaxHealth,
+		MaxPosture = CharacterConfig.MaxPosture,
+		Resources = resources,
+	}
+end
 
 -- Libera el personaje activo del jugador: desconecta, lo quita del combate y lo destruye.
 local function releaseCharacter(player: Player): ()
@@ -52,7 +79,7 @@ local function onCharacterAdded(player: Player, model: Model): ()
 	releaseCharacter(player)
 
 	-- La vida autoritativa vive en Character; el Humanoid solo la refleja.
-	local character = CharacterModule.new(table.clone(DataTypes.DEFAULT_PROFILE_DATA.Attributes))
+	local character = CharacterModule.new(buildAttributes(Races.Default))
 	humanoid.MaxHealth = character:GetMaxHealth()
 	humanoid.Health = character:GetHealth()
 

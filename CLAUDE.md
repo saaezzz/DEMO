@@ -41,6 +41,7 @@ for scope, architecture, security and workflow. Key rules:
 - Server is authoritative; every remote validates type, size, rate, state and ownership (§10–11).
 - Vertical slice first; do not implement P3/P4 while P0/P1 is broken (§62–63).
 - Avoid overengineering (§66).
+- IP names live ONLY under Content/ folders (D-017); tests/Content/IpBoundary.spec.luau enforces it.
 
 DECISIONS
 Record every non-trivial technical or design decision in docs/DECISIONS.md (D-XXX entries).
