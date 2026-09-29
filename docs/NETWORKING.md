@@ -17,7 +17,8 @@ contiene resultados (daño, recompensas, posiciones de destino, estados).
 | `Client/Network/ClientNetwork` | Cliente | `Invoke`, `Fire`, `OnEvent` |
 
 Los remotes se crean por código en `ReplicatedStorage.Remotes` durante `ServerNetwork:Init`;
-**no** se declaran en `default.project.json`.
+**no** se declaran en `default.project.json`. Si el lugar trae una carpeta `Remotes` previa, el servidor
+la sustituye y avisa en el log.
 
 ## Remotes actuales
 | Nombre | Tipo | Rate limit | Payload | Respuesta |

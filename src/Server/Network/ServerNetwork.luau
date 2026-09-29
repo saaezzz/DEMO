@@ -88,8 +88,13 @@ local ServerNetwork = {
 }
 
 function ServerNetwork:Init(): ()
+	-- Los remotes solo se crean por código. Una carpeta previa es un resto del lugar
+	-- (p. ej. de cuando se declaraban en default.project.json): se sustituye.
 	local existing = ReplicatedStorage:FindFirstChild(REMOTES_FOLDER_NAME)
-	assert(existing == nil, "[ServerNetwork] ReplicatedStorage.Remotes ya existe; los remotes se crean por código")
+	if existing ~= nil then
+		log:Warn("ReplicatedStorage.Remotes ya existía en el lugar; se sustituye (bórrala en Studio)")
+		existing:Destroy()
+	end
 
 	local folder = Instance.new("Folder")
 	folder.Name = REMOTES_FOLDER_NAME

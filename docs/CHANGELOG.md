@@ -39,6 +39,7 @@ Las entradas nuevas van en `Unreleased`.
 - `Character` y `StateMachine` siguen siendo seguros de usar tras `Destroy` (antes quitaban la metatabla y cualquier llamada fallaba).
 
 ### Fixed
+- El servidor ya no se detiene si el lugar trae una carpeta `ReplicatedStorage.Remotes` antigua: la sustituye y avisa.
 - Combate: `Stunned` ya no es permanente; parry (0,8 s) y rotura de postura (1,5 s) tienen duración y vuelven a `Idle`.
 - Combate: los golpes y la recuperación de un ataque se cancelan al salir de `Attacking` (sin golpes tras recibir parry, y la recuperación de un combo anterior ya no corta el siguiente).
 - Combate: las tareas programadas se limpian al ejecutarse o al desregistrar el personaje (antes la lista crecía sin límite).
