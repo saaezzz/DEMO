@@ -123,7 +123,7 @@ local function onBlockInput(self: CombatControllerInternal)
 	end
 end
 
-local function onShunpoInput(self: CombatControllerInternal)
+local function onShunpoInput(_self: CombatControllerInternal)
 	sendIntent(buildIntent("Shunpo", nil))
 end
 
