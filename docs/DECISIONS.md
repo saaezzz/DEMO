@@ -42,8 +42,9 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 
 ## D-006 — Tests con Lune para la lógica pura
 - **Fecha:** 2026-09-29
-- **Estado:** ACCEPTED (pendiente de implementar, tarea 9)
+- **Estado:** ACCEPTED (implementado)
 - **Decisión:** Los tests de lógica pura (máquinas de estado, recursos, cooldowns, validadores, migraciones, fórmulas) se ejecutan con [Lune](https://github.com/lune-org/lune) fuera de Studio, para poder correr en CI. Los módulos de lógica deben evitar dependencias de `game`/`Instance` para ser testeables (p. ej. un `Signal` en Luau puro en vez de `BindableEvent`). Las pruebas de integración que requieran el motor se hacen en Studio.
+- **Implementación:** runner propio (`tests/runner.luau`) que reconstruye el árbol de instancias desde el sourcemap de Rojo para que `script`, `game:GetService` y `require(instancia)` funcionen sin modificar los módulos. Aserciones mínimas estilo Jest. Se descartó Jest-Lua por su coste de integración con Lune para el tamaño actual del proyecto; se puede migrar si los tests crecen.
 - **Motivo:** Tests que corren en cada commit sin abrir Studio; empuja hacia módulos desacoplados.
 
 ## D-007 — Salida automática de estados temporales en combate

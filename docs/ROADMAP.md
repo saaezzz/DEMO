@@ -10,11 +10,11 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] Revisión completa: 0 errores de tipo, 0 avisos de lint, ciclo de vida de personajes corregido.
 
 ## M1 — Core Foundation (P0)
-- [ ] Loader de servicios (`Init`/`Start`), `Logger`, `Signal`.
+- [x] Loader de servicios (`Init`/`Start`), `Logger`, `Signal`.
 - [ ] Capa `Networking` con validación de esquema y rate limit.
 - [ ] Separar IP del núcleo; estados de personaje de §15; recursos genéricos.
 - [ ] DataService v1 con ProfileStore, `DataVersion`, migraciones y replicación privada.
-- [ ] Test runner (Lune) y tests de la lógica pura.
+- [x] Test runner (Lune), tests de la lógica pura y CI.
 - [ ] `InputService` (KBM, gamepad, táctil).
 - [ ] Registros: habilidades, animaciones, assets.
 

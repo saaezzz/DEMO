@@ -9,6 +9,8 @@ Las entradas nuevas van en `Unreleased`.
 - `Shared/Utils/Signal`: señal síncrona en Luau puro (D-013).
 - `Shared/Utils/Logger`: logs con niveles y ámbito (D-015).
 - `Shared/Utils/ServiceLoader`: arranque en dos fases Init/Start (D-014).
+- Tests con Lune: runner con emulación del árbol de instancias desde el sourcemap y 51 tests de Signal, StateMachine, Character, Logger, ServiceLoader, RateLimiter y CombatIntentValidator (`docs/TESTING.md`).
+- CI en GitHub Actions: formato, lint, tipos, tests y build.
 - Toolchain fijado con Rokit (`rokit.toml`): rojo, selene, stylua, luau-lsp, lune.
 - Configuración de lint (`selene.toml`), formato (`stylua.toml`) y tipos (`.luaurc`).
 - `.gitattributes` para forzar finales de línea LF.

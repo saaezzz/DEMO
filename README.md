@@ -20,13 +20,15 @@ rojo serve
 ## Antes de hacer commit
 ```bash
 selene src
-stylua --check src
+stylua --check src tests
+lune run tests/runner
 ```
+Ver [docs/TESTING.md](docs/TESTING.md). El CI (GitHub Actions) ejecuta estas mismas comprobaciones.
 
 Análisis de tipos (debe dar 0 errores). La primera vez, descarga las definiciones de Roblox:
 ```bash
 curl -L -o globalTypes.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
-rojo sourcemap default.project.json -o sourcemap.json
+rojo sourcemap default.project.json --include-non-scripts -o sourcemap.json
 luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau src
 ```
 
@@ -37,7 +39,7 @@ src/Client   -> StarterPlayerScripts.Client
 src/Shared   -> ReplicatedStorage.Shared
 docs/        documentación (fuente de verdad)
 assets/      assets fuente (Blender, texturas, etc.)
-tests/       tests
+tests/       tests con Lune (ver docs/TESTING.md)
 ```
 
 ## Equipo

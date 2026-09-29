@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Rokit
+        env:
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -sSf https://raw.githubusercontent.com/rojo-rbx/rokit/main/scripts/install.sh | bash
+          echo "$HOME/.rokit/bin" >> "$GITHUB_PATH"
+
+      - name: Instalar herramientas del proyecto
+        run: |
+          rokit authenticate github --token "${{ secrets.GITHUB_TOKEN }}"
+          rokit install --no-trust-check
+
+      - name: Formato (StyLua)
+        run: stylua --check src tests
+
+      - name: Lint (Selene)
+        run: selene src
+
+      - name: Tipos (luau-lsp)
+        run: |
+          curl -sSfL -o globalTypes.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
+          rojo sourcemap default.project.json --include-non-scripts -o sourcemap.json
+          luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau src
+
+      - name: Tests (Lune)
+        run: lune run tests/runner
+
+      - name: Build (Rojo)
+        run: rojo build default.project.json -o Demo_RPG.rbxlx
