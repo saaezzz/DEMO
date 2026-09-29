@@ -16,19 +16,9 @@ export type PlayerSettings = {
 	CameraShake: boolean,
 }
 
--- Esquema completo de datos persistentes (ProfileService).
+-- Borrador del esquema de datos persistentes. Se rediseñará con DataService v1
+-- (ProfileStore, DataVersion y migraciones; ver DECISIONS.md D-004).
 export type PlayerProfileData = {
-	Attributes: CharacterAttributes,
-	Experience: number,
-	Currency: number,
-	Inventory: { InventoryItem },
-	Settings: PlayerSettings,
-}
-
--- Subconjunto de PlayerProfileData replicado al cliente vía ReplicaService.
--- Debe evitarse exponer datos que permitan al cliente inferir información
--- explotable (por ejemplo, semillas de loot o datos de otros jugadores).
-export type ReplicatedPlayerData = {
 	Attributes: CharacterAttributes,
 	Experience: number,
 	Currency: number,
