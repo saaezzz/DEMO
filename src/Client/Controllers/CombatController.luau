@@ -1,24 +1,24 @@
 --!strict
 
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local ComboAnimations = require(ReplicatedStorage.Shared.Content.ComboAnimations)
 
 local ClientNetwork = require(script.Parent.Parent.Network.ClientNetwork)
+local InputController = require(script.Parent.InputController)
+local InputBindings = require(script.Parent.Parent.Input.InputBindings)
 
 type CombatIntent = GameTypes.CombatIntent
 type CombatIntentType = GameTypes.CombatIntentType
 type ServerCombatResponse = GameTypes.ServerCombatResponse
+type ActionName = InputBindings.ActionName
 
 local ANIMATOR_TIMEOUT_SECONDS = 5
 
--- Provisional hasta InputService (tarea 10 del roadmap): solo teclado y ratón.
-local ATTACK_INPUT = Enum.UserInputType.MouseButton1
-local BLOCK_KEY = Enum.KeyCode.F
-local DASH_KEY = Enum.KeyCode.Q
+-- Provisional hasta el framework de habilidades (M2), que asignará el combo
+-- según el arma/kit equipado.
 local ATTACK_COMBO_ID = "BasicSlash"
 
 local player = Players.LocalPlayer
@@ -27,10 +27,13 @@ local animator: Animator? = nil
 local comboTracks: { [string]: AnimationTrack } = {}
 local currentTrack: AnimationTrack? = nil
 
-local function sendIntent(intentType: CombatIntentType, comboId: string?): ServerCombatResponse
+-- Cede el hilo mientras espera al servidor: no llamar directamente desde un
+-- handler de Signal (D-013), usar task.spawn.
+local function sendIntent(intentType: CombatIntentType, comboId: string?, active: boolean?): ServerCombatResponse
 	local intent: CombatIntent = {
 		Type = intentType,
 		ComboId = comboId,
+		Active = active,
 	}
 
 	-- nil = rechazado por la capa de red (rate limit, payload inválido) o fallo de comunicación.
@@ -102,17 +105,26 @@ local function bindCharacter(model: Model): ()
 	end
 end
 
-local function onInputBegan(input: InputObject, gameProcessed: boolean): ()
-	if gameProcessed then
-		return
+-- Los handlers de Signal no deben ceder: cada petición al servidor va en su propio hilo.
+local function onActionBegan(action: ActionName): ()
+	if action == "LightAttack" then
+		task.spawn(onAttackInput)
+	elseif action == "Block" then
+		task.spawn(function()
+			sendIntent("Block", nil, true)
+		end)
+	elseif action == "Dash" then
+		task.spawn(function()
+			sendIntent("Dash", nil, nil)
+		end)
 	end
+end
 
-	if input.UserInputType == ATTACK_INPUT then
-		onAttackInput()
-	elseif input.KeyCode == BLOCK_KEY then
-		sendIntent("Block", nil)
-	elseif input.KeyCode == DASH_KEY then
-		sendIntent("Dash", nil)
+local function onActionEnded(action: ActionName): ()
+	if action == "Block" then
+		task.spawn(function()
+			sendIntent("Block", nil, false)
+		end)
 	end
 end
 
@@ -122,7 +134,8 @@ local CombatController = {
 
 function CombatController:Start(): ()
 	player.CharacterAdded:Connect(bindCharacter)
-	UserInputService.InputBegan:Connect(onInputBegan)
+	InputController.ActionBegan:Connect(onActionBegan)
+	InputController.ActionEnded:Connect(onActionEnded)
 
 	local existingModel = player.Character
 	if existingModel ~= nil then

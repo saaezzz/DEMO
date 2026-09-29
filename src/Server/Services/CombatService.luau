@@ -336,15 +336,23 @@ local function processAttack(player: Player, intent: CombatIntent): ServerCombat
 	return respond("Accepted", nil)
 end
 
-local function processBlock(player: Player): ServerCombatResponse
+-- Idempotente: pedir el estado que ya se tiene se acepta sin cambios, de modo
+-- que cliente y servidor no se desincronizan si se pierde o repite un intent.
+local function processBlock(player: Player, active: boolean): ServerCombatResponse
 	local model, character = getActiveCharacter(player)
 	if model == nil or character == nil then
 		return respond("Rejected", "Personaje no disponible")
 	end
 
-	if character:GetState() == "Blocking" then
-		local ok = character:TransitionTo("Idle")
-		return respond(if ok then "Accepted" else "InvalidState", nil)
+	local isBlocking = character:GetState() == "Blocking"
+	if not active then
+		if isBlocking then
+			character:TransitionTo("Idle")
+		end
+		return respond("Accepted", nil)
+	end
+	if isBlocking then
+		return respond("Accepted", nil)
 	end
 
 	if not character:TransitionTo("Blocking") then
@@ -415,7 +423,7 @@ local function processIntent(player: Player, intent: CombatIntent): ServerCombat
 	if intent.Type == "Attack" then
 		return processAttack(player, intent)
 	elseif intent.Type == "Block" then
-		return processBlock(player)
+		return processBlock(player, intent.Active == true)
 	else
 		return processDash(player)
 	end

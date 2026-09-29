@@ -89,6 +89,7 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
   - Sin casts `(self :: any) :: Internal` ni redefinición de `self`.
   - Los módulos de `Shared` se requieren siempre por la ruta absoluta `ReplicatedStorage.Shared...`, también desde otros módulos de `Shared`, para que cada módulo tenga una única identidad para el analizador.
   - Excepción para clases genéricas: ver D-013.
+  - El analizador generaliza los literales a `string` en variables locales, variables de bucle, `pcall(f, ...)` y `task.spawn(f, ...)`. Si un valor debe conservar un tipo literal (estados, acciones, claves), anota la variable (`local state: CharacterStateName = ...`) y usa closures en `pcall`/`task.spawn`.
 - **Motivo:** El patrón anterior producía 57 errores de tipo y 30 avisos de sombreado en luau-lsp y exponía el estado interno de los servicios. El nuevo patrón analiza sin errores en modo strict.
 
 ## D-012 — Retirada del borrador de DataService y reducción de CombatIntent
@@ -145,3 +146,10 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
   - Replicación propia (D-005): copia completa al cargar y cambios por clave de primer nivel, solo al dueño, por el remote `PlayerData` (`ToClientEvent`).
   - `Players.CharacterAutoLoads = false`: el personaje aparece cuando el perfil está cargado (usa su raza y nivel) y reaparece tras `CharacterConfig.RespawnSeconds`.
 - **Motivo:** §59 (no destruir datos), §10 (el servidor decide la aparición) y evitar la carrera entre `CharacterAdded` y la carga del perfil.
+
+## D-019 — Capa de input por acciones con ContextActionService
+- **Fecha:** 2026-09-29
+- **Estado:** ACCEPTED (pendiente de verificar en Studio con mando y emulador móvil)
+- **Decisión:** Acciones abstractas (`InputBindings`) con controles por plataforma como datos; `InputController` las enlaza con `ContextActionService` y emite `ActionBegan`/`ActionEnded`. Los botones táctiles son los de `ContextActionService` (sin UI propia hasta que el equipo de UI la diseñe). El bloqueo pasa de alternar a **mantener pulsado**: el cliente envía `Block` con `Active = true/false` y el servidor lo aplica de forma idempotente.
+- **Alternativas:** `UserInputService.InputBegan` (no crea botones táctiles; cada sistema tendría que filtrar teclas) o una UI táctil propia (depende del equipo de UI; se podrá sustituir sin tocar los sistemas de juego).
+- **Motivo:** §51 (teclado, mando y táctil sin código específico por plataforma). El bloqueo alternado podía desincronizarse entre cliente y servidor si se perdía un intent.

@@ -80,7 +80,10 @@ export type CombatIntentType = "Attack" | "Block" | "Dash"
 -- Intención enviada por el cliente al servidor; nunca contiene datos resolutivos como daño.
 export type CombatIntent = {
 	Type: CombatIntentType,
+	-- Attack: combo a ejecutar.
 	ComboId: string?,
+	-- Block: true al empezar a bloquear, false al soltar (idempotente).
+	Active: boolean?,
 }
 
 export type ServerResponseStatus = "Accepted" | "Rejected" | "OnCooldown" | "InsufficientResource" | "InvalidState"

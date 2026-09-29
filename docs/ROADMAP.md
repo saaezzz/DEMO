@@ -15,7 +15,7 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] Separar IP del núcleo; estados de personaje de §15 (adaptados, D-017); recursos genéricos.
 - [x] DataService v1 con ProfileStore, `DataVersion`, migraciones y replicación privada.
 - [x] Test runner (Lune), tests de la lógica pura y CI.
-- [ ] `InputService` (KBM, gamepad, táctil).
+- [x] `InputController` (KBM, gamepad, táctil).
 - [ ] Registros: habilidades, animaciones, assets.
 
 ## M2 — Combat Foundation (P0/P1)

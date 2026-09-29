@@ -47,6 +47,12 @@ return {
 		expect(reason).toBeTruthy()
 	end,
 
+	["valida Active como booleano opcional"] = function()
+		expect(isValid({ Type = "Block", Active = true })).toBe(true)
+		expect(isValid({ Type = "Block", Active = false })).toBe(true)
+		expect(isValid({ Type = "Block", Active = "yes" })).toBe(false)
+	end,
+
 	["valida ComboId"] = function()
 		expect(isValid({ Type = "Attack", ComboId = 5 })).toBe(false)
 		expect(isValid({ Type = "Attack", ComboId = "" })).toBe(false)

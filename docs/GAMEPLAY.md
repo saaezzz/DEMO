@@ -14,7 +14,8 @@ En uso actualmente: `Idle`, `Attacking`, `Blocking`, `Dashing`, `Stunned`, `Dead
 - El cliente solo envía intenciones (`CombatIntent`); el servidor valida y resuelve.
 - Combos definidos en `src/Server/Content/Combos.luau`, con ventanas de golpe (`ComboHitWindow`) e hitboxes.
 - **Ataque básico (M1):** sin coste de recurso; cooldown por combo.
-- **Bloqueo:** alterna al pulsar. Reduce el daño al 25 % y multiplica ×1,5 el daño a la postura.
+- **Bloqueo:** mientras se mantiene pulsado (D-019). Reduce el daño al 25 % y multiplica ×1,5 el daño a la postura.
+  Si se pulsa durante otra acción no se activa: hay que volver a pulsarlo.
 - **Parry:** los primeros 0,3 s de un bloqueo anulan el golpe y aturden al atacante 0,8 s.
   Solo se concede una ventana de parry cada 0,8 s; bloquear antes sigue bloqueando, pero sin parry.
 - **Postura:** al llenarse se vacía y aturde al defensor 1,5 s. Decae 10/s fuera de `Blocking` y `Stunned`.

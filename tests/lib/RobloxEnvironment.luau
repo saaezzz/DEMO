@@ -181,6 +181,7 @@ function RobloxEnvironment.new(sourcemap: SourcemapNode): Environment
 			task = task,
 			Vector3 = roblox.Vector3,
 			CFrame = roblox.CFrame,
+			Enum = roblox.Enum,
 		}
 		for key, value in extraGlobals or {} do
 			globals[key] = value

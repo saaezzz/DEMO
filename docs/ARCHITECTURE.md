@@ -39,7 +39,9 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ### Client
 - `init.client.luau` — arranque: nivel de log y lista de controladores.
-- `Controllers/CombatController` — input provisional y animaciones de combo.
+- `Controllers/InputController` — acciones abstractas de input (teclado, mando, táctil; `docs/INPUT.md`).
+- `Input/InputBindings` — controles por acción y plataforma.
+- `Controllers/CombatController` — traduce acciones a intents de combate y reproduce animaciones.
 - `Network/ClientNetwork` — `Invoke`/`Fire`/`OnEvent` sobre los remotes.
 - `Controllers/PlayerDataController` — copia local de los datos del jugador.
 
@@ -57,7 +59,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `ServerNetwork` → `DataService` → `CombatService` → `CharacterService`. Cliente: `PlayerDataController` → `CombatController`.
+Servidor: `ServerNetwork` → `DataService` → `CombatService` → `CharacterService`. Cliente: `PlayerDataController` → `InputController` → `CombatController`.
 
 ## Flujo de un ataque
 1. El cliente envía `{ Type = "Attack", ComboId }` por `CombatIntent`.

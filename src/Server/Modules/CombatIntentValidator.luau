@@ -15,6 +15,7 @@ local CombatIntentValidator = {}
 CombatIntentValidator.Validate = Schema.record({
 	Type = Schema.literal({ "Attack", "Block", "Dash" }),
 	ComboId = Schema.optional(Schema.string(MAX_ID_LENGTH)),
+	Active = Schema.optional(Schema.boolean()),
 })
 
 return CombatIntentValidator
