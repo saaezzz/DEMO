@@ -5,8 +5,8 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 ## M0 — Higiene y toolchain (EN CURSO)
 - [x] Toolchain Rokit + selene + stylua + luau-lsp + lune.
 - [x] Constitución, DECISIONS.md y CHANGELOG.md en el repo.
-- [ ] Bugs críticos de combate: aturdimiento permanente, golpes tras parry, fuga de tareas, recursos sin regeneración.
-- [ ] Validación de payload y rate limit en `CombatIntent`; anti-spam de parry.
+- [x] Bugs críticos de combate: aturdimiento permanente, golpes tras parry, fuga de tareas, recursos sin regeneración.
+- [x] Validación de payload y rate limit en `CombatIntent`; anti-spam de parry.
 
 ## M1 — Core Foundation (P0)
 - [ ] Loader de servicios (`Init`/`Start`), `Logger`, `Signal`.

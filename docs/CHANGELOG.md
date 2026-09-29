@@ -17,6 +17,12 @@ Las entradas nuevas van en `Unreleased`.
 - Combate: las tareas programadas se limpian al ejecutarse o al desregistrar el personaje (antes la lista crecía sin límite).
 - Recursos: el Reiatsu se regenera y la postura decae de forma pasiva; el M1 ya no consume Reiatsu (D-008).
 
+### Security
+- `CombatIntent`: validación de tipo, campos permitidos, tamaño y valores del payload; el servidor usa una copia saneada.
+- `CombatIntent`: rate limit por jugador (token bucket, ráfaga 10, 8/s).
+- Parry: ventana concedida como máximo cada 0,8 s; pulsar bloqueo en bucle ya no encadena parries.
+- Los intents de un personaje muerto se rechazan.
+
 ### Removed
 - Scripts de prueba `RedCircle.server.luau` y `Hello.luau`.
 

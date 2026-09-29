@@ -1,10 +1,13 @@
 --!strict
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local Character = require(ReplicatedStorage.Shared.Modules.Character)
 local HitboxUtil = require(script.Parent.Parent.Modules.HitboxUtil)
+local RateLimiter = require(script.Parent.Parent.Modules.RateLimiter)
+local CombatIntentValidator = require(script.Parent.Parent.Modules.CombatIntentValidator)
 
 type Character = Character.Character
 type CharacterStateName = GameTypes.CharacterStateName
@@ -18,7 +21,7 @@ export type CombatService = {
 	RegisterCombo: (self: CombatService, combo: ComboDefinition) -> (),
 	RegisterCharacter: (self: CombatService, player: Player?, model: Model, character: Character) -> (),
 	UnregisterCharacter: (self: CombatService, model: Model) -> (),
-	ProcessIntent: (self: CombatService, player: Player, intent: CombatIntent) -> ServerCombatResponse,
+	ProcessIntent: (self: CombatService, player: Player, payload: unknown) -> ServerCombatResponse,
 	Init: (self: CombatService) -> (),
 	Shutdown: (self: CombatService) -> (),
 }
@@ -30,7 +33,10 @@ type CombatServiceInternal = CombatService & {
 	_characters: { [Model]: Character },
 	_playerModels: { [Player]: Model },
 	_lastComboUse: { [Player]: { [string]: number } },
-	_blockStartTimes: { [Model]: number },
+	-- Inicio de la ventana de parry del bloqueo actual (nil si el bloqueo no la concede).
+	_parryWindowStarts: { [Model]: number },
+	_lastParryAttempt: { [Model]: number },
+	_intentLimiter: RateLimiter.RateLimiter<Player>,
 	-- Todas las tareas programadas de cada modelo, para cancelarlas al desregistrarlo.
 	_modelTasks: { [Model]: TaskSet },
 	-- Tareas del ataque en curso (golpes + recuperación); se cancelan si se sale de Attacking.
@@ -44,6 +50,9 @@ type CombatServiceInternal = CombatService & {
 local SHUNPO_REIATSU_COST = 15
 local SHUNPO_DURATION_SECONDS = 0.4
 local PARRY_WINDOW_SECONDS = 0.3
+-- Tiempo mínimo entre ventanas de parry: pulsar bloqueo repetidamente no
+-- encadena parries; el bloqueo sigue funcionando, pero sin ventana (D-009).
+local PARRY_RETRY_SECONDS = 0.8
 local PARRY_STUN_SECONDS = 0.8
 local POSTURE_BREAK_STUN_SECONDS = 1.5
 local BLOCK_DAMAGE_MULTIPLIER = 0.25
@@ -55,6 +64,10 @@ local REGEN_TICK_SECONDS = 0.25
 local REIATSU_REGEN_PER_SECOND = 5
 local POSTURE_DECAY_PER_SECOND = 10
 
+-- Rate limit de CombatIntent por jugador: ráfaga de 10, 8 intents/s sostenidos.
+local INTENT_BURST = 10
+local INTENTS_PER_SECOND = 8
+
 local CombatService: CombatServiceInternal = {} :: CombatServiceInternal
 CombatService.__index = CombatService :: any
 
@@ -62,7 +75,9 @@ CombatService._combos = {}
 CombatService._characters = {}
 CombatService._playerModels = {}
 CombatService._lastComboUse = {}
-CombatService._blockStartTimes = {}
+CombatService._parryWindowStarts = {}
+CombatService._lastParryAttempt = {}
+CombatService._intentLimiter = RateLimiter.new(INTENT_BURST, INTENTS_PER_SECOND)
 CombatService._modelTasks = {}
 CombatService._attackTasks = {}
 CombatService._stunRecoveryTasks = {}
@@ -175,7 +190,7 @@ local function onCharacterStateChanged(
 	if oldState == "Attacking" then
 		cancelAttack(self, model)
 	elseif oldState == "Blocking" then
-		self._blockStartTimes[model] = nil
+		self._parryWindowStarts[model] = nil
 	end
 end
 
@@ -212,7 +227,8 @@ function CombatService:UnregisterCharacter(model: Model): ()
 	end
 
 	self._characters[model] = nil
-	self._blockStartTimes[model] = nil
+	self._parryWindowStarts[model] = nil
+	self._lastParryAttempt[model] = nil
 
 	for player, playerModel in pairs(self._playerModels) do
 		if playerModel == model then
@@ -237,7 +253,7 @@ local function resolveHit(
 	local postureDamage = hit.PostureDamage
 
 	if defenderCharacter:GetState() == "Blocking" then
-		local blockStart = self._blockStartTimes[target.Model]
+		local blockStart = self._parryWindowStarts[target.Model]
 
 		if blockStart ~= nil and (os.clock() - blockStart) <= PARRY_WINDOW_SECONDS then
 			local attackerCharacter = self._characters[attackerModel]
@@ -306,15 +322,25 @@ local function scheduleCombo(
 	self._attackTasks[attackerModel] = attackTasks
 end
 
-local function processAttack(self: CombatServiceInternal, player: Player, intent: CombatIntent): ServerCombatResponse
+-- Devuelve el personaje del jugador solo si está registrado y vivo.
+local function getActiveCharacter(self: CombatServiceInternal, player: Player): (Model?, Character?)
 	local model = self._playerModels[player]
 	if model == nil then
-		return respond("Rejected", "Personaje no registrado")
+		return nil, nil
 	end
 
 	local character = self._characters[model]
-	if character == nil then
-		return respond("Rejected", "Personaje no registrado")
+	if character == nil or not character:IsAlive() then
+		return nil, nil
+	end
+
+	return model, character
+end
+
+local function processAttack(self: CombatServiceInternal, player: Player, intent: CombatIntent): ServerCombatResponse
+	local model, character = getActiveCharacter(self, player)
+	if model == nil or character == nil then
+		return respond("Rejected", "Personaje no disponible")
 	end
 
 	if intent.ComboId == nil then
@@ -358,10 +384,9 @@ local function processAttack(self: CombatServiceInternal, player: Player, intent
 end
 
 local function processBlock(self: CombatServiceInternal, player: Player, _intent: CombatIntent): ServerCombatResponse
-	local model = self._playerModels[player]
-	local character = model ~= nil and self._characters[model] or nil
+	local model, character = getActiveCharacter(self, player)
 	if model == nil or character == nil then
-		return respond("Rejected", "Personaje no registrado")
+		return respond("Rejected", "Personaje no disponible")
 	end
 
 	if character:GetState() == "Blocking" then
@@ -374,16 +399,21 @@ local function processBlock(self: CombatServiceInternal, player: Player, _intent
 	end
 
 	character:TransitionTo("Blocking")
-	self._blockStartTimes[model] = os.clock()
+
+	local now = os.clock()
+	local lastParryAttempt = self._lastParryAttempt[model]
+	if lastParryAttempt == nil or (now - lastParryAttempt) >= PARRY_RETRY_SECONDS then
+		self._parryWindowStarts[model] = now
+		self._lastParryAttempt[model] = now
+	end
 
 	return respond("Accepted", nil)
 end
 
 local function processShunpo(self: CombatServiceInternal, player: Player, _intent: CombatIntent): ServerCombatResponse
-	local model = self._playerModels[player]
-	local character = model ~= nil and self._characters[model] or nil
+	local model, character = getActiveCharacter(self, player)
 	if model == nil or character == nil then
-		return respond("Rejected", "Personaje no registrado")
+		return respond("Rejected", "Personaje no disponible")
 	end
 
 	if not character:CanTransitionTo("Shunpo") then
@@ -420,8 +450,17 @@ local function regenerate(self: CombatServiceInternal, deltaSeconds: number): ()
 	end
 end
 
-function CombatService:ProcessIntent(player: Player, intent: CombatIntent): ServerCombatResponse
+function CombatService:ProcessIntent(player: Player, payload: unknown): ServerCombatResponse
 	local self = (self :: any) :: CombatServiceInternal
+
+	if not self._intentLimiter:Consume(player) then
+		return respond("Rejected", "Demasiadas peticiones")
+	end
+
+	local intent, validationError = CombatIntentValidator.Validate(payload)
+	if intent == nil then
+		return respond("Rejected", validationError)
+	end
 
 	if intent.Type == "Attack" then
 		return processAttack(self, player, intent)
@@ -440,6 +479,13 @@ function CombatService:Init(): ()
 	if self._regenThread ~= nil then
 		return
 	end
+
+	table.insert(
+		self._connections,
+		Players.PlayerRemoving:Connect(function(player)
+			self._intentLimiter:Remove(player)
+		end)
+	)
 
 	self._regenThread = task.spawn(function()
 		while true do
@@ -470,7 +516,9 @@ function CombatService:Shutdown(): ()
 	table.clear(self._characters)
 	table.clear(self._playerModels)
 	table.clear(self._lastComboUse)
-	table.clear(self._blockStartTimes)
+	table.clear(self._parryWindowStarts)
+	table.clear(self._lastParryAttempt)
+	self._intentLimiter:Clear()
 	table.clear(self._modelTasks)
 	table.clear(self._attackTasks)
 	table.clear(self._stunRecoveryTasks)
