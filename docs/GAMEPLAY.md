@@ -82,8 +82,8 @@ El seguimiento está a la derecha, con un marcador ◆ y la distancia hacia el o
 - **T / R3 / "Fijar":** fija el enemigo más centrado; volver a pulsar pasa al siguiente. **Mantener** lo suelta.
 - Con objetivo, el personaje lo encara y la cámara encuadra a ambos. Opcional.
 
-## Razas (M4, D-034)
-Al entrar por primera vez eliges raza. Ahora solo **Shinigami** está disponible; Hollow y Quincy llegan en M5.
+## Razas (M4–M5, D-034, D-042)
+Al entrar por primera vez eliges raza: **Shinigami**, **Hollow** o **Quincy**. La elección es definitiva.
 
 | Kit Shinigami | |
 |---|---|
@@ -93,7 +93,44 @@ Al entrar por primera vez eliges raza. Ahora solo **Shinigami** está disponible
 | Técnicas | **Byakurai** (Z): rayo de 40 studs, 22 de daño, 25 Reiatsu, 6 s · **Sai** (X): inmoviliza 2 s a un enemigo cercano, ignora la guardia, 20 Reiatsu, 10 s |
 | Objetos iniciales | 3 Bálsamos curativos, 2 Tónicos de Reiatsu |
 
+| Kit Hollow | |
+|---|---|
+| Pieza | Máscara |
+| Ataques | Cadena de 3 zarpazos (9 / 9 / 15), **Desgarro** (pesado, rompe la guardia), esquiva |
+| Movimiento | **Sonido** (Q): 26 studs, también en el aire, 12 Reiatsu |
+| Técnicas | **Devorar** (Z): mordisco que ignora la guardia, **cura todo el daño que hace** y **remata** a un enemigo con ≤ 30 % de vida (no a jefes); 10 Reiatsu, 8 s · **Cero** (X): carga 0,8 s, rayo de 50 studs, 30 de daño, 35 Reiatsu, 9 s |
+| Evolución | **Hambre insaciable** (nivel 2 + 3 almas devoradas) → **Bala** (disparo rápido) · **Gillian** (nivel 5 + 12 almas) → **Hierro** (−30 % de daño recibido 10 s) |
+| Objetos iniciales | 2 Bálsamos, 2 Tónicos de Reiatsu |
+
+| Kit Quincy | |
+|---|---|
+| Arma | Arco espiritual (mano izquierda) |
+| Recurso | **Reishi** en lugar de Reiatsu: se regenera más rápido donde hay Reishi ambiental denso |
+| Ataques | Cadena de 3 flechas de **Heilig Pfeil** a 36 studs (7 / 7 / 11), **flecha cargada** (pesado, atraviesa y rompe la guardia), esquiva |
+| Movimiento | **Hirenkyaku** (Q): 32 studs, también en el aire, 12 Reishi |
+| Técnicas | **Licht Regen** (Z): lluvia de flechas en un círculo de radio 9 a 18 studs, 35 Reishi, 10 s · **Blut Vene** (X): −40 % de daño recibido 8 s, 30 Reishi, 20 s |
+| Hitos | **Blut Arterie** (nivel 3 + 15 enemigos abatidos con flechas) → +35 % de daño 8 s |
+| Objetos iniciales | 3 Bálsamos, 2 Viales de Reishi |
+
 Antes de elegir: los mismos golpes y un **paso** corto (16 studs, 15 de stamina) en lugar de Shunpo.
+
+## Hitos de raza (D-039)
+Piden **nivel y una acción concreta** (devorar, abatir con flechas…); los muñecos de entrenamiento no cuentan.
+Al cumplirlos aparece un aviso y la técnica nueva entra en la barra (hasta 4 técnicas). Cada baja que cuenta
+muestra el progreso ("Almas devoradas: 2/3").
+
+## Potenciadores (D-040)
+Hierro, Blut Vene y Blut Arterie cambian el daño recibido o hecho durante unos segundos. Se ven como un
+contorno de color sobre el personaje, que se desvanece al acabar. Usar el mismo otra vez lo renueva, no lo acumula.
+
+## Reishi ambiental (D-041)
+| Zona | Densidad |
+|---|---|
+| Fuera de zonas | ×1 |
+| Coto de caza (zona de enemigos) | ×1,5 |
+| Guarida del Gran Hollow | ×2 |
+
+Multiplica la regeneración de Reishi (7/s base). Un Quincy ve un aviso al entrar y salir.
 
 ## Objetos (D-036)
 Mochila con **B** (o el botón "MOCHILA"). El color del borde indica la rareza: Común (gris), Poco común (verde),
@@ -111,5 +148,6 @@ Al fondo de la zona. Nivel 10, 1600 de vida, reaparece a los 90 s.
 - Misión final "El Gran Hollow": 500 EXP. Botín: materiales y 30 % de la máscara legendaria.
 
 ## Pendiente
-- Transformaciones (§19), Hollow y Quincy (M5), descubrimiento de Zanpakuto (M6).
+- Transformaciones (§19), descubrimiento de Zanpakuto (M6), evolución Hollow más allá de Gillian.
+- Proyectiles físicos (flechas y Cero son instantáneos).
 - Cancelaciones adicionales, combate aéreo, ataques cargados, bloqueo perfecto distinto del parry.

@@ -6,6 +6,7 @@ Las entradas nuevas van en `Unreleased`.
 ## [Unreleased]
 
 ### Added
+- M5 Vertical Slice 0.2: **Hollow** (garras, Devorar que cura y remata, Cero, Sonido, máscara) y **Quincy** (arco con flechas de Heilig Pfeil, flecha cargada, Licht Regen, Blut Vene, Hirenkyaku, recurso Reishi) se pueden elegir (D-042). Robo de vida, remate y bajas que cuentan en los golpes (D-038). Hitos de raza que desbloquean técnicas: evolución Hollow (Bala, Hierro) y Blut Arterie para el Quincy, con avisos de progreso (D-039). Potenciadores temporales con aura (D-040). Reishi ambiental por zonas, con aviso al entrar y salir (D-041). Vial de Reishi.
 - M4 Vertical Slice 0.1 (Shinigami): integración de arte desde Studio sin código con informe en Output y `docs/GUIA_EQUIPO.md` (D-033); elección de raza con kit (espada, Shunpo, Byakurai, Sai y objetos iniciales; D-034); efectos visuales por datos (D-035); inventario con rarezas, botín por jugador, consumibles y mochila (D-036); jefe Gran Hollow con 3 fases, golpe en área avisado con círculo y barra de jefe (D-037).
 - M3 Loop PvE mínimo: enemigos con IA (tres tipos, zona de caza, avisos en rojo; D-029), EXP y nivel (D-028), cadena de tres misiones con seguimiento y marcador (D-030), barra de EXP, avisos de progreso, barra de acciones con cooldowns y panel del objetivo (D-031), fijado de objetivo con cámara de combate (D-032).
 - `NpcFactory`/`NpcActions` comunes a muñecos y enemigos; `EnemyBrain`, `QuestLogic` y `Progression` puros con tests.
@@ -34,6 +35,8 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- Perfil v3: añade `Stats` y `Milestones` con migración desde v2 (D-039).
+- Las armas pueden ir en otra parte del cuerpo (`AttachTo`); la guarda de la hoja provisional es opcional.
 - `Movesets` pasa a `Shared` y el moveset depende de la raza; `Dash` se divide en `Shunpo` (Shinigami) y `Step` (sin raza).
 - En táctil, pesado, esquiva, dash y técnicas se lanzan desde las casillas de la barra de acciones; los botones de pantalla quedan para atacar, bloquear y fijar.
 - Al cargar el perfil se retoman las cadenas de misiones con una misión siguiente nueva.

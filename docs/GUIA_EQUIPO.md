@@ -48,8 +48,10 @@ Después de colocar algo, **guarda y publica el lugar** (el arte vive en el luga
 1. Un `Model` con una pieza llamada **`Handle`** (el mango, por donde se sujeta).
 2. La hoja apunta hacia **-Z** de la pieza Handle (hacia delante).
 3. Nómbralo como su entrada (`MDL_Weapon_Asauchi`) y ponlo en `Assets/Models`.
-4. El juego suelda todas sus piezas al Handle y el Handle a la mano derecha. Si queda mal colocada,
-   se ajusta el `Grip` del arma en `src/Shared/Content/Weapons.luau` (pídeselo a Programación).
+4. El juego suelda todas sus piezas al Handle y el Handle a la mano derecha (o a la parte del cuerpo que
+   diga su `AttachTo`: el arco va en la **mano izquierda** y la máscara Hollow en la **cabeza**, con la
+   cara hacia -Z). Si queda mal colocada, se ajusta el `Grip` en `src/Shared/Content/Weapons.luau`
+   (pídeselo a Programación).
 
 ---
 
@@ -79,7 +81,9 @@ sistema de velocidad y sprint del servidor. Basta con colocar las animaciones.
 1. Un `Model` o una `Part` con `ParticleEmitter`s (y lo que queráis: Beams, luces...).
 2. Orientación: **hacia delante es -Z** (un rayo sale hacia -Z desde el personaje).
 3. Nómbralo como su entrada (p. ej. `VFX_Kido_Byakurai`) y ponlo en `Assets/VFX`.
-4. Opcional, como **atributos**:
+4. **Auras** (efectos `VFX_..._Hierro`, `BlutVene`, `BlutArterie`): se sueldan al personaje mientras
+   dura el potenciador. Usad emisores **en continuo** (Enabled), no ráfagas; el juego los borra al acabar.
+5. Opcional, como **atributos**:
    - En cada `ParticleEmitter`: `EmitCount` (partículas que lanza, 20 por defecto).
    - En el objeto: `Lifetime` (segundos antes de borrarse; por defecto duración + 2 s).
 
@@ -100,6 +104,10 @@ existe, un color mal escrito, un aviso de área que no coincide con el golpe...)
 | Un efecto visual | `src/Shared/Content/Effects.luau` | Provisional (rayo, estallido, círculo) + asset `VFX_` |
 | Qué ataques usa una raza | `src/Shared/Content/Movesets.luau` | Cadena M1, pesado, esquiva, dash y hasta 4 técnicas |
 | Una raza o su kit | `src/Shared/Content/Races.luau` | Moveset, arma, objetos iniciales; `Playable = true` para abrirla |
+| Un hito de raza (evolución, desbloqueos) | `src/Shared/Content/Races.luau` (`Milestones`) | Nivel + estadísticas mínimas → técnicas nuevas (máx. 4 en la barra) |
+| Una estadística que cuenta un hito | `src/Shared/Content/Stats.luau` | Nombre visible; la suman los golpes con `KillStat` |
+| Un potenciador (menos daño recibido, más daño hecho) | `src/Server/Content/Abilities.luau` (`SelfModifier`) | Y un efecto `Aura` con la misma duración |
+| Una zona de Reishi ambiental | `src/Server/Content/AmbientZones.luau` | Centro, radio y densidad |
 | Un arma | `src/Shared/Content/Weapons.luau` | Modelo `MDL_`, posición en la mano, hoja provisional |
 | Un enemigo o jefe | `src/Server/Content/Enemies.luau` | Vida, aggro, ataques con aviso, EXP, botín, fases |
 | Dónde aparecen los enemigos | `src/Server/Content/EnemySpawns.luau` | Posición, cantidad, radio, reaparición |

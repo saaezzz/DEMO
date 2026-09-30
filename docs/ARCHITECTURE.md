@@ -43,6 +43,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Modules/DropLogic` — tirada de botín (puro).
 - `Services/ProgressionService` — EXP y nivel (D-028).
 - `Services/QuestService` — misiones: inicio, progreso, recompensas y cadena (D-030).
+- `Services/MilestoneService` — estadísticas del perfil e hitos de raza que desbloquean técnicas (D-039).
 - `Npc/NpcFactory`, `Npc/NpcActions` — creación de NPCs de combate y ataques con aviso (§41).
 - `Npc/EnemyBrain` — decisiones de la IA de enemigos (puro).
 - `Modules/QuestLogic` — progreso de misiones (puro).
@@ -100,7 +101,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `ServerNetwork` → `DataService` → `AbilityService` → `MovementService` → `ResourceService` → `CombatService` → `CharacterService` → `WeaponService` → `InventoryService` → `RaceService` → `ProgressionService` → `QuestService` → `TrainingService` → `EnemyService` → `AssetAuditService`. Cliente: `PlayerDataController` → `InputController` → `MovementController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `NotificationController` → `QuestTrackerController` → `ActionBarController` → `LockOnController` → `TargetFrameController` → `VfxController` → `InventoryController` → `RaceSelectionController` → `BossBarController` → `CharacterAnimationController`.
+Servidor: `ServerNetwork` → `DataService` → `AbilityService` → `MovementService` → `ResourceService` → `CombatService` → `CharacterService` → `WeaponService` → `InventoryService` → `RaceService` → `ProgressionService` → `QuestService` → `TrainingService` → `EnemyService` → `MilestoneService` → `AssetAuditService`. Cliente: `PlayerDataController` → `InputController` → `MovementController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `NotificationController` → `QuestTrackerController` → `ActionBarController` → `LockOnController` → `TargetFrameController` → `VfxController` → `InventoryController` → `RaceSelectionController` → `BossBarController` → `CharacterAnimationController`.
 
 ## Flujo de una habilidad (D-025)
 1. El cliente envía `{ Action = "LightAttack" }` por `CombatIntent`.

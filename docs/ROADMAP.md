@@ -35,7 +35,7 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] Cámara de combate y fijado de objetivo (D-032).
 - [x] Jefe con fases (§43), drops e inventario (§46) → hechos en M4.
 
-## M4 — Vertical Slice 0.1: Shinigami (P1) — HECHO (pendiente de verificación en Studio)
+## M4 — Vertical Slice 0.1: Shinigami (P1) — HECHO y probado en Studio
 - [x] Integración de arte desde Studio sin código y guía del equipo (D-033).
 - [x] Elección de raza y kit Shinigami: espada, Shunpo, Byakurai, Sai (D-034).
 - [x] Efectos visuales por datos (D-035).
@@ -44,7 +44,14 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [ ] Descubrimiento de Zanpakuto → M6 (roadmap original).
 - [ ] Validación anti speed-hack (pendiente desde M2).
 
-## M5 — Vertical Slice 0.2: Hollow + Quincy (P1)
+## M5 — Vertical Slice 0.2: Hollow + Quincy (P1) — HECHO (pendiente de verificación en Studio)
+- [x] Kit Hollow: garras, Devorar (cura y remata), Cero, Sonido, máscara (D-042, D-038).
+- [x] Kit Quincy: arco, Heilig Pfeil, flecha cargada, Licht Regen, Blut Vene, Hirenkyaku (D-042).
+- [x] Reishi como recurso Quincy y Reishi ambiental por zonas (D-041).
+- [x] Hitos de raza que desbloquean técnicas; prototipo de evolución Hollow; perfil v3 (D-039).
+- [x] Potenciadores temporales (D-040).
+- [ ] Proyectiles físicos para flechas y Cero (ahora son instantáneos).
+
 ## M6 — Descubrimiento de Zanpakuto, pulido y playtests (P1)
 
 ## Histórico

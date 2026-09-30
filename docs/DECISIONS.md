@@ -305,3 +305,35 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Estado:** ACCEPTED
 - **Decisión:** no hay un sistema de jefes aparte. Cualquier `EnemyDefinition` puede tener `Phases`, que cambian ataques, ritmo y velocidad al bajar de un umbral de vida; `EnemyBrain.PhaseIndex`/`PhaseSettings` son puros. Un enemigo con `Tier = "Boss"` se marca `IsBoss` y tiene barra propia, con aviso de fase. Los ataques en área declaran `AreaRadius`, que se dibuja en el suelo durante el aviso; un test comprueba que coincide con la hitbox real. Primer jefe: Gran Hollow (3 fases). Contraataques: rotura de postura, parry y salir del círculo (§43: la dificultad no es solo mucha vida). Participación: EXP, botín y misión para todos los que le hicieron daño.
 - **Además:** al cargar el perfil se retoman las cadenas de misiones con una misión siguiente nueva, así el contenido añadido llega a los jugadores existentes.
+
+## D-038 — Efectos de golpe sobre el atacante: robo de vida y remate
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** `AbilityHit` admite `Drain` (fracción del daño hecho que recupera el atacante), `Execute` (`HealthFraction` + `MaxDamage`: un golpe limpio derrota al objetivo si le queda poca vida, pero nunca a uno con más vida que `MaxDamage`, así que los jefes no se rematan) y `KillStat` (estadística que suma 1 si el golpe derrota al objetivo). `DamageResolver` sigue siendo puro y decide el remate; `DamageService` aplica el robo de vida y emite `Killed(atacante, defensor, golpe)`. Devorar (Hollow) es solo datos: mordisco que ignora la guardia, cura lo que hace y remata.
+- **Motivo:** §29 (devorar) sin código específico de raza; el remate solo entra con golpe limpio (bloquear o esquivar lo evita).
+
+## D-039 — Estadísticas e hitos de raza; perfil v3
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** cada raza tiene `Milestones` en orden: nivel mínimo + estadísticas mínimas (`Content/Stats`) → técnicas que se añaden a la barra detrás de las del moveset (máximo 4). `MilestoneService` suma las estadísticas con `DamageService.Killed` (solo enemigos reales, no muñecos) y evalúa los hitos al sumar, al subir de nivel (`ProgressionService.LeveledUp`) y al cargar el perfil. Un hito alcanzado se guarda para siempre. `KitLogic` (puro y compartido, con tests) calcula las técnicas y los hitos: el servidor decide con él y el cliente muestra la misma barra. Perfil v3: `Stats` y `Milestones`, con migración desde v2.
+- **Prototipos:** Hollow — "Hambre insaciable" (nivel 2 + 3 almas devoradas → Bala) y "Gillian" (nivel 5 + 12 → Hierro). Quincy — "Blut Arterie" (nivel 3 + 15 bajas con flechas).
+- **Motivo:** §29 ("la evolución no debe ser mata X y evoluciona": pide nivel y una acción concreta), §31 y la definición de hecho de las transformaciones (desbloqueo de habilidades). El descubrimiento de la Zanpakuto (M6) usará los mismos hitos.
+
+## D-040 — Modificadores temporales (potenciadores)
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** una habilidad puede aplicar `SelfModifier` (`Id`, `Duration`, `DamageTaken`, `DamageDealt`). Se guardan en la entidad de combate (`Modifiers`, puro, con tests); el mismo `Id` se renueva en lugar de acumularse. `DamageService` multiplica el daño por el daño hecho del atacante y el daño recibido del defensor antes de resolver. Se ven con el efecto `Aura` (contorno de color, o el aura de Arte soldada al personaje) con la misma duración; un test lo comprueba. Hierro, Blut Vene y Blut Arterie son solo datos.
+- **Alternativas:** un sistema de estados alterados completo (veneno, ralentizar…): demasiado para la vertical slice (§66). Este modelo se puede ampliar con más campos.
+
+## D-041 — Reishi ambiental por zonas
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** un recurso con `AmbientScaling` multiplica su regeneración por la densidad de la zona en la que está el personaje (`Server/Content/AmbientZones`: centro, radio horizontal y densidad; fuera de toda zona, `DefaultDensity`; si se solapan, gana la más densa). `AmbientDensity` es puro, con tests. `ResourceService` replica al jugador la zona y su densidad, y el cliente avisa al entrar y salir si su raza depende de ello. Zonas de prueba: coto de caza ×1,5 y guarida del jefe ×2.
+- **Motivo:** §32 (`AmbientReishiDensity` configurable por zona). Premia al Quincy por luchar donde hay más enemigos.
+
+## D-042 — Kits de Hollow y Quincy (M5)
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** ambas razas pasan a `Playable`, sin código específico de raza. **Hollow:** garras (cadena de 3 y desgarro que rompe la guardia), Devorar, Cero (carga de 0,8 s), Sonido, máscara en la cabeza; Reiatsu. **Quincy:** arco en la mano izquierda, cadena de 3 flechas de Heilig Pfeil a distancia, flecha cargada que rompe la guardia, Licht Regen (área por delante), Blut Vene, Hirenkyaku; usa **Reishi** en lugar de Reiatsu. `WeaponDefinition` gana `AttachTo` (parte del cuerpo) para piezas que no van en la mano derecha.
+- **Motivo:** §63 (kits de la vertical slice) reutilizando los frameworks de habilidades, movimiento y efectos (§28, §31).
+- **Pendiente:** las flechas son instantáneas (sin proyectil físico); Pesquisa, Garganta, Gintō y la evolución más allá de Gillian quedan para después.

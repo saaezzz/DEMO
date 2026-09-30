@@ -16,6 +16,8 @@ Tipo en `src/Shared/Types/PlayerDataTypes.luau`; plantilla y versión en `src/Se
 | `Inventory` | `{ { Id, Quantity } }` | `{}` | Inventario |
 | `Settings` | `{ MusicVolume, SfxVolume, CameraShake }` | 0.5 / 0.5 / true | Ajustes del jugador |
 | `Quests` | `{ Active = { { Id, Progress } }, Completed = { [Id]: true } }` | vacío | Misiones en curso y completadas (v2, M3) |
+| `Stats` | `{ [StatId]: number }` | vacío | Estadísticas de `Content/Stats`, p. ej. almas devoradas (v3, M5, D-039) |
+| `Milestones` | `{ MilestoneId }` | vacío | Hitos de raza alcanzados, en orden (v3, M5, D-039) |
 
 Los valores de combate (vida actual, recursos, postura) **no** se guardan: se recalculan al aparecer.
 

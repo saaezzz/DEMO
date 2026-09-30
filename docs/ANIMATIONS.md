@@ -53,6 +53,10 @@ Un test exige que toda animación de acción tenga asset o placeholder.
 | `Combat.Dodge` | `ANIM_Combat_Dodge` | Esquiva |
 | `Combat.Block` | `ANIM_Combat_Block` | Estados `Blocking` y `Parrying` (bucle) |
 | `Combat.Dash` | `ANIM_Combat_Dash` | Dash |
-| `Cast.Point`, `Cast.Bind` | `ANIM_Cast_Point`, `ANIM_Cast_Bind` | Byakurai y Sai (marker `Hit`) |
+| `Cast.Point`, `Cast.Bind` | `ANIM_Cast_Point`, `ANIM_Cast_Bind` | Byakurai, Bala y Sai (marker `Hit`) |
+| `Cast.Focus` | `ANIM_Cast_Focus` | Potenciadores: Hierro, Blut Vene, Blut Arterie (sin marker) |
+| `Claw.Slash1`–`3`, `Claw.Heavy`, `Claw.Bite` | `ANIM_Claw_*` | Hollow: cadena de garras, Desgarro, Devorar (marker `Hit`) |
+| `Cast.ChargedBeam` | `ANIM_Cast_ChargedBeam` | Cero: carga larga (marker `Hit` a 0,8 s) |
+| `Bow.Shot`, `Bow.Charged`, `Bow.Rain` | `ANIM_Bow_*` | Quincy: flechas, flecha cargada, Licht Regen. Arco en la mano izquierda (marker `Hit`) |
 | `Enemy.Swipe`, `Enemy.Lunge`, `Enemy.Crush` | `ANIM_Enemy_Swipe`, `_Lunge`, `_Crush` | Ataques de enemigos (marker `Hit`) |
 | `Reaction.Stun` | `ANIM_Reaction_Stun` | Estados `Stunned` y `Knocked` (bucle) |

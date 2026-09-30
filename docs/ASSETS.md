@@ -51,12 +51,17 @@ Un asset `APPROVED` o `INTEGRATED` debe tener `AssetId` (lo comprueba un test).
 | `ANIM_Combat_Block` | Animation | TODO | `State:Blocking` |
 | `ANIM_Combat_Dash` | Animation | TODO | `Ability:Shunpo`, `Ability:Step` |
 | `ANIM_Cast_Point`, `ANIM_Cast_Bind` | Animation | TODO | `Ability:Byakurai`, `Ability:Sai` |
+| `ANIM_Cast_Focus`, `ANIM_Cast_ChargedBeam`, `ANIM_Claw_*` (Slash1-3, Heavy, Bite) | Animation | TODO | Kit Hollow y potenciadores (M5) |
+| `ANIM_Bow_Shot`, `ANIM_Bow_Charged`, `ANIM_Bow_Rain` | Animation | TODO | Kit Quincy (M5) |
 | `ANIM_Enemy_Swipe`, `_Lunge`, `_Crush` | Animation | TODO | `Ability:EnemySwipe`, `EnemyLunge`, `EnemyCrush` |
 | `ANIM_Reaction_Stun` | Animation | TODO | `State:Stunned` |
 | `ANIM_Locomotion_*` (9) | Animation | INTEGRATED (catálogo Roblox, provisional) | `Locomotion` |
 | `MDL_Weapon_Asauchi` | Model | TODO | `Weapon:Asauchi` |
 | `MDL_Enemy_WeakHollow`, `_StandardHollow`, `_EliteHollow` | Model | TODO | Enemigos |
 | `MDL_Boss_GreatHollow` | Model | TODO | Jefe |
+| `MDL_Weapon_SpiritBow`, `MDL_Accessory_HollowMask` | Model | TODO | Arco Quincy (mano izquierda), máscara Hollow (cabeza) |
 | `VFX_Kido_Byakurai`, `VFX_Kido_Sai`, `VFX_Movement_Shunpo`, `VFX_Telegraph_Area` | VFX | TODO | `Content/Effects` |
+| `VFX_Hollow_*` (CeroCharge, Cero, Bala, Devour, Hierro), `VFX_Movement_Sonido` | VFX | TODO | Kit Hollow (Hierro es un aura) |
+| `VFX_Quincy_*` (Pfeil, ChargedPfeil, LichtRegen, BlutVene, BlutArterie), `VFX_Movement_Hirenkyaku` | VFX | TODO | Kit Quincy (Blut son auras) |
 
 La lista completa y actual la da Output al darle a Play en Studio (`[Assets] ... Pendientes: ...`).
