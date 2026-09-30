@@ -22,6 +22,8 @@ local Theme = {
 		DamageSelf = Color3.fromRGB(255, 70, 70),
 		DamageOther = Color3.fromRGB(255, 225, 120),
 		Telegraph = Color3.fromRGB(255, 30, 30),
+		Experience = Color3.fromRGB(160, 107, 255),
+		Quest = Color3.fromRGB(255, 214, 90),
 	},
 
 	PanelTransparency = 0.25,

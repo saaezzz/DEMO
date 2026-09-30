@@ -13,6 +13,11 @@ local CombatController = require(script.Controllers.CombatController)
 local HudController = require(script.Controllers.HudController)
 local NameplateController = require(script.Controllers.NameplateController)
 local HitFeedbackController = require(script.Controllers.HitFeedbackController)
+local NotificationController = require(script.Controllers.NotificationController)
+local QuestTrackerController = require(script.Controllers.QuestTrackerController)
+local ActionBarController = require(script.Controllers.ActionBarController)
+local LockOnController = require(script.Controllers.LockOnController)
+local TargetFrameController = require(script.Controllers.TargetFrameController)
 local CharacterAnimationController = require(script.Controllers.CharacterAnimationController)
 
 Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
@@ -25,6 +30,11 @@ ServiceLoader.Run({
 	HudController,
 	NameplateController,
 	HitFeedbackController,
+	NotificationController,
+	QuestTrackerController,
+	ActionBarController,
+	LockOnController,
+	TargetFrameController,
 	CharacterAnimationController,
 })
 

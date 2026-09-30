@@ -88,6 +88,8 @@ local InputBindings: { [ActionName]: InputBinding } = {
 	LockOn = {
 		KeyboardMouse = { Enum.KeyCode.T },
 		Gamepad = { Enum.KeyCode.ButtonR3 },
+		TouchTitle = "Fijar",
+		TouchOrder = 6,
 	},
 	Interact = {
 		KeyboardMouse = { Enum.KeyCode.E },

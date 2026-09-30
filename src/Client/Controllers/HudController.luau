@@ -15,7 +15,9 @@ local CharacterConfig = require(ReplicatedStorage.Shared.Config.CharacterConfig)
 local Races = require(ReplicatedStorage.Shared.Content.Races)
 local Resources = require(ReplicatedStorage.Shared.Content.Resources)
 local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
+local Progression = require(ReplicatedStorage.Shared.Modules.Progression)
 
+local PlayerDataController = require(script.Parent.PlayerDataController)
 local StatBar = require(script.Parent.Parent.UI.StatBar)
 local Theme = require(script.Parent.Parent.UI.Theme)
 local UIUtil = require(script.Parent.Parent.UI.UIUtil)
@@ -48,6 +50,7 @@ type HudElements = {
 	Health: StatBar,
 	Posture: StatBar,
 	ResourceList: Frame,
+	Experience: StatBar,
 	Scale: UIScale,
 }
 
@@ -192,6 +195,16 @@ local function buildHud(playerGui: Instance): HudElements
 		}),
 	})
 
+	local experience = StatBar.new({
+		Parent = content,
+		Color = Theme.Colors.Experience,
+		Height = 12,
+		LayoutOrder = 6,
+		Label = "EXP",
+		ShowValue = true,
+	})
+	experience:SetValue(0, 1)
+
 	return {
 		Name = nameLabel,
 		Info = infoLabel,
@@ -199,6 +212,7 @@ local function buildHud(playerGui: Instance): HudElements
 		Health = health,
 		Posture = posture,
 		ResourceList = resourceList,
+		Experience = experience,
 		Scale = scale,
 	}
 end
@@ -357,6 +371,20 @@ local function onAttributeChanged(model: Model, attribute: string): ()
 	end
 end
 
+local function updateExperience(): ()
+	local data = PlayerDataController:GetData()
+	if data == nil then
+		return
+	end
+	local needed = Progression.XpToNext(data.Level)
+	if needed > 0 then
+		hud.Experience:SetValue(data.Experience, needed)
+	else
+		-- Nivel máximo: barra llena.
+		hud.Experience:SetValue(1, 1)
+	end
+end
+
 local function updateHealth(humanoid: Humanoid): ()
 	hud.Health:SetValue(humanoid.Health, humanoid.MaxHealth)
 	local low = humanoid.MaxHealth > 0 and humanoid.Health / humanoid.MaxHealth <= Theme.LowHealthRatio
@@ -414,6 +442,14 @@ function HudController:Start(): ()
 	if camera ~= nil then
 		camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
 	end
+
+	PlayerDataController.Loaded:Connect(updateExperience)
+	PlayerDataController.Changed:Connect(function(key)
+		if key == "Experience" or key == "Level" then
+			updateExperience()
+		end
+	end)
+	updateExperience()
 
 	player.CharacterAdded:Connect(bindCharacter)
 	local current = player.Character

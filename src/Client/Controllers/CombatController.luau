@@ -8,6 +8,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
+local Signal = require(ReplicatedStorage.Shared.Utils.Signal)
 
 local ClientNetwork = require(script.Parent.Parent.Network.ClientNetwork)
 local InputController = require(script.Parent.InputController)
@@ -37,14 +38,26 @@ local HOLD_ACTIONS: { [ActionName]: CombatAction } = {
 	Sprint = "Sprint",
 }
 
+local CombatController = {
+	Name = "CombatController",
+	-- (acción, segundos) cuando el servidor acepta una habilidad con cooldown.
+	CooldownStarted = Signal.new() :: Signal.Signal<CombatAction, number>,
+}
+
 -- Cede el hilo mientras espera al servidor: no llamar directamente desde un
 -- handler de Signal (D-013), usar task.spawn.
 local function sendIntent(action: CombatAction, active: boolean?): ServerCombatResponse?
 	local intent: CombatIntent = { Action = action, Active = active }
 	-- nil = rechazado por la capa de red (rate limit, payload inválido) o fallo de comunicación.
 	local response: ServerCombatResponse? = ClientNetwork.Invoke("CombatIntent", intent)
-	if response ~= nil and response.Status == "Accepted" and response.Movement ~= nil then
-		MovementController:Apply(response.Movement)
+	if response ~= nil and response.Status == "Accepted" then
+		if response.Movement ~= nil then
+			MovementController:Apply(response.Movement)
+		end
+		local cooldown = response.Cooldown
+		if cooldown ~= nil then
+			CombatController.CooldownStarted:Fire(action, cooldown)
+		end
 	end
 	return response
 end
@@ -91,10 +104,6 @@ local function onActionEnded(action: ActionName): ()
 		end)
 	end
 end
-
-local CombatController = {
-	Name = "CombatController",
-}
 
 function CombatController:Start(): ()
 	InputController.ActionBegan:Connect(onActionBegan)
