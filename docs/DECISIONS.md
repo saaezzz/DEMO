@@ -160,3 +160,34 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Decisión:** `Content/Assets` es el manifiesto de §54 y la única fuente de IDs de Roblox, con convención de nombres `<PREFIJO>_<Grupo>_<Nombre>` validada por tests. `Content/Animations` asocia claves de juego a assets, prioridad y markers estándar de §53; `AssetRegistry` y `AnimationRegistry` dan acceso a ambos. Los combos referencian animaciones por clave y sus `MarkerName` deben existir en la animación.
 - **Registro de habilidades:** §70 lo incluye en CORE FOUNDATION, pero se implementará con el framework de habilidades (M2): definir `AbilityDefinition` antes de diseñar ese framework sería especulativo y probablemente se reharía. Los combos actuales ya son definiciones de datos validadas.
 - **Motivo:** que ningún sistema escriba IDs a mano, que el equipo de arte tenga un flujo de estados trazable y que los errores de referencias se detecten en CI, no en una prueba en Studio.
+
+## D-021 — Estado de los personajes replicado por atributos del modelo
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** `CharacterReplicator` escribe en el modelo de cada personaje, como atributos, lo que la UI y las animaciones necesitan: `Level`, `Race`, `Posture`, `MaxPosture`, `ActionState`, `Resource_<Id>` y `ResourceMax_<Id>`. `CombatService` añade `ActionId` (combo en curso) **antes** de pasar a `Attacking`. Los nombres están en `Shared/Network/ReplicatedAttributes`. La vida sigue replicando por el `Humanoid`. Los clientes solo leen.
+- **Alternativas:** un remote propio con snapshots/deltas (más código y más superficie de red para datos que no son secretos) o `ValueObject`s (más instancias y el mismo resultado).
+- **Motivo:** los atributos replican solos, llegan a todos los clientes (co-op: cada uno ve la postura y el estado de los demás) y no abren ningún canal cliente→servidor. Estos datos son visibles en el juego, así que no hay nada privado que proteger. Cuando haya NPCs, basta con llamar también a `CharacterReplicator.Bind`.
+
+## D-022 — UI y animaciones provisionales propias
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED (provisional hasta que Arte/Animación entregue los assets finales)
+- **Decisión:**
+  - **UI** (`Client/UI`, `docs/UI.md`): HUD propio (vida, postura, recursos, nivel/raza, estado de acción), placas sobre los demás jugadores, destello y números de daño, y pantalla de muerte con cuenta atrás. Sustituyen la barra de vida y el nombre por defecto de Roblox. Todo el estilo sale de `UI/Theme`.
+  - **Locomoción:** el pack **Ninja** del catálogo de Roblox (creador Roblox, uso libre), registrado en el manifiesto como `ANIM_Locomotion_*` y aplicado sobre el script `Animate` por defecto. Solo R15.
+  - **Acciones** (tajo, guardia, dash, aturdimiento): animaciones **procedurales** en el cliente (`Client/Animation`) que giran los `Motor6D.C0` según el `ActionState` replicado (D-021). Usan las mismas claves que `Content/Animations`: en cuanto un asset tenga `AssetId`, se usa el asset y el placeholder deja de usarse, sin tocar código. Un test obliga a que toda animación de acción tenga asset o placeholder.
+- **Alternativas:** subir animaciones hechas a mano (necesitan el editor de animación y una cuenta con permisos; es trabajo de Animación/Visual, §55) o `KeyframeSequenceProvider:RegisterKeyframeSequence` (solo sirve para pruebas en Studio).
+- **Limitaciones:** las animaciones de acción empiezan cuando llega el estado del servidor, así que el ataque propio se ve con la latencia de ida y vuelta. Los placeholders solo funcionan en R15. Se aceptan porque son provisionales.
+- **Motivo:** el Lead Programmer pidió ver ya una UI y unas animaciones distintas a las de Roblox, sin esperar a los assets finales y sin atar los sistemas a nada provisional.
+
+## D-023 — Pautas de diseño tomadas de la guía de PromptBlox
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Fuente:** https://promptblox.ai/roblox-rpg-maker (guía de creación de RPG en Roblox).
+- **Qué se adopta** (ya coincide con §62–63 de la constitución; se añade como criterio de diseño en `docs/GDD.md`):
+  - Alcance del primer build: **una zona, una misión, una mazmorra corta**, y ampliar después.
+  - Números pequeños al principio; progresión rápida en los primeros niveles para que el jugador note que avanza.
+  - Botín raro de verdad y distinguible a simple vista.
+  - Siempre un marcador o seguimiento de la misión activa (el HUD de §52 ya incluye quest tracker).
+  - Ataques de jefe con **aviso visible** (círculos o zonas de peligro) para que el jugador pueda aprender el combate.
+  - Probar el bucle completo con un personaje **nuevo de nivel 1**, incluida la derrota y el modo multijugador; arreglar un sistema cada vez.
+- **Qué no se adopta:** la generación de código con su herramienta. El proyecto tiene su propia arquitectura y su propio flujo de trabajo (constitución).

@@ -45,3 +45,7 @@ Un asset `APPROVED` o `INTEGRATED` debe tener `AssetId` (lo comprueba un test).
 | Nombre | Categoría | Estado | Usado por |
 |---|---|---|---|
 | `ANIM_Sword_BasicSlash` | Animation | TODO | `Combo:BasicSlash` |
+| `ANIM_Combat_Block` | Animation | TODO | `State:Blocking` |
+| `ANIM_Combat_Dash` | Animation | TODO | `State:Dashing` |
+| `ANIM_Reaction_Stun` | Animation | TODO | `State:Stunned` |
+| `ANIM_Locomotion_*` (9) | Animation | INTEGRATED (catálogo Roblox, provisional) | `Locomotion` |

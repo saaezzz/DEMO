@@ -42,6 +42,13 @@ return {
 Aserciones disponibles (`tests/lib/expect.luau`): `toBe`, `toEqual` (comparación profunda),
 `toBeNil`, `toBeTruthy`, `toBeFalsy`, `toBeCloseTo`, `toThrow(fragmento?)`.
 
+## Playtest en Studio
+Hasta que exista un checklist por hito, cada prueba manual cubre (D-023):
+- Personaje nuevo de nivel 1 de principio a fin, incluida la muerte y la reaparición.
+- **Test → Clientes y servidores** con 2 o más jugadores: placas, daño y animaciones de los demás.
+- Emulador de dispositivos (móvil) y mando si el cambio toca input o UI.
+- Output sin errores en rojo.
+
 ## CI
 `.github/workflows/ci.yml` ejecuta en cada push a `main` y en cada PR: formato, lint,
 tipos, tests y build de Rojo. Un fallo en cualquiera bloquea el cambio.

@@ -6,6 +6,10 @@ Las entradas nuevas van en `Unreleased`.
 ## [Unreleased]
 
 ### Added
+- UI provisional propia (D-022, `docs/UI.md`): HUD con vida, postura, recursos, nivel/raza y estado; placas sobre los demás jugadores; destello y números de daño; pantalla de muerte con cuenta atrás. Sustituye la barra de vida y el nombre por defecto de Roblox.
+- Animaciones provisionales (D-022): locomoción con el pack Ninja del catálogo de Roblox y animaciones procedurales de tajo, guardia, dash y aturdimiento, sustituibles por assets reales sin tocar código.
+- Estado de los personajes replicado por atributos del modelo (`CharacterReplicator`, `ReplicatedAttributes`, D-021).
+- Pautas de diseño de la guía de PromptBlox en `GDD.md` y checklist de playtest en `TESTING.md` (D-023).
 - `Shared/Utils/Signal`: señal síncrona en Luau puro (D-013).
 - `Shared/Utils/Logger`: logs con niveles y ámbito (D-015).
 - `Shared/Utils/ServiceLoader`: arranque en dos fases Init/Start (D-014).
@@ -24,6 +28,7 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- `CombatController` solo envía intents; las animaciones pasan a `CharacterAnimationController`.
 - `CharacterService` usa `LoadCharacterAsync` (sustituye a la API obsoleta `LoadCharacter`) en una tarea propia con `pcall`.
 - Las animaciones de combo se resuelven por clave vía `AnimationRegistry`; el marker del golpe de `BasicSlash` pasa a `Hit`.
 - Bloqueo por mantener pulsado: intent `Block` con `Active` e idempotente en el servidor (D-019).

@@ -18,12 +18,13 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] `InputController` (KBM, gamepad, táctil).
 - [x] Registros de animaciones y assets (D-020).
 - [ ] Registro de habilidades → se hace con el framework de habilidades en M2 (D-020).
+- [x] UI y animaciones provisionales propias (D-022), adelantadas del HUD de M3 a petición del Lead Programmer.
 
 ## M2 — Combat Foundation (P0/P1)
 - Framework y registro de habilidades, Hitbox/Damage/Cooldown/Resource, dodge, heavy, stamina, dummy de entrenamiento, framework de movimiento.
 
 ## M3 — Loop PvE mínimo (P1)
-- Enemigos + IA básica, EXP/nivel data-driven, muerte/respawn, HUD, cámara + lock-on.
+- Enemigos + IA básica (con avisos visibles en ataques fuertes, D-023), EXP/nivel data-driven, HUD completo (EXP, cooldowns, quest tracker, objetivo), cámara + lock-on.
 
 ## M4 — Vertical Slice 0.1: Shinigami (P1)
 ## M5 — Vertical Slice 0.2: Hollow + Quincy (P1)

@@ -16,6 +16,7 @@ local Resources: { [string]: ResourceDefinition } = {
 		DisplayName = "Reiatsu",
 		DefaultMax = 100,
 		RegenPerSecond = 5,
+		Color = "#4FA3FF",
 	},
 }
 

@@ -14,6 +14,8 @@ export type ResourceDefinition = {
 	DefaultMax: number,
 	-- Regeneración pasiva por segundo mientras el personaje está vivo.
 	RegenPerSecond: number,
+	-- Color de su barra en la UI, en hexadecimal ("#RRGGBB").
+	Color: string,
 }
 
 -- Manifiesto de assets (§54, D-020) ------------------------------------------

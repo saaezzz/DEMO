@@ -1,11 +1,12 @@
 --!strict
 
-local Players = game:GetService("Players")
+-- Traduce las acciones de input en intents de combate para el servidor. Las
+-- animaciones las pone CharacterAnimationController a partir del estado
+-- autoritativo replicado (D-021, D-022).
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
-local ComboAnimations = require(ReplicatedStorage.Shared.Content.ComboAnimations)
-local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
 
 local ClientNetwork = require(script.Parent.Parent.Network.ClientNetwork)
 local InputController = require(script.Parent.InputController)
@@ -16,17 +17,9 @@ type CombatIntentType = GameTypes.CombatIntentType
 type ServerCombatResponse = GameTypes.ServerCombatResponse
 type ActionName = InputBindings.ActionName
 
-local ANIMATOR_TIMEOUT_SECONDS = 5
-
 -- Provisional hasta el framework de habilidades (M2), que asignará el combo
 -- según el arma/kit equipado.
 local ATTACK_COMBO_ID = "BasicSlash"
-
-local player = Players.LocalPlayer
-local animator: Animator? = nil
--- Tracks cargados en el Animator actual, por combo. Se vacía al cambiar de personaje.
-local comboTracks: { [string]: AnimationTrack } = {}
-local currentTrack: AnimationTrack? = nil
 
 -- Cede el hilo mientras espera al servidor: no llamar directamente desde un
 -- handler de Signal (D-013), usar task.spawn.
@@ -45,76 +38,12 @@ local function sendIntent(intentType: CombatIntentType, comboId: string?, active
 	return response
 end
 
-local function getComboTrack(currentAnimator: Animator, comboId: string): AnimationTrack?
-	local cached: AnimationTrack? = comboTracks[comboId]
-	if cached ~= nil then
-		return cached
-	end
-
-	-- Sin animación asignada o con el asset aún sin subir: el combo funciona sin animar.
-	local animationKey: string? = ComboAnimations[comboId]
-	local definition = if animationKey ~= nil then AnimationRegistry.Get(animationKey) else nil
-	local contentId = if animationKey ~= nil then AnimationRegistry.GetContentId(animationKey) else nil
-	if definition == nil or contentId == nil then
-		return nil
-	end
-
-	local animation = Instance.new("Animation")
-	animation.AnimationId = contentId
-	local track = currentAnimator:LoadAnimation(animation)
-	track.Priority = AnimationRegistry.GetEnumPriority(definition)
-	track.Looped = definition.Looped
-	comboTracks[comboId] = track
-	return track
-end
-
-local function playComboAnimation(comboId: string): ()
-	local currentAnimator = animator
-	if currentAnimator == nil then
-		return
-	end
-
-	local track = getComboTrack(currentAnimator, comboId)
-	if track == nil then
-		return
-	end
-
-	if currentTrack ~= nil and currentTrack ~= track then
-		currentTrack:Stop()
-	end
-	currentTrack = track
-	track:Play()
-end
-
-local function onAttackInput(): ()
-	local response = sendIntent("Attack", ATTACK_COMBO_ID)
-	if response.Status == "Accepted" then
-		playComboAnimation(ATTACK_COMBO_ID)
-	end
-end
-
-local function bindCharacter(model: Model): ()
-	-- Los tracks del personaje anterior pertenecen a un Animator destruido.
-	table.clear(comboTracks)
-	currentTrack = nil
-	animator = nil
-
-	local humanoid = model:WaitForChild("Humanoid", ANIMATOR_TIMEOUT_SECONDS) :: Humanoid?
-	if humanoid == nil then
-		return
-	end
-
-	-- El Animator lo crea el servidor; uno creado en el cliente no replicaría las animaciones.
-	local foundAnimator = humanoid:WaitForChild("Animator", ANIMATOR_TIMEOUT_SECONDS) :: Animator?
-	if foundAnimator ~= nil and player.Character == model then
-		animator = foundAnimator
-	end
-end
-
 -- Los handlers de Signal no deben ceder: cada petición al servidor va en su propio hilo.
 local function onActionBegan(action: ActionName): ()
 	if action == "LightAttack" then
-		task.spawn(onAttackInput)
+		task.spawn(function()
+			sendIntent("Attack", ATTACK_COMBO_ID, nil)
+		end)
 	elseif action == "Block" then
 		task.spawn(function()
 			sendIntent("Block", nil, true)
@@ -139,14 +68,8 @@ local CombatController = {
 }
 
 function CombatController:Start(): ()
-	player.CharacterAdded:Connect(bindCharacter)
 	InputController.ActionBegan:Connect(onActionBegan)
 	InputController.ActionEnded:Connect(onActionEnded)
-
-	local existingModel = player.Character
-	if existingModel ~= nil then
-		task.spawn(bindCharacter, existingModel)
-	end
 end
 
 return CombatController

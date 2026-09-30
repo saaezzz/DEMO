@@ -29,19 +29,25 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Services/CharacterService` — aparición tras cargar el perfil, sincronización con el `Humanoid`, reaparición y liberación.
 - `Data/DataSchema`, `Data/Migrator` — versión, plantilla y migraciones del perfil.
 - `Packages/ProfileStore` — tercero, no se modifica.
-- `Services/CombatService` — carga los combos, atiende `CombatIntent`: ataque, bloqueo/parry, Shunpo, aturdimientos, regeneración.
+- `Services/CombatService` — carga los combos, atiende `CombatIntent`: ataque, bloqueo/parry, dash, aturdimientos, regeneración.
 - `Modules/HitboxUtil` — consultas espaciales y resolución de objetivos.
 - `Network/ServerNetwork` — crea los remotes y registra handlers con validación obligatoria.
 - `Network/RemoteGuard` — rate limit + validación + `pcall` para cada handler.
 - `Modules/CombatIntentValidator` — esquema del payload de `CombatIntent`.
 - `Modules/RateLimiter` — token bucket por clave (Luau puro).
 - `Content/Combos`, `Content/CombatActions` — contenido autoritativo (combos, parámetros del dash).
+- `Modules/CharacterReplicator` — refleja el estado del `Character` en atributos del modelo (D-021).
 
 ### Client
 - `init.client.luau` — arranque: nivel de log y lista de controladores.
 - `Controllers/InputController` — acciones abstractas de input (teclado, mando, táctil; `docs/INPUT.md`).
 - `Input/InputBindings` — controles por acción y plataforma.
-- `Controllers/CombatController` — traduce acciones a intents de combate y reproduce animaciones.
+- `Controllers/CombatController` — traduce acciones a intents de combate.
+- `Controllers/HudController`, `Controllers/NameplateController`, `Controllers/HitFeedbackController` — UI provisional (`docs/UI.md`, D-022).
+- `Controllers/CharacterAnimationController` — locomoción y animaciones de acción según el estado replicado (`docs/ANIMATIONS.md`, D-022).
+- `UI/Theme`, `UI/UIUtil`, `UI/StatBar` — estilo y componentes de UI.
+- `Animation/ProceduralClip`, `Animation/ProceduralAnimator`, `Animation/PlaceholderAnimations` — animaciones procedurales provisionales.
+- `Utils/CharacterWatcher` — callback por cada personaje de jugador que aparece, con limpieza al irse.
 - `Network/ClientNetwork` — `Invoke`/`Fire`/`OnEvent` sobre los remotes.
 - `Controllers/PlayerDataController` — copia local de los datos del jugador.
 
@@ -49,19 +55,20 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Types/GameTypes`, `Types/ContentTypes`, `Types/PlayerDataTypes` — tipos del núcleo, del contenido y del perfil.
 - `Config/CharacterConfig` — valores base de balance (no IP).
 - `Content/Races`, `Content/Resources` — contenido público (capa IP).
-- `Content/Assets`, `Content/Animations`, `Content/ComboAnimations` — manifiesto de assets y animaciones (`docs/ASSETS.md`, `docs/ANIMATIONS.md`).
+- `Content/Assets`, `Content/Animations`, `Content/ComboAnimations`, `Content/StateAnimations`, `Content/LocomotionAnimations` — manifiesto de assets y animaciones (`docs/ASSETS.md`, `docs/ANIMATIONS.md`).
 - `Modules/StateMachine` — máquina de estados genérica.
 - `Modules/Character` — vida, recursos genéricos, postura y estado de un personaje.
 - `Modules/AssetRegistry`, `Modules/AnimationRegistry` — acceso al manifiesto de assets y a las animaciones (D-020).
 - `Network/RemoteDefinitions` — catálogo de remotes y rate limits (D-016).
 - `Network/Schema` — validadores declarativos de payloads.
+- `Network/ReplicatedAttributes` — nombres de los atributos replicados de los personajes (D-021).
 - `Utils/Signal` — señal síncrona en Luau puro (D-013).
 - `Utils/Logger` — logs con niveles (D-015).
 - `Utils/ServiceLoader` — arranque Init/Start (D-014).
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `ServerNetwork` → `DataService` → `CombatService` → `CharacterService`. Cliente: `PlayerDataController` → `InputController` → `CombatController`.
+Servidor: `ServerNetwork` → `DataService` → `CombatService` → `CharacterService`. Cliente: `PlayerDataController` → `InputController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `CharacterAnimationController`.
 
 ## Flujo de un ataque
 1. El cliente envía `{ Type = "Attack", ComboId }` por `CombatIntent`.
@@ -69,7 +76,7 @@ Servidor: `ServerNetwork` → `DataService` → `CombatService` → `CharacterSe
 3. Transición a `Attacking` y programación de los golpes (`task.delay` por ventana de golpe).
 4. Cada golpe consulta la hitbox en la posición actual del atacante y resuelve bloqueo, parry, daño y postura.
 5. Al salir de `Attacking` por cualquier motivo se cancelan los golpes pendientes.
-6. El cliente reproduce la animación solo si la respuesta es `Accepted`.
+6. El servidor escribe `ActionId` y `ActionState` en el modelo (D-021); todos los clientes animan el ataque a partir de ahí (D-022).
 
 ## Capa de contenido (IP)
 Constitución §4 y D-017. El núcleo (servicios, módulos, tipos, red) no contiene nombres de la IP;

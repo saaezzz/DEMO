@@ -12,6 +12,10 @@ local AssetRegistry = require(ReplicatedStorage.Shared.Modules.AssetRegistry)
 local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
 local Combos = require(ServerScriptService.Server.Content.Combos)
 local CombatActions = require(ServerScriptService.Server.Content.CombatActions)
+local StateAnimations = require(ReplicatedStorage.Shared.Content.StateAnimations)
+local LocomotionAnimations = require(ReplicatedStorage.Shared.Content.LocomotionAnimations)
+local PlaceholderAnimations =
+	require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.Animation.PlaceholderAnimations)
 
 local function expectResource(resourceId, context)
 	if Resources[resourceId] == nil then
@@ -136,6 +140,52 @@ return {
 				if not AnimationRegistry.IsValidMarker(marker) then
 					error(`{key}: marker no estándar "{marker}"`)
 				end
+			end
+		end
+	end,
+
+	["cada recurso tiene un color hexadecimal"] = function()
+		for key, definition in Resources do
+			if string.match(definition.Color, "^#%x%x%x%x%x%x$") == nil then
+				error(`recurso {key}: color inválido "{definition.Color}"`)
+			end
+		end
+	end,
+
+	["las animaciones de estado y de locomoción existen"] = function()
+		for state, key in StateAnimations do
+			if Animations[key] == nil then
+				error(`estado {state}: animación desconocida "{key}"`)
+			end
+		end
+		for folder, values in LocomotionAnimations do
+			for valueName, key in values do
+				if AnimationRegistry.GetContentId(key) == nil then
+					error(`locomoción {folder}.{valueName}: "{key}" no existe o no tiene AssetId`)
+				end
+			end
+		end
+	end,
+
+	["los placeholders usan claves de animación existentes"] = function()
+		for key in PlaceholderAnimations do
+			if Animations[key] == nil then
+				error(`placeholder de animación desconocida "{key}"`)
+			end
+		end
+	end,
+
+	["toda animación de acción sin asset subido tiene placeholder"] = function()
+		local actionKeys = {}
+		for _, key in StateAnimations do
+			actionKeys[key] = true
+		end
+		for _, key in ComboAnimations do
+			actionKeys[key] = true
+		end
+		for key in actionKeys do
+			if AnimationRegistry.GetContentId(key) == nil and PlaceholderAnimations[key] == nil then
+				error(`{key} no tiene asset ni placeholder: no se vería nada`)
 			end
 		end
 	end,

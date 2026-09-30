@@ -15,6 +15,14 @@ RPG de acción PvE cooperativo en Roblox inspirado en BLEACH (prototipo privado;
 ## Razas iniciales
 Shinigami, Hollow y Quincy (detalle en §21–35; `RACES.md` cuando se diseñen).
 
+## Pautas de diseño (D-023)
+- Primer build pequeño: una zona, una misión, una mazmorra corta. Ampliar solo cuando ese bucle funcione.
+- Números pequeños al principio y progresión rápida en los primeros niveles.
+- El botín raro es raro de verdad y se distingue a simple vista.
+- La misión activa siempre tiene marcador o seguimiento en pantalla.
+- Los ataques de jefe se anuncian con avisos visibles (zonas de peligro) para que se puedan aprender.
+- Cada playtest recorre el bucle con un personaje nuevo de nivel 1, incluida la derrota, y también en multijugador.
+
 ## Pendiente de definir
 - Loop de progresión completo (`PROGRESSION.md`).
 - Economía y objetos.
