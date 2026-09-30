@@ -33,9 +33,17 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] Misiones con seguimiento y marcador; perfil v2 (D-030).
 - [x] HUD: EXP, avisos, cooldowns, misión, objetivo (D-031).
 - [x] Cámara de combate y fijado de objetivo (D-032).
-- [ ] Jefe con fases (§43), drops e inventario (§46) → M4 junto a la vertical slice.
+- [x] Jefe con fases (§43), drops e inventario (§46) → hechos en M4.
 
-## M4 — Vertical Slice 0.1: Shinigami (P1)
+## M4 — Vertical Slice 0.1: Shinigami (P1) — HECHO (pendiente de verificación en Studio)
+- [x] Integración de arte desde Studio sin código y guía del equipo (D-033).
+- [x] Elección de raza y kit Shinigami: espada, Shunpo, Byakurai, Sai (D-034).
+- [x] Efectos visuales por datos (D-035).
+- [x] Inventario, objetos, botín y consumibles (D-036).
+- [x] Jefe con fases (D-037).
+- [ ] Descubrimiento de Zanpakuto → M6 (roadmap original).
+- [ ] Validación anti speed-hack (pendiente desde M2).
+
 ## M5 — Vertical Slice 0.2: Hollow + Quincy (P1)
 ## M6 — Descubrimiento de Zanpakuto, pulido y playtests (P1)
 

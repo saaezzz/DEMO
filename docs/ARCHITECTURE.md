@@ -21,6 +21,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 | `src/Shared` | `ReplicatedStorage.Shared` |
 | `src/CharacterScripts/Health.server.luau` | `StarterPlayer.StarterCharacterScripts.Health` (D-010) |
 | — | `ReplicatedStorage.Remotes` — creada por `ServerNetwork` al arrancar (D-016) |
+| — | `ReplicatedStorage.Assets` — carpeta de arte que se rellena en Studio; Rojo no toca su contenido (D-033, `docs/GUIA_EQUIPO.md`) |
 
 ## Módulos actuales
 ### Server
@@ -34,13 +35,18 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Services/MovementService` — velocidad, sprint y capa de locomoción (D-026).
 - `Services/ResourceService` — regeneración de recursos (con espera tras gastar) y postura.
 - `Services/TrainingService` — muñecos de entrenamiento (D-027).
-- `Services/EnemyService` — aparición, IA y recompensas de los enemigos (D-029).
+- `Services/EnemyService` — aparición, IA, fases y recompensas (EXP, misiones, botín) de los enemigos (D-029, D-037).
+- `Services/RaceService` — elección de raza y entrega del kit (D-034).
+- `Services/WeaponService` — arma del kit en la mano (D-034).
+- `Services/InventoryService` — dar objetos y usar consumibles (D-036).
+- `Services/AssetAuditService` — informe de assets en Output, solo en Studio (D-033).
+- `Modules/DropLogic` — tirada de botín (puro).
 - `Services/ProgressionService` — EXP y nivel (D-028).
 - `Services/QuestService` — misiones: inicio, progreso, recompensas y cadena (D-030).
 - `Npc/NpcFactory`, `Npc/NpcActions` — creación de NPCs de combate y ataques con aviso (§41).
 - `Npc/EnemyBrain` — decisiones de la IA de enemigos (puro).
 - `Modules/QuestLogic` — progreso de misiones (puro).
-- `Content/Enemies`, `Content/EnemySpawns` — enemigos y zonas de aparición.
+- `Content/Enemies`, `Content/EnemySpawns` — enemigos (y jefes con fases) y zonas de aparición.
 - `Combat/CombatRegistry` — personajes en combate y su estado de combate; punto común de los servicios.
 - `Combat/DamageService`, `Combat/DamageResolver` — aplicación y resolución (pura) de golpes: parry, bloqueo, guardia rota, i-frames, aturdimiento, empuje.
 - `Combat/HitboxService`, `Combat/HitboxUtil` — objetivos válidos y consultas espaciales.
@@ -60,6 +66,8 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Controllers/CombatController` — traduce acciones a intents de combate y avisa de los cooldowns.
 - `Controllers/NotificationController`, `Controllers/QuestTrackerController`, `Controllers/ActionBarController`, `Controllers/TargetFrameController` — HUD de M3 (D-031).
 - `Controllers/LockOnController` — fijado de objetivo y cámara de combate (D-032).
+- `Controllers/RaceSelectionController`, `Controllers/InventoryController`, `Controllers/BossBarController` — elección de raza, mochila y barra de jefe (D-034, D-036, D-037).
+- `Controllers/VfxController`, `Vfx/EffectPlayer` — efectos de habilidades y avisos de área (D-035).
 - `Controllers/MovementController` — aplica el desplazamiento de dash y esquiva aprobados (D-026).
 - `Controllers/HudController`, `Controllers/NameplateController`, `Controllers/HitFeedbackController` — UI provisional (`docs/UI.md`, D-022).
 - `Controllers/CharacterAnimationController` — locomoción y animaciones de acción según el estado replicado (`docs/ANIMATIONS.md`, D-022).
@@ -78,6 +86,10 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Modules/StateMachine` — máquina de estados genérica.
 - `Modules/Character` — vida, recursos genéricos, postura y las tres capas de estado de un personaje (D-024).
 - `Modules/VelocityImpulse` — velocidad temporal (dash, esquiva, empuje).
+- `Modules/AssetLibrary` — assets del manifiesto o colocados en Studio (D-033).
+- `Modules/InventoryLogic` — operaciones del inventario (puro, D-036).
+- `Content/Movesets`, `Content/Weapons`, `Content/Items`, `Content/Effects`, `Content/AbilityInfo` — kits, armas, objetos y presentación de habilidades.
+- `Types/ItemTypes`, `Config/ItemConfig` — objetos, rarezas e inventario.
 - `Modules/AssetRegistry`, `Modules/AnimationRegistry` — acceso al manifiesto de assets y a las animaciones (D-020).
 - `Network/RemoteDefinitions` — catálogo de remotes y rate limits (D-016).
 - `Network/Schema` — validadores declarativos de payloads.
@@ -88,7 +100,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `ServerNetwork` → `DataService` → `AbilityService` → `MovementService` → `ResourceService` → `CombatService` → `CharacterService` → `ProgressionService` → `QuestService` → `TrainingService` → `EnemyService`. Cliente: `PlayerDataController` → `InputController` → `MovementController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `NotificationController` → `QuestTrackerController` → `ActionBarController` → `LockOnController` → `TargetFrameController` → `CharacterAnimationController`.
+Servidor: `ServerNetwork` → `DataService` → `AbilityService` → `MovementService` → `ResourceService` → `CombatService` → `CharacterService` → `WeaponService` → `InventoryService` → `RaceService` → `ProgressionService` → `QuestService` → `TrainingService` → `EnemyService` → `AssetAuditService`. Cliente: `PlayerDataController` → `InputController` → `MovementController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `NotificationController` → `QuestTrackerController` → `ActionBarController` → `LockOnController` → `TargetFrameController` → `VfxController` → `InventoryController` → `RaceSelectionController` → `BossBarController` → `CharacterAnimationController`.
 
 ## Flujo de una habilidad (D-025)
 1. El cliente envía `{ Action = "LightAttack" }` por `CombatIntent`.

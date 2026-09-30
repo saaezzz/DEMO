@@ -273,3 +273,35 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Estado:** ACCEPTED
 - **Decisión:** `LockOnController` (cliente). Pulsar T / R3 / "Fijar" fija el enemigo más centrado en pantalla o pasa al siguiente; mantener lo suelta; se suelta solo si el objetivo muere o se aleja. Con objetivo, el personaje lo encara y una cámara suavizada, que se ejecuta justo después de la de Roblox, encuadra a ambos. Sin objetivo, la cámara es la de Roblox (§50: el juego se juega igual sin fijar).
 - **Pendiente:** sensibilidad configurable, cámara consciente de habilidades y jefes (§50), y evitar que la cámara atraviese paredes cuando haya mapa.
+
+## D-033 — Integración de arte desde Studio, sin código
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** Rojo crea `ReplicatedStorage.Assets` (`Animations`, `Models`, `VFX`, `Sounds`) con `$ignoreUnknownInstances`, así que no borra lo que se añada en Studio. `AssetLibrary` resuelve cada asset por su nombre del manifiesto: primero el `AssetId` del manifiesto y, si no lo tiene, el objeto colocado en Studio (`Animation.AnimationId`, `Sound.SoundId`, o una copia del modelo o efecto). Si no hay ninguno, se usa el placeholder. `AssetAuditService` (solo en Studio) informa en Output de lo que está, lo que falta y los nombres o carpetas incorrectos. Guía en `docs/GUIA_EQUIPO.md`.
+- **Alternativas:** guardar los modelos como `.rbxm` en el repositorio (obliga a Arte a usar git) o que Programación copie cada ID al manifiesto (cuello de botella).
+- **Motivo:** §55 (Arte y Animación trabajan en Studio; el código va por el repo). El equipo ya está modelando y animando: con esto integran su trabajo sin depender de Programación, y el manifiesto sigue siendo la lista de lo que hace falta.
+
+## D-034 — Razas elegibles con kit, armas y técnicas
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** cada `RaceDefinition` tiene `Description` y un `Kit` (moveset, arma y objetos iniciales). Un personaje nuevo elige raza una sola vez (`ChooseRace`, validado en el servidor: existe, `Playable` y aún no ha elegido) y reaparece con su kit. Abrir Hollow y Quincy (M5) es completar su kit y poner `Playable = true`. `Movesets` pasa a `Shared` (el cliente muestra las técnicas) y gana `Skills` (Ability1-4). El moveset se elige por la raza del personaje. `WeaponService` pone en la mano el arma del kit (modelo de Arte con `Handle` o hoja provisional). Los golpes admiten `Stun` (ataduras) y `Unblockable`. Shinigami: espada, Shunpo, Byakurai (rayo) y Sai (atadura). Quien no ha elegido tiene `Step`, un paso corto que usa el mismo motor que Shunpo (§28).
+- **Motivo:** §21, §22, §26, §28 y §63 (kit inicial de la vertical slice).
+
+## D-035 — Efectos visuales por datos
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** `Content/Effects` define cada efecto con una versión provisional (`Beam`, `Burst`, `Ring`) y su asset `VFX_`. `Content/AbilityInfo` da a cada habilidad su nombre, descripción y efectos con retardo. El servidor replica `ActionId`; `VfxController` y `EffectPlayer` los reproducen en todos los clientes. Si Arte ha colocado el efecto, se usa el suyo. El aviso de área de los enemigos es otro efecto (`Telegraph.Area`), con el radio y la duración que publica el servidor.
+- **Motivo:** §17 (VFXService): una habilidad nueva solo necesita datos y su efecto.
+
+## D-036 — Inventario, objetos y botín
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** `ItemDefinition` (categorías de §46, rareza, pila máxima, icono opcional y efecto de uso) en `Content/Items`; rarezas y casillas en `ItemConfig`. `InventoryLogic` (puro, con tests) añade respetando pilas y casillas, quita y cuenta. `InventoryService` da objetos y atiende `UseItem`, validando que el objeto exista, que se tenga, el cooldown y que tenga efecto. Botín por enemigo (`Drops`, `DropLogic` puro): **cada participante tira el suyo** (co-op sin robos). La mochila (B o botón en pantalla) muestra el color de rareza (D-023). Los avisos de objetos conseguidos se deducen del perfil.
+- **Mando:** no quedan botones libres; la mochila se abre con su botón en pantalla y la navegación de UI de Roblox (`GamepadUsesMenuButton`).
+- **Táctil:** las casillas de la barra de acciones se pueden pulsar (`InputController:Trigger`). Pesado, esquiva, dash y técnicas se lanzan desde ahí, y los botones de pantalla quedan para atacar, bloquear y fijar.
+
+## D-037 — Jefes como enemigos con fases
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** no hay un sistema de jefes aparte. Cualquier `EnemyDefinition` puede tener `Phases`, que cambian ataques, ritmo y velocidad al bajar de un umbral de vida; `EnemyBrain.PhaseIndex`/`PhaseSettings` son puros. Un enemigo con `Tier = "Boss"` se marca `IsBoss` y tiene barra propia, con aviso de fase. Los ataques en área declaran `AreaRadius`, que se dibuja en el suelo durante el aviso; un test comprueba que coincide con la hitbox real. Primer jefe: Gran Hollow (3 fases). Contraataques: rotura de postura, parry y salir del círculo (§43: la dificultad no es solo mucha vida). Participación: EXP, botín y misión para todos los que le hicieron daño.
+- **Además:** al cargar el perfil se retoman las cadenas de misiones con una misión siguiente nueva, así el contenido añadido llega a los jugadores existentes.

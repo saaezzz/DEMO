@@ -22,6 +22,11 @@ Cada golpe de un combo (`ComboHitWindow.MarkerName`) debe corresponder a un mark
 coincidir con la posición de esos markers; si el animador cambia la animación, hay que revisarlos.
 
 ## Para Animación/Visual
+Guía paso a paso (colocar en Studio sin tocar código): [GUIA_EQUIPO.md](GUIA_EQUIPO.md).
+- Los **ataques** animan solo cintura para arriba (sin caderas ni piernas) con prioridad `Action`: así se
+  mezclan con la locomoción y las piernas siguen corriendo.
+- No se añaden scripts de animación propios (p. ej. el `LocomotionAnimate` de un kit): chocarían con la
+  velocidad y el sprint que decide el servidor. Basta con colocar las animaciones con su nombre.
 - Nombre del asset según `docs/ASSETS.md` (`ANIM_<Grupo>_<Nombre>`).
 - Añadir en el editor de animación los Keyframe Markers indicados en las notas del manifiesto.
 - Prioridad: `Action` para ataques y habilidades, `Movement` para locomoción, `Idle`/`Core` para poses base.
@@ -48,5 +53,6 @@ Un test exige que toda animación de acción tenga asset o placeholder.
 | `Combat.Dodge` | `ANIM_Combat_Dodge` | Esquiva |
 | `Combat.Block` | `ANIM_Combat_Block` | Estados `Blocking` y `Parrying` (bucle) |
 | `Combat.Dash` | `ANIM_Combat_Dash` | Dash |
+| `Cast.Point`, `Cast.Bind` | `ANIM_Cast_Point`, `ANIM_Cast_Bind` | Byakurai y Sai (marker `Hit`) |
 | `Enemy.Swipe`, `Enemy.Lunge`, `Enemy.Crush` | `ANIM_Enemy_Swipe`, `_Lunge`, `_Crush` | Ataques de enemigos (marker `Hit`) |
 | `Reaction.Stun` | `ANIM_Reaction_Stun` | Estados `Stunned` y `Knocked` (bucle) |

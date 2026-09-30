@@ -45,3 +45,5 @@ tests/       tests con Lune (ver docs/TESTING.md)
 ## Equipo
 - El código Luau solo se modifica en el repositorio (sincronizado con Rojo), nunca directamente en Studio.
 - Mundo, modelos, animaciones y VFX se trabajan en Studio / Team Create.
+- **Cómo integrar modelos, animaciones y efectos sin tocar código, y cómo añadir enemigos, habilidades,
+  objetos o misiones con datos: [docs/GUIA_EQUIPO.md](docs/GUIA_EQUIPO.md).**

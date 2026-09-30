@@ -6,6 +6,7 @@ Las entradas nuevas van en `Unreleased`.
 ## [Unreleased]
 
 ### Added
+- M4 Vertical Slice 0.1 (Shinigami): integración de arte desde Studio sin código con informe en Output y `docs/GUIA_EQUIPO.md` (D-033); elección de raza con kit (espada, Shunpo, Byakurai, Sai y objetos iniciales; D-034); efectos visuales por datos (D-035); inventario con rarezas, botín por jugador, consumibles y mochila (D-036); jefe Gran Hollow con 3 fases, golpe en área avisado con círculo y barra de jefe (D-037).
 - M3 Loop PvE mínimo: enemigos con IA (tres tipos, zona de caza, avisos en rojo; D-029), EXP y nivel (D-028), cadena de tres misiones con seguimiento y marcador (D-030), barra de EXP, avisos de progreso, barra de acciones con cooldowns y panel del objetivo (D-031), fijado de objetivo con cámara de combate (D-032).
 - `NpcFactory`/`NpcActions` comunes a muñecos y enemigos; `EnemyBrain`, `QuestLogic` y `Progression` puros con tests.
 - M2 Combat Foundation: framework de habilidades (D-025) con cadena M1 de tres golpes, ataque pesado que rompe guardias, esquiva con i-frames y dash direccional y aéreo; hitstun y empuje; stamina y sprint (D-026); muñecos de entrenamiento pasivo, atacante (con aviso rojo) y en guardia (D-027).
@@ -33,6 +34,9 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- `Movesets` pasa a `Shared` y el moveset depende de la raza; `Dash` se divide en `Shunpo` (Shinigami) y `Step` (sin raza).
+- En táctil, pesado, esquiva, dash y técnicas se lanzan desde las casillas de la barra de acciones; los botones de pantalla quedan para atacar, bloquear y fijar.
+- Al cargar el perfil se retoman las cadenas de misiones con una misión siguiente nueva.
 - Perfil v2: añade `Quests` con migración desde v1 (D-030). La vida máxima depende del nivel.
 - La respuesta de `CombatIntent` incluye el cooldown de la habilidad aceptada.
 - Guardia con cooldown de 0,5 s tras soltarla (no se puede espamear); el cliente reintenta mientras se mantiene la tecla. Empuje algo mayor (remate 55, pesado 45 studs/s).

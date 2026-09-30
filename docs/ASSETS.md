@@ -37,8 +37,9 @@ Un asset `APPROVED` o `INTEGRATED` debe tener `AssetId` (lo comprueba un test).
 
 ## Alta de un asset nuevo
 1. El Lead Programmer añade la entrada al manifiesto con `Status = "TODO"` y las notas necesarias.
-2. Arte/Animación lo crea en Blender/Studio con ese nombre exacto y lo sube a Roblox.
-3. Se rellena `AssetId`, se sube `Version` y se cambia el estado.
+2. Arte/Animación lo crea con ese nombre exacto y **lo coloca en Studio** en `ReplicatedStorage.Assets/<carpeta>`
+   (D-033, [GUIA_EQUIPO.md](GUIA_EQUIPO.md)). El juego lo usa en cuanto está; Output (`[Assets]`) confirma que se ha encontrado.
+3. Opcional: se copia su `AssetId` al manifiesto, se sube `Version` y se cambia el estado (así no depende del lugar).
 4. `lune run tests/runner ContentIntegrity` valida nombres, estados, IDs y dependencias.
 
 ## Assets actuales
@@ -48,7 +49,14 @@ Un asset `APPROVED` o `INTEGRATED` debe tener `AssetId` (lo comprueba un test).
 | `ANIM_Sword_HeavySlash` | Animation | TODO | `Ability:HeavySlash` |
 | `ANIM_Combat_Dodge` | Animation | TODO | `Ability:Dodge` |
 | `ANIM_Combat_Block` | Animation | TODO | `State:Blocking` |
-| `ANIM_Combat_Dash` | Animation | TODO | `Ability:Dash` |
+| `ANIM_Combat_Dash` | Animation | TODO | `Ability:Shunpo`, `Ability:Step` |
+| `ANIM_Cast_Point`, `ANIM_Cast_Bind` | Animation | TODO | `Ability:Byakurai`, `Ability:Sai` |
 | `ANIM_Enemy_Swipe`, `_Lunge`, `_Crush` | Animation | TODO | `Ability:EnemySwipe`, `EnemyLunge`, `EnemyCrush` |
 | `ANIM_Reaction_Stun` | Animation | TODO | `State:Stunned` |
 | `ANIM_Locomotion_*` (9) | Animation | INTEGRATED (catálogo Roblox, provisional) | `Locomotion` |
+| `MDL_Weapon_Asauchi` | Model | TODO | `Weapon:Asauchi` |
+| `MDL_Enemy_WeakHollow`, `_StandardHollow`, `_EliteHollow` | Model | TODO | Enemigos |
+| `MDL_Boss_GreatHollow` | Model | TODO | Jefe |
+| `VFX_Kido_Byakurai`, `VFX_Kido_Sai`, `VFX_Movement_Shunpo`, `VFX_Telegraph_Area` | VFX | TODO | `Content/Effects` |
+
+La lista completa y actual la da Output al darle a Play en Studio (`[Assets] ... Pendientes: ...`).

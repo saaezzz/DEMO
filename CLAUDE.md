@@ -43,6 +43,10 @@ for scope, architecture, security and workflow. Key rules:
 - Avoid overengineering (§66).
 - IP names live ONLY under Content/ folders (D-017); tests/Content/IpBoundary.spec.luau enforces it.
 
+TEAM GUIDE
+docs/GUIA_EQUIPO.md explains how artists integrate assets from Studio (ReplicatedStorage.Assets, D-033)
+and how to add content through data. Keep it up to date when adding a new content type.
+
 DECISIONS
 Record every non-trivial technical or design decision in docs/DECISIONS.md (D-XXX entries).
 Record user-visible changes in docs/CHANGELOG.md under [Unreleased].

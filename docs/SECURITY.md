@@ -16,6 +16,9 @@ implementado** y los riesgos conocidos pendientes.
 | Parry encadenado pulsando bloqueo | Una ventana de parry cada 0,8 s | `CombatService` (D-009) |
 | Reiniciar cooldowns muriendo | Los cooldowns son por jugador, no por modelo | `AbilityService` |
 | Friendly fire | Los golpes solo afectan a personajes hostiles (jugador ↔ NPC) | `CombatRegistry.AreHostile` |
+| Elegir raza no disponible o cambiarla | `ChooseRace` valida que exista, sea `Playable` y que aún no se haya elegido; límite 3 peticiones | `RaceService` (D-034) |
+| Usar objetos que no se tienen o espamearlos | `UseItem` valida posesión, que sea consumible, cooldown y que tenga efecto; el objeto se quita antes de aplicar | `InventoryService` (D-036) |
+| Duplicar botín | El botín se da en el servidor al morir el enemigo, a quien le dañó | `EnemyService` |
 | Sesiones concurrentes / duplicación de datos | Bloqueo de sesión de ProfileStore; si otro servidor toma la sesión, se expulsa al jugador | `DataService` |
 | Corrupción por migraciones o rollback | Migración sobre copia; versiones futuras no se tocan | `Migrator` (D-018) |
 | Datos de otros jugadores | Cada cliente solo recibe sus propios datos | `DataService` (D-005) |

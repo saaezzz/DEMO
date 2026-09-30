@@ -22,7 +22,7 @@ En uso actualmente: `Idle`, `Attacking`, `Blocking`, `Dodging`, `Dashing`, `Stun
 | `Slash1` → `Slash2` → `Slash3` | Ataque ligero | Cadena de 3 golpes (10 / 10 / 16 de daño). Pulsar dentro de 0,8 s tras un golpe encadena el siguiente; el remate empuja unos 11 studs | — | — |
 | `HeavySlash` | Ataque pesado | Carga de 0,5 s, 24 de daño, 30 de postura. **Rompe la guardia** y empuja unos 9 studs | 20 stamina | 3 s |
 | `Dodge` | Esquiva | Paso de 14 studs en la dirección de movimiento (atrás si no te mueves). **Invulnerable 0,28 s**. Cancela un ataque o un bloqueo | 20 stamina | 0,6 s |
-| `Dash` | Dash | 28 studs en la dirección de movimiento (delante si no te mueves), también en el aire | 15 Reiatsu | 1 s |
+| `Shunpo` (Shinigami) / `Step` (sin raza) | Dash | 28 studs en la dirección de movimiento (delante si no te mueves), también en el aire / paso de 16 studs en el suelo | 15 Reiatsu / 15 stamina | 1 s / 1,2 s |
 
 - **Golpe limpio:** daño completo, postura y un breve aturdimiento (hitstun, 0,3 s) que interrumpe lo que hiciera el objetivo.
 - **Bloqueo:** mientras se mantiene pulsado (D-019). Reduce el daño al 25 % y multiplica ×1,5 el daño a la postura.
@@ -82,7 +82,34 @@ El seguimiento está a la derecha, con un marcador ◆ y la distancia hacia el o
 - **T / R3 / "Fijar":** fija el enemigo más centrado; volver a pulsar pasa al siguiente. **Mantener** lo suelta.
 - Con objetivo, el personaje lo encara y la cámara encuadra a ambos. Opcional.
 
+## Razas (M4, D-034)
+Al entrar por primera vez eliges raza. Ahora solo **Shinigami** está disponible; Hollow y Quincy llegan en M5.
+
+| Kit Shinigami | |
+|---|---|
+| Arma | Asauchi (espada en la mano) |
+| Ataques | Cadena de 3 tajos, pesado, esquiva |
+| Movimiento | **Shunpo** (Q): 28 studs, también en el aire, 15 Reiatsu |
+| Técnicas | **Byakurai** (Z): rayo de 40 studs, 22 de daño, 25 Reiatsu, 6 s · **Sai** (X): inmoviliza 2 s a un enemigo cercano, ignora la guardia, 20 Reiatsu, 10 s |
+| Objetos iniciales | 3 Bálsamos curativos, 2 Tónicos de Reiatsu |
+
+Antes de elegir: los mismos golpes y un **paso** corto (16 studs, 15 de stamina) en lugar de Shunpo.
+
+## Objetos (D-036)
+Mochila con **B** (o el botón "MOCHILA"). El color del borde indica la rareza: Común (gris), Poco común (verde),
+Raro (azul), Épico (morado), Legendario (naranja).
+- **Bálsamo curativo:** +40 de vida. **Tónico de Reiatsu:** +50 de Reiatsu. Cooldown de 5 s; no se gastan si no harían nada.
+- Materiales: Fragmento de máscara, Núcleo de Hollow, Colmillo de élite, Máscara del Gran Hollow (legendaria).
+- Cada jugador que dañó a un enemigo tira **su propio botín**.
+
+## Jefe: Gran Hollow (D-037)
+Al fondo de la zona. Nivel 10, 1600 de vida, reaparece a los 90 s.
+- **Fase 1:** zarpazo amplio y **golpe al suelo en área**: un círculo rojo marca la zona 1,2 s antes. Rompe la guardia, así que sal del círculo o haz parry.
+- **Fase 2** (60 % de vida): se enfurece, más rápido, y añade una **carga** de 30 studs.
+- **Fase 3** (25 %): ataca casi sin pausa.
+- Punto débil: su postura. Rómpela (o hazle parry) y quedará aturdido.
+- Misión final "El Gran Hollow": 500 EXP. Botín: materiales y 30 % de la máscara legendaria.
+
 ## Pendiente
-- Jefe con fases (§43), drops e inventario.
-- Transformaciones (§19) y habilidades de raza.
+- Transformaciones (§19), Hollow y Quincy (M5), descubrimiento de Zanpakuto (M6).
 - Cancelaciones adicionales, combate aéreo, ataques cargados, bloqueo perfecto distinto del parry.
