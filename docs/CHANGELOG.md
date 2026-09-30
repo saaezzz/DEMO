@@ -59,6 +59,7 @@ Las entradas nuevas van en `Unreleased`.
 - `Character` y `StateMachine` siguen siendo seguros de usar tras `Destroy` (antes quitaban la metatabla y cualquier llamada fallaba).
 
 ### Fixed
+- El círculo rojo del golpe en área del jefe se dibuja en el suelo (antes el rayo que busca el suelo chocaba con el cuerpo del jefe y quedaba a media altura). También se aplica si Arte coloca su propio `VFX_Telegraph_Area`.
 - El servidor ya no se detiene si el lugar trae una carpeta `ReplicatedStorage.Remotes` antigua: la sustituye y avisa.
 - Combate: `Stunned` ya no es permanente; parry (0,8 s) y rotura de postura (1,5 s) tienen duración y vuelven a `Idle`.
 - Combate: los golpes y la recuperación de un ataque se cancelan al salir de `Attacking` (sin golpes tras recibir parry, y la recuperación de un combo anterior ya no corta el siguiente).

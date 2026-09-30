@@ -47,6 +47,7 @@ local function onTelegraph(model: Model): ()
 	EffectPlayer.Play(AREA_TELEGRAPH_EFFECT, root.CFrame, {
 		Radius = radius,
 		Duration = if typeof(seconds) == "number" then seconds else nil,
+		Ignore = { model :: Instance },
 	})
 end
 

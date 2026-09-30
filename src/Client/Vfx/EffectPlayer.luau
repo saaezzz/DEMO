@@ -24,6 +24,9 @@ export type PlayOptions = {
 	-- Sustituyen a los del efecto (p. ej. el radio de un ataque en área).
 	Radius: number?,
 	Duration: number?,
+	-- Instancias que el rayo al suelo debe atravesar (p. ej. el propio atacante,
+	-- para que un círculo no se quede a media altura sobre su cuerpo).
+	Ignore: { Instance }?,
 }
 
 local folder: Folder? = nil
@@ -63,10 +66,14 @@ local function fadeAndDestroy(part: BasePart, duration: number, goal: { [string]
 end
 
 -- Punto del suelo bajo `position` (o `position` si no hay suelo cerca).
-local function groundBelow(position: Vector3): Vector3
+local function groundBelow(position: Vector3, ignore: { Instance }?): Vector3
+	local excluded: { Instance } = { getFolder() }
+	if ignore ~= nil then
+		table.move(ignore, 1, #ignore, 2, excluded)
+	end
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { getFolder() }
+	params.FilterDescendantsInstances = excluded
 	local result = Workspace:Raycast(position, Vector3.new(0, -25, 0), params)
 	return if result ~= nil then result.Position else position
 end
@@ -109,6 +116,12 @@ function EffectPlayer.Play(effectId: string, origin: CFrame, options: PlayOption
 	local duration = if options ~= nil and options.Duration ~= nil then options.Duration else definition.Duration
 	local radius = if options ~= nil and options.Radius ~= nil then options.Radius else definition.Radius or 3
 
+	if definition.Kind == "Ring" then
+		-- Los avisos de área van en el suelo, también el asset de Arte.
+		local ground = groundBelow(cframe.Position, if options ~= nil then options.Ignore else nil)
+		cframe = CFrame.new(ground + Vector3.new(0, 0.1, 0))
+	end
+
 	local asset = if definition.Asset ~= nil then AssetLibrary.Clone(definition.Asset) else nil
 	if asset ~= nil then
 		playAsset(asset, cframe, duration)
@@ -134,10 +147,9 @@ function EffectPlayer.Play(effectId: string, origin: CFrame, options: PlayOption
 		fadeAndDestroy(ball, duration, { Size = Vector3.one * radius * 2 })
 	else
 		-- Ring: disco plano en el suelo que se vuelve más visible hasta el impacto.
-		local ground = groundBelow(cframe.Position)
 		local ring = effectPart(Enum.PartType.Cylinder, color)
 		ring.Size = Vector3.new(0.15, radius * 2, radius * 2)
-		ring.CFrame = CFrame.new(ground + Vector3.new(0, 0.1, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		ring.CFrame = cframe * CFrame.Angles(0, 0, math.rad(90))
 		ring.Transparency = 0.75
 		ring.Parent = getFolder()
 		TweenService:Create(ring, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Transparency = 0.35 }):Play()
