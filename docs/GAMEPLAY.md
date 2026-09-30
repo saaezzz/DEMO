@@ -54,6 +54,35 @@ Enfrente del punto de aparición:
 | Muñeco atacante | Si estás a menos de 9 studs, se ilumina en **rojo** y 0,6 s después ataca (cada 2,5 s) | Bloqueo, parry, esquiva |
 | Muñeco en guardia | Siempre bloquea (y vuelve a bloquear tras un aturdimiento) | Ataque pesado y rotura de postura |
 
+## Enemigos (M3, D-029)
+Zona de caza al norte, pasados los muñecos. Todos avisan en **rojo** antes de atacar.
+| Enemigo | Nivel | Vida | Ataques | EXP | Reaparece |
+|---|---|---|---|---|---|
+| Hollow débil (×4) | 1 | 60 | Zarpazo | 20 | 12 s |
+| Hollow (×2) | 3 | 140 | Zarpazo, embestida (salta 14 studs y empuja) | 55 | 20 s |
+| Hollow élite (×1) | 6 | 400 | Zarpazo, embestida y **aplastamiento** (carga larga, rompe la guardia) | 180 | 45 s |
+
+- Te detectan a unos 35–45 studs; si les golpeas desde más lejos, también van a por ti.
+- Si se alejan demasiado de su sitio, vuelven y se curan del todo.
+- **EXP para todos los que le hayan hecho daño**, y la baja cuenta para las misiones de todos ellos.
+
+## Progresión (D-028)
+- EXP para subir del nivel N: `60 · N^1.5` (60, 169, 311, 480, 670…). Nivel máximo 100.
+- Cada nivel da +4 de vida máxima; al subir, la vida se llena.
+
+## Misiones (D-030)
+Empiezan solas y se encadenan:
+1. **Primera cacería:** derrota 3 Hollows débiles → 60 EXP.
+2. **Amenaza creciente:** derrota 2 Hollows → 150 EXP.
+3. **El Hollow élite:** derrótalo → 300 EXP.
+
+El seguimiento está a la derecha, con un marcador ◆ y la distancia hacia el objetivo.
+
+## Fijar objetivo (D-032)
+- **T / R3 / "Fijar":** fija el enemigo más centrado; volver a pulsar pasa al siguiente. **Mantener** lo suelta.
+- Con objetivo, el personaje lo encara y la cámara encuadra a ambos. Opcional.
+
 ## Pendiente
+- Jefe con fases (§43), drops e inventario.
 - Transformaciones (§19) y habilidades de raza.
 - Cancelaciones adicionales, combate aéreo, ataques cargados, bloqueo perfecto distinto del parry.

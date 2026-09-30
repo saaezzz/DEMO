@@ -48,4 +48,5 @@ Un test exige que toda animación de acción tenga asset o placeholder.
 | `Combat.Dodge` | `ANIM_Combat_Dodge` | Esquiva |
 | `Combat.Block` | `ANIM_Combat_Block` | Estados `Blocking` y `Parrying` (bucle) |
 | `Combat.Dash` | `ANIM_Combat_Dash` | Dash |
+| `Enemy.Swipe`, `Enemy.Lunge`, `Enemy.Crush` | `ANIM_Enemy_Swipe`, `_Lunge`, `_Crush` | Ataques de enemigos (marker `Hit`) |
 | `Reaction.Stun` | `ANIM_Reaction_Stun` | Estados `Stunned` y `Knocked` (bucle) |

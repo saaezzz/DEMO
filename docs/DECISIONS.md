@@ -237,3 +237,39 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Estado:** ACCEPTED
 - **Decisión:** `TrainingService` crea tres NPCs (`Server/Content/TrainingDummies`): pasivo, atacante y en guardia. Usan **el mismo** `Character`, `CombatService` y habilidades que un jugador (sin atajos), llevan la etiqueta `CombatNPC` y el atributo `DisplayName`, y reaparecen al morir. El atacante avisa con el atributo `Telegraph` (contorno rojo en el cliente) 0,6 s antes de golpear, aplicando la pauta de D-023. La física de los NPCs es del servidor.
 - **Motivo:** §63 pide un dummy de entrenamiento en M2, y permite probar todo el combate (parry, esquiva, guardia rota) sin un segundo jugador. Además, es la primera prueba de que el sistema sirve igual para NPCs, antes de los enemigos de M3.
+
+## D-028 — Experiencia y nivel dirigidos por datos
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** la curva está en `Shared/Config/ProgressionConfig` (EXP para pasar del nivel N = `floor(60 · N^1.5)`, nivel máximo 100, +4 de vida máxima por nivel) y `Shared/Modules/Progression` hace los cálculos (puro, con tests). Ningún valor por nivel está escrito a mano (§14). `ProgressionService` guarda nivel y EXP en el perfil (que ya replica al dueño) y, al subir de nivel, actualiza el personaje vivo (`Character:SetLevel`, `SetMaxHealth` con la vida al máximo).
+- **Motivo:** §14 y §44. El nivel aporta poco poder por sí solo (§44: "Level alone must not determine all power"); el resto vendrá de estadísticas, maestrías y habilidades. Primeros niveles rápidos (D-023).
+
+## D-029 — Framework de enemigos e IA
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:**
+  - Cada enemigo es una `EnemyDefinition` (`Server/Content/Enemies`): estadísticas, aspecto, velocidad, aggro (detección, pérdida, correa), ataques (habilidad, alcance, aviso previo), intervalo y EXP. Las zonas de aparición son datos (`EnemySpawns`).
+  - `NpcFactory` y `NpcActions` construyen y hacen atacar a cualquier NPC (§41: ningún script por NPC); muñecos y enemigos los comparten.
+  - `EnemyBrain` (puro, con tests) decide en cada tick: perseguir, atacar, esperar a distancia de ataque, volver a casa si se aleja demasiado (y curarse) u ocupado. `EnemyService` ejecuta la decisión con un único bucle de 0,2 s para todos (§58).
+  - Todo ataque enemigo se avisa con el contorno rojo (D-023). Los NPCs usan las mismas habilidades y reglas de daño que los jugadores; su desplazamiento (embestida) lo aplica el servidor, que es dueño de su física.
+  - Quien daña a un enemigo pasa a ser su objetivo si no tenía, y participa en la recompensa: **EXP completa para todos los que le hicieron daño** (co-op sin robos de kill). Se anota antes de aplicar el daño (`DamageService.HitLanded`), así el golpe final cuenta.
+  - Movimiento en línea recta (`Humanoid:MoveTo`); pathfinding cuando haya mapas con obstáculos. **Drops** (§42): cuando exista el inventario.
+- **Motivo:** §42 (definiciones reutilizables), §41 y §58.
+
+## D-030 — Sistema de misiones y perfil v2
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** `QuestDefinition` (`Shared/Content/Quests`, compartido para que el cliente muestre títulos y objetivos): tipo de §40, objetivos, recompensas y misión siguiente. Por ahora solo hay objetivos `Kill`; el resto de tipos añadirán los suyos cuando se usen (§66). `QuestLogic` (puro, con tests) avanza y completa; `QuestService` empieza la primera misión, reparte recompensas y encadena. El perfil pasa a **v2** con `Quests = { Active, Completed }` y su migración desde v1 (probada). La primera cadena son tres misiones de caza (D-023: una zona, una misión, un reto final).
+- **Motivo:** §40 y §63 (misión en la vertical slice).
+
+## D-031 — HUD de M3
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED (provisional, como D-022)
+- **Decisión:** barra de EXP; avisos arriba al centro (EXP ganada, nivel, misión nueva o completada) deducidos de los cambios del perfil, sin remotes nuevos; seguimiento de misión a la derecha con marcador y distancia en el mundo; barra de acciones con cooldowns (la respuesta de `CombatIntent` incluye el cooldown) y la tecla o botón según el mando, oculta en táctil; panel del objetivo fijado.
+- **Motivo:** §52 (EXP, habilidades, cooldowns, quest tracker, información del objetivo).
+
+## D-032 — Fijado de objetivo y cámara de combate
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** `LockOnController` (cliente). Pulsar T / R3 / "Fijar" fija el enemigo más centrado en pantalla o pasa al siguiente; mantener lo suelta; se suelta solo si el objetivo muere o se aleja. Con objetivo, el personaje lo encara y una cámara suavizada, que se ejecuta justo después de la de Roblox, encuadra a ambos. Sin objetivo, la cámara es la de Roblox (§50: el juego se juega igual sin fijar).
+- **Pendiente:** sensibilidad configurable, cámara consciente de habilidades y jefes (§50), y evitar que la cámara atraviese paredes cuando haya mapa.

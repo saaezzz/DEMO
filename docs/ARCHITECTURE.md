@@ -34,6 +34,13 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Services/MovementService` — velocidad, sprint y capa de locomoción (D-026).
 - `Services/ResourceService` — regeneración de recursos (con espera tras gastar) y postura.
 - `Services/TrainingService` — muñecos de entrenamiento (D-027).
+- `Services/EnemyService` — aparición, IA y recompensas de los enemigos (D-029).
+- `Services/ProgressionService` — EXP y nivel (D-028).
+- `Services/QuestService` — misiones: inicio, progreso, recompensas y cadena (D-030).
+- `Npc/NpcFactory`, `Npc/NpcActions` — creación de NPCs de combate y ataques con aviso (§41).
+- `Npc/EnemyBrain` — decisiones de la IA de enemigos (puro).
+- `Modules/QuestLogic` — progreso de misiones (puro).
+- `Content/Enemies`, `Content/EnemySpawns` — enemigos y zonas de aparición.
 - `Combat/CombatRegistry` — personajes en combate y su estado de combate; punto común de los servicios.
 - `Combat/DamageService`, `Combat/DamageResolver` — aplicación y resolución (pura) de golpes: parry, bloqueo, guardia rota, i-frames, aturdimiento, empuje.
 - `Combat/HitboxService`, `Combat/HitboxUtil` — objetivos válidos y consultas espaciales.
@@ -50,7 +57,9 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `init.client.luau` — arranque: nivel de log y lista de controladores.
 - `Controllers/InputController` — acciones abstractas de input (teclado, mando, táctil; `docs/INPUT.md`).
 - `Input/InputBindings` — controles por acción y plataforma.
-- `Controllers/CombatController` — traduce acciones a intents de combate.
+- `Controllers/CombatController` — traduce acciones a intents de combate y avisa de los cooldowns.
+- `Controllers/NotificationController`, `Controllers/QuestTrackerController`, `Controllers/ActionBarController`, `Controllers/TargetFrameController` — HUD de M3 (D-031).
+- `Controllers/LockOnController` — fijado de objetivo y cámara de combate (D-032).
 - `Controllers/MovementController` — aplica el desplazamiento de dash y esquiva aprobados (D-026).
 - `Controllers/HudController`, `Controllers/NameplateController`, `Controllers/HitFeedbackController` — UI provisional (`docs/UI.md`, D-022).
 - `Controllers/CharacterAnimationController` — locomoción y animaciones de acción según el estado replicado (`docs/ANIMATIONS.md`, D-022).
@@ -61,9 +70,10 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Controllers/PlayerDataController` — copia local de los datos del jugador.
 
 ### Shared
-- `Types/GameTypes`, `Types/AbilityTypes`, `Types/ContentTypes`, `Types/PlayerDataTypes` — tipos del núcleo, del contenido y del perfil.
-- `Config/CharacterConfig` — valores base de balance (no IP).
-- `Content/Races`, `Content/Resources` — contenido público (capa IP).
+- `Types/GameTypes`, `Types/AbilityTypes`, `Types/EnemyTypes`, `Types/QuestTypes`, `Types/ContentTypes`, `Types/PlayerDataTypes` — tipos del núcleo, del contenido y del perfil.
+- `Config/CharacterConfig`, `Config/ProgressionConfig` — valores base de balance y curva de progresión (no IP).
+- `Modules/Progression` — cálculos de nivel, EXP y vida por nivel (puro, D-028).
+- `Content/Races`, `Content/Resources`, `Content/Quests` — contenido público (capa IP).
 - `Content/Assets`, `Content/Animations`, `Content/StateAnimations`, `Content/LocomotionAnimations` — manifiesto de assets y animaciones (`docs/ASSETS.md`, `docs/ANIMATIONS.md`).
 - `Modules/StateMachine` — máquina de estados genérica.
 - `Modules/Character` — vida, recursos genéricos, postura y las tres capas de estado de un personaje (D-024).
@@ -78,7 +88,7 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `ServerNetwork` → `DataService` → `AbilityService` → `MovementService` → `ResourceService` → `CombatService` → `CharacterService` → `TrainingService`. Cliente: `PlayerDataController` → `InputController` → `MovementController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `CharacterAnimationController`.
+Servidor: `ServerNetwork` → `DataService` → `AbilityService` → `MovementService` → `ResourceService` → `CombatService` → `CharacterService` → `ProgressionService` → `QuestService` → `TrainingService` → `EnemyService`. Cliente: `PlayerDataController` → `InputController` → `MovementController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `NotificationController` → `QuestTrackerController` → `ActionBarController` → `LockOnController` → `TargetFrameController` → `CharacterAnimationController`.
 
 ## Flujo de una habilidad (D-025)
 1. El cliente envía `{ Action = "LightAttack" }` por `CombatIntent`.

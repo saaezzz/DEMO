@@ -27,8 +27,13 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [x] Muñecos de entrenamiento (D-027).
 - [ ] Validación anti speed-hack del movimiento (antes de abrir el juego; `SECURITY.md`).
 
-## M3 — Loop PvE mínimo (P1)
-- Enemigos + IA básica (con avisos visibles en ataques fuertes, D-023), EXP/nivel data-driven, HUD completo (EXP, cooldowns, quest tracker, objetivo), cámara + lock-on.
+## M3 — Loop PvE mínimo (P1) — HECHO (pendiente de verificación en Studio)
+- [x] Enemigos con IA y avisos visibles en todos sus ataques (D-029).
+- [x] EXP y nivel dirigidos por datos (D-028).
+- [x] Misiones con seguimiento y marcador; perfil v2 (D-030).
+- [x] HUD: EXP, avisos, cooldowns, misión, objetivo (D-031).
+- [x] Cámara de combate y fijado de objetivo (D-032).
+- [ ] Jefe con fases (§43), drops e inventario (§46) → M4 junto a la vertical slice.
 
 ## M4 — Vertical Slice 0.1: Shinigami (P1)
 ## M5 — Vertical Slice 0.2: Hollow + Quincy (P1)

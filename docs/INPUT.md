@@ -14,7 +14,7 @@ Controles definidos en `src/Client/Input/InputBindings.luau` (mantener esta tabl
 | `Sprint` | Shift izquierdo (mantener) | L3 (mantener) | — (en móvil se corre a velocidad normal) | En uso: gasta stamina |
 | `Ability1`–`Ability4` | Z / X / C / V | Cruceta ↑ → ↓ ← | — | Reservadas |
 | `Transform` | G | R2 | — | Reservada |
-| `LockOn` | T | R3 | — | Reservada (M3) |
+| `LockOn` | T (pulsar: fijar/cambiar; mantener: soltar) | R3 | Botón "Fijar" | En uso (D-032) |
 | `Interact` | E | L2 | — | Reservada |
 
 Movimiento, salto y cámara son los de Roblox (WASD / Espacio / stick izquierdo / A); no se reasignan.

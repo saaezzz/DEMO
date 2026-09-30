@@ -49,5 +49,6 @@ Un asset `APPROVED` o `INTEGRATED` debe tener `AssetId` (lo comprueba un test).
 | `ANIM_Combat_Dodge` | Animation | TODO | `Ability:Dodge` |
 | `ANIM_Combat_Block` | Animation | TODO | `State:Blocking` |
 | `ANIM_Combat_Dash` | Animation | TODO | `Ability:Dash` |
+| `ANIM_Enemy_Swipe`, `_Lunge`, `_Crush` | Animation | TODO | `Ability:EnemySwipe`, `EnemyLunge`, `EnemyCrush` |
 | `ANIM_Reaction_Stun` | Animation | TODO | `State:Stunned` |
 | `ANIM_Locomotion_*` (9) | Animation | INTEGRATED (catálogo Roblox, provisional) | `Locomotion` |
