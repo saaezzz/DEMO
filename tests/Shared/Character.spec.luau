@@ -261,4 +261,33 @@ return {
 		expect(ok).toBe(false)
 		expect(reason).toBe("Personaje muerto")
 	end,
+
+	["SetMaxHealth cambia el máximo, emite y rellena si se pide"] = function()
+		local character = newCharacter()
+		character:TakeDamage(40)
+		local maxChanges = {}
+		character.MaxHealthChanged:Connect(function(new, old)
+			table.insert(maxChanges, { new, old })
+		end)
+		character:SetMaxHealth(120, false)
+		expect(character:GetMaxHealth()).toBe(120)
+		expect(character:GetHealth()).toBe(60)
+		character:SetMaxHealth(150, true)
+		expect(character:GetHealth()).toBe(150)
+		character:SetMaxHealth(50, false)
+		expect(character:GetHealth()).toBe(50)
+		expect(maxChanges).toEqual({ { 120, 100 }, { 150, 120 }, { 50, 150 } })
+	end,
+
+	["SetLevel cambia el nivel y emite solo si cambia"] = function()
+		local character = newCharacter()
+		local changes = 0
+		character.LevelChanged:Connect(function()
+			changes += 1
+		end)
+		character:SetLevel(2)
+		character:SetLevel(2)
+		expect(character.Level).toBe(2)
+		expect(changes).toBe(1)
+	end,
 }

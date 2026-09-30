@@ -101,6 +101,8 @@ export type ServerCombatResponse = {
 	Message: string?,
 	-- Habilidad de movimiento aceptada: el cliente aplica el desplazamiento (D-026).
 	Movement: MovementSpec?,
+	-- Habilidad aceptada con cooldown: segundos hasta poder repetirla (para la UI).
+	Cooldown: number?,
 }
 
 export type StateTransitionTable = { [CharacterStateName]: { CharacterStateName } }

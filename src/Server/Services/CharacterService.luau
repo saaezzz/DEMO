@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
 local CharacterConfig = require(ReplicatedStorage.Shared.Config.CharacterConfig)
+local Progression = require(ReplicatedStorage.Shared.Modules.Progression)
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local PlayerDataTypes = require(ReplicatedStorage.Shared.Types.PlayerDataTypes)
 local Races = require(ReplicatedStorage.Shared.Content.Races)
@@ -64,7 +65,7 @@ local function buildAttributes(player: Player, data: PlayerData): CharacterAttri
 	return {
 		Race = raceId,
 		Level = data.Level,
-		MaxHealth = CharacterConfig.BaseMaxHealth,
+		MaxHealth = Progression.MaxHealthForLevel(data.Level),
 		MaxPosture = CharacterConfig.MaxPosture,
 		Resources = resources,
 	}
@@ -134,6 +135,9 @@ local function onCharacterAdded(player: Player, model: Model): ()
 	records[player] = record
 
 	-- Character:Destroy() desconecta sus propias señales; no hace falta guardarlas.
+	character.MaxHealthChanged:Connect(function(maxHealth: number)
+		humanoid.MaxHealth = maxHealth
+	end)
 	character.HealthChanged:Connect(function(newHealth: number)
 		humanoid.Health = math.clamp(newHealth, 0, humanoid.MaxHealth)
 	end)

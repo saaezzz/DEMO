@@ -12,6 +12,9 @@ local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegi
 local Abilities = require(ServerScriptService.Server.Content.Abilities)
 local Movesets = require(ServerScriptService.Server.Content.Movesets)
 local TrainingDummies = require(ServerScriptService.Server.Content.TrainingDummies)
+local Enemies = require(ServerScriptService.Server.Content.Enemies)
+local EnemySpawns = require(ServerScriptService.Server.Content.EnemySpawns)
+local Quests = require(ReplicatedStorage.Shared.Content.Quests)
 local Character = require(ReplicatedStorage.Shared.Modules.Character)
 local StateMachine = require(ReplicatedStorage.Shared.Modules.StateMachine)
 local StateAnimations = require(ReplicatedStorage.Shared.Content.StateAnimations)
@@ -123,6 +126,84 @@ return {
 			expect(dummy.MaxHealth > 0).toBe(true)
 			if dummy.Behavior == "Attacker" and not ids[dummy.AttackAbility] then
 				error(`muñeco {dummy.Id}: habilidad de ataque desconocida`)
+			end
+		end
+	end,
+
+	["los enemigos tienen Id único, ataques existentes y datos válidos"] = function()
+		local abilityIds = {}
+		for _, ability in Abilities do
+			abilityIds[ability.Id] = true
+		end
+		local seen = {}
+		for _, enemy in Enemies do
+			if seen[enemy.Id] then
+				error(`enemigo duplicado: {enemy.Id}`)
+			end
+			seen[enemy.Id] = true
+			expect(enemy.MaxHealth > 0 and enemy.Experience >= 0).toBe(true)
+			expect(#enemy.Attacks > 0).toBe(true)
+			for _, attack in enemy.Attacks do
+				if not abilityIds[attack.Ability] then
+					error(`enemigo {enemy.Id}: habilidad desconocida "{attack.Ability}"`)
+				end
+			end
+			local aggro = enemy.Aggro
+			if not (aggro.DetectionRange <= aggro.LoseRange and aggro.LoseRange <= aggro.LeashRange) then
+				error(`enemigo {enemy.Id}: alcances de aggro incoherentes`)
+			end
+			if string.match(enemy.Appearance.BodyColor, "^#%x%x%x%x%x%x$") == nil then
+				error(`enemigo {enemy.Id}: color inválido`)
+			end
+		end
+	end,
+
+	["las apariciones usan enemigos existentes"] = function()
+		local ids = {}
+		for _, enemy in Enemies do
+			ids[enemy.Id] = true
+		end
+		for _, spawn in EnemySpawns do
+			if not ids[spawn.Enemy] then
+				error(`aparición de enemigo desconocido "{spawn.Enemy}"`)
+			end
+			expect(spawn.Count > 0 and spawn.RespawnSeconds > 0).toBe(true)
+		end
+	end,
+
+	["las misiones usan enemigos existentes y encadenan misiones existentes"] = function()
+		local enemyIds = {}
+		for _, enemy in Enemies do
+			enemyIds[enemy.Id] = true
+		end
+		if Quests.Definitions[Quests.Starting] == nil then
+			error(`la misión inicial "{Quests.Starting}" no existe`)
+		end
+		for key, quest in Quests.Definitions do
+			expect(quest.Id).toBe(key)
+			expect(#quest.Objectives > 0).toBe(true)
+			for _, objective in quest.Objectives do
+				if objective.Kind == "Kill" and not enemyIds[objective.Target] then
+					error(`misión {key}: enemigo desconocido "{objective.Target}"`)
+				end
+				expect(objective.Count > 0).toBe(true)
+			end
+			if quest.Next ~= nil and Quests.Definitions[quest.Next] == nil then
+				error(`misión {key}: siguiente misión desconocida "{quest.Next}"`)
+			end
+		end
+	end,
+
+	["la cadena de misiones no tiene ciclos"] = function()
+		for key in Quests.Definitions do
+			local visited = {}
+			local current = key
+			while current ~= nil do
+				if visited[current] then
+					error(`ciclo en la cadena de misiones desde {key}`)
+				end
+				visited[current] = true
+				current = Quests.Definitions[current].Next
 			end
 		end
 	end,

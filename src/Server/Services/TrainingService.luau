@@ -1,25 +1,21 @@
 --!strict
 
--- Muñecos de entrenamiento (M2): NPCs que usan exactamente el mismo sistema
--- de combate que los jugadores (Character, CombatService, habilidades).
--- Reaparecen al morir.
+-- Muñecos de entrenamiento (M2, D-027): NPCs que usan exactamente el mismo
+-- sistema de combate que los jugadores. Reaparecen al morir.
 
-local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
-local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
-local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
-local Races = require(ReplicatedStorage.Shared.Content.Races)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 
 local TrainingDummies = require(script.Parent.Parent.Content.TrainingDummies)
-local CharacterReplicator = require(script.Parent.Parent.Modules.CharacterReplicator)
+local NpcActions = require(script.Parent.Parent.Npc.NpcActions)
+local NpcFactory = require(script.Parent.Parent.Npc.NpcFactory)
 local CombatService = require(script.Parent.CombatService)
 
-type Character = CharacterModule.Character
 type DummyDefinition = TrainingDummies.DummyDefinition
+type Npc = NpcFactory.Npc
 
 local FOLDER_NAME = "TrainingDummies"
 local RESPAWN_SECONDS = 3
@@ -27,8 +23,7 @@ local THINK_SECONDS = 0.25
 
 type Dummy = {
 	Definition: DummyDefinition,
-	Model: Model,
-	Character: Character,
+	Npc: Npc,
 	NextAttackAt: number,
 	-- Hay un ataque avisado en curso.
 	Winding: boolean,
@@ -36,7 +31,7 @@ type Dummy = {
 
 local log = Logger.new("TrainingService")
 local folder: Folder
-local dummies: { [Model]: Dummy } = {}
+local dummies: { [Dummy]: boolean } = {}
 
 local spawnDummy: (definition: DummyDefinition) -> ()
 
@@ -58,130 +53,67 @@ local function findNearestPlayer(origin: Vector3, range: number): BasePart?
 	return nearest
 end
 
-local function faceTowards(model: Model, target: Vector3): ()
-	local root = model.PrimaryPart
-	if root == nil then
-		return
-	end
-	local flatTarget = Vector3.new(target.X, root.Position.Y, target.Z)
-	if (flatTarget - root.Position).Magnitude > 1e-3 then
-		root.CFrame = CFrame.lookAt(root.Position, flatTarget)
-	end
-end
-
--- Aviso visible (el cliente lo resalta en rojo) y, tras TelegraphSeconds, el ataque.
 local function tryAttack(dummy: Dummy, now: number): ()
 	local definition = dummy.Definition
 	local ability = definition.AttackAbility
-	local root = dummy.Model.PrimaryPart
-	if ability == nil or root == nil or dummy.Winding or now < dummy.NextAttackAt then
+	if ability == nil or dummy.Winding or now < dummy.NextAttackAt then
 		return
 	end
-	local target = findNearestPlayer(root.Position, definition.AttackRange or 8)
+	local target = findNearestPlayer(dummy.Npc.RootPart.Position, definition.AttackRange or 8)
 	if target == nil then
 		return
 	end
 
 	dummy.Winding = true
 	dummy.NextAttackAt = now + (definition.AttackIntervalSeconds or 2.5)
-	faceTowards(dummy.Model, target.Position)
-	dummy.Model:SetAttribute(ReplicatedAttributes.TELEGRAPH, now)
-
-	task.delay(definition.TelegraphSeconds or 0.5, function()
+	NpcActions.TelegraphAttack(dummy.Npc, ability, definition.TelegraphSeconds or 0.5, target, function()
 		dummy.Winding = false
-		if dummies[dummy.Model] ~= dummy or dummy.Character:GetState() ~= "Idle" then
-			return
-		end
-		if target.Parent ~= nil then
-			faceTowards(dummy.Model, target.Position)
-		end
-		CombatService:ActivateAbility(dummy.Model, ability)
 	end)
 end
 
 local function think(dummy: Dummy, now: number): ()
-	if not dummy.Character:IsAlive() then
+	local character = dummy.Npc.Character
+	if not character:IsAlive() or character:GetState() ~= "Idle" then
 		return
 	end
 	local behavior = dummy.Definition.Behavior
-	if behavior == "Attacker" and dummy.Character:GetState() == "Idle" then
+	if behavior == "Attacker" then
 		tryAttack(dummy, now)
-	elseif behavior == "Guard" and dummy.Character:GetState() == "Idle" then
-		CombatService:SetBlocking(dummy.Model, true)
+	elseif behavior == "Guard" then
+		CombatService:SetBlocking(dummy.Npc.Model, true)
 	end
-end
-
-local function buildModel(definition: DummyDefinition): Model
-	local model =
-		Players:CreateHumanoidModelFromDescription(Instance.new("HumanoidDescription"), Enum.HumanoidRigType.R15)
-	model.Name = `Dummy_{definition.Id}`
-	local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
-	humanoid.WalkSpeed = 0
-	humanoid.JumpPower = 0
-	humanoid.AutoRotate = false
-	humanoid.MaxHealth = definition.MaxHealth
-	humanoid.Health = definition.MaxHealth
-	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-
-	-- Mira hacia el origen, donde aparecen los jugadores.
-	local lookTarget = Vector3.new(0, definition.Position.Y, 0)
-	model:PivotTo(CFrame.lookAt(definition.Position, lookTarget))
-	model:SetAttribute(ReplicatedAttributes.DISPLAY_NAME, definition.DisplayName)
-	return model
-end
-
-local function releaseDummy(model: Model): ()
-	local dummy = dummies[model]
-	if dummy == nil then
-		return
-	end
-	dummies[model] = nil
-	CombatService:UnregisterCharacter(model)
-	dummy.Character:Destroy()
 end
 
 spawnDummy = function(definition: DummyDefinition): ()
-	local model = buildModel(definition)
-	local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
-	local character = CharacterModule.new({
-		Race = Races.Default,
+	-- Mira hacia el origen, donde aparecen los jugadores.
+	local lookTarget = Vector3.new(0, definition.Position.Y, 0)
+	local npc = NpcFactory.Spawn({
+		Name = `Dummy_{definition.Id}`,
+		DisplayName = definition.DisplayName,
 		Level = 1,
 		MaxHealth = definition.MaxHealth,
 		MaxPosture = definition.MaxPosture,
-		Resources = {},
+		CFrame = CFrame.lookAt(definition.Position, lookTarget),
+		WalkSpeed = 0,
+		Parent = folder,
 	})
+	npc.Humanoid.JumpPower = 0
 
 	local dummy: Dummy = {
 		Definition = definition,
-		Model = model,
-		Character = character,
+		Npc = npc,
 		NextAttackAt = 0,
 		Winding = false,
 	}
-	dummies[model] = dummy
+	dummies[dummy] = true
 
-	-- La vida autoritativa vive en Character; el Humanoid solo la refleja.
-	character.HealthChanged:Connect(function(health: number)
-		humanoid.Health = math.clamp(health, 0, humanoid.MaxHealth)
-	end)
-	character.Died:Connect(function()
+	npc.Character.Died:Connect(function()
 		task.delay(RESPAWN_SECONDS, function()
-			releaseDummy(model)
-			model:Destroy()
+			dummies[dummy] = nil
+			NpcFactory.Despawn(npc)
 			spawnDummy(definition)
 		end)
 	end)
-
-	CollectionService:AddTag(model, ReplicatedAttributes.NPC_TAG)
-	CharacterReplicator.Bind(model, character)
-	model.Parent = folder
-
-	local root = model:FindFirstChild("HumanoidRootPart")
-	if root ~= nil and root:IsA("BasePart") then
-		-- El servidor simula su física: el empuje de los golpes se aplica aquí.
-		root:SetNetworkOwner(nil)
-	end
-	CombatService:RegisterCharacter(nil, model, character)
 end
 
 local TrainingService = {
@@ -206,7 +138,7 @@ function TrainingService:Start(): ()
 		while true do
 			task.wait(THINK_SECONDS)
 			local now = os.clock()
-			for _, dummy in dummies do
+			for dummy in dummies do
 				think(dummy, now)
 			end
 		end

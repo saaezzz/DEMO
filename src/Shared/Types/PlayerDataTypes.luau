@@ -19,6 +19,18 @@ export type PlayerSettings = {
 	CameraShake: boolean,
 }
 
+-- Misión en curso: progreso de cada objetivo, en el orden de su definición.
+export type ActiveQuest = {
+	Id: string,
+	Progress: { number },
+}
+
+export type QuestData = {
+	Active: { ActiveQuest },
+	-- Id de misión → true cuando se ha completado.
+	Completed: { [string]: boolean },
+}
+
 export type PlayerData = {
 	DataVersion: number,
 	Race: ContentTypes.RaceId,
@@ -27,10 +39,11 @@ export type PlayerData = {
 	Currency: number,
 	Inventory: { InventoryItem },
 	Settings: PlayerSettings,
+	Quests: QuestData,
 }
 
 -- Claves de primer nivel que se pueden modificar y replicar individualmente.
-export type PlayerDataKey = "Race" | "Level" | "Experience" | "Currency" | "Inventory" | "Settings"
+export type PlayerDataKey = "Race" | "Level" | "Experience" | "Currency" | "Inventory" | "Settings" | "Quests"
 
 -- Mensajes del remote PlayerData (servidor → propio cliente).
 export type PlayerDataMessage = {

@@ -74,6 +74,8 @@ type CharacterData = {
 	PostureChanged: Signal<number, number>, -- (nuevo, anterior)
 	ResourceChanged: Signal<ResourceId, number, number>, -- (recurso, nuevo, anterior)
 	Died: Signal<>,
+	MaxHealthChanged: Signal<number, number>, -- (nueva, anterior)
+	LevelChanged: Signal<number, number>, -- (nuevo, anterior)
 	LocomotionChanged: Signal<LocomotionState, LocomotionState>, -- (nueva, anterior)
 	FormChanged: Signal<string?, string?>, -- (nueva, anterior); nil = sin transformar
 
@@ -108,6 +110,8 @@ function Character.new(attributes: CharacterAttributes): Character
 		PostureChanged = Signal.new(),
 		ResourceChanged = Signal.new(),
 		Died = Signal.new(),
+		MaxHealthChanged = Signal.new(),
+		LevelChanged = Signal.new(),
 		LocomotionChanged = Signal.new(),
 		FormChanged = Signal.new(),
 
@@ -167,6 +171,33 @@ function Character.Heal(self: Character, amount: number): number
 	self.HealthChanged:Fire(self._health, oldHealth)
 
 	return self._health
+end
+
+-- Cambia la vida máxima (p. ej. al subir de nivel). Con `refill`, la vida
+-- queda al nuevo máximo; si no, se conserva (recortada al máximo).
+function Character.SetMaxHealth(self: Character, maxHealth: number, refill: boolean): ()
+	if self._destroyed or not self._isAlive or maxHealth <= 0 then
+		return
+	end
+	local oldMax = self._maxHealth
+	self._maxHealth = maxHealth
+	if oldMax ~= maxHealth then
+		self.MaxHealthChanged:Fire(maxHealth, oldMax)
+	end
+	local oldHealth = self._health
+	self._health = if refill then maxHealth else math.min(oldHealth, maxHealth)
+	if self._health ~= oldHealth then
+		self.HealthChanged:Fire(self._health, oldHealth)
+	end
+end
+
+function Character.SetLevel(self: Character, level: number): ()
+	if self._destroyed or level == self.Level then
+		return
+	end
+	local oldLevel = self.Level
+	self.Level = level
+	self.LevelChanged:Fire(level, oldLevel)
 end
 
 -- Recursos (genéricos, definidos en Content/Resources) --------------------------
@@ -365,6 +396,8 @@ function Character.Destroy(self: Character): ()
 	self.PostureChanged:DisconnectAll()
 	self.ResourceChanged:DisconnectAll()
 	self.Died:DisconnectAll()
+	self.MaxHealthChanged:DisconnectAll()
+	self.LevelChanged:DisconnectAll()
 	self.LocomotionChanged:DisconnectAll()
 	self.FormChanged:DisconnectAll()
 end

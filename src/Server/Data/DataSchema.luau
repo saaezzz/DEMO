@@ -19,7 +19,7 @@ type PlayerData = PlayerDataTypes.PlayerData
 
 local DataSchema = {}
 
-DataSchema.VERSION = 1
+DataSchema.VERSION = 2
 
 -- Perfil de un jugador nuevo. ProfileStore también la usa para rellenar las
 -- claves que falten (Reconcile) después de migrar.
@@ -36,6 +36,10 @@ function DataSchema.createTemplate(): PlayerData
 			SfxVolume = 0.5,
 			CameraShake = true,
 		},
+		Quests = {
+			Active = {},
+			Completed = {},
+		},
 	}
 end
 
@@ -43,6 +47,12 @@ DataSchema.MIGRATIONS = {
 	-- 0 -> 1: perfiles anteriores al versionado. No existen perfiles guardados
 	-- antes de v1; Reconcile completa las claves que falten.
 	[0] = function(_data) end,
+	-- 1 -> 2: sistema de misiones (M3).
+	[1] = function(data)
+		if data.Quests == nil then
+			data.Quests = { Active = {}, Completed = {} }
+		end
+	end,
 } :: Migrator.MigrationTable
 
 return DataSchema

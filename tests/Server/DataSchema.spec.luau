@@ -51,4 +51,22 @@ return {
 		end
 		check(DataSchema.createTemplate(), "Template")
 	end,
+
+	["v1 -> v2 añade misiones sin tocar el resto"] = function()
+		local v1 = { DataVersion = 1, Race = "Human", Level = 7, Experience = 30, Currency = 5 }
+		local result = Migrator.Migrate(v1, 2, DataSchema.MIGRATIONS)
+		expect(result.Ok).toBe(true)
+		expect(result.Data.DataVersion).toBe(2)
+		expect(result.Data.Level).toBe(7)
+		expect(result.Data.Experience).toBe(30)
+		expect(result.Data.Quests).toEqual({ Active = {}, Completed = {} })
+		-- Migra una copia: el original no cambia.
+		expect(v1.Quests).toBeNil()
+	end,
+
+	["v1 -> v2 respeta misiones ya existentes"] = function()
+		local quests = { Active = { { Id = "Q", Progress = { 1 } } }, Completed = {} }
+		local result = Migrator.Migrate({ DataVersion = 1, Quests = quests }, 2, DataSchema.MIGRATIONS)
+		expect(result.Data.Quests).toEqual(quests)
+	end,
 }

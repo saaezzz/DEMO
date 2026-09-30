@@ -64,6 +64,21 @@ local Assets: { AssetEntry } = {
 	),
 	actionAnimation("ANIM_Combat_Dodge", "Ability:Dodge", "Paso rápido agachado, ~0,4 s."),
 	actionAnimation(
+		"ANIM_Enemy_Swipe",
+		"Ability:EnemySwipe",
+		"Zarpazo con una mano. Marker 'Hit' a 0,25 s. Dura 0,6 s."
+	),
+	actionAnimation(
+		"ANIM_Enemy_Lunge",
+		"Ability:EnemyLunge",
+		"Salto hacia delante con las garras. Marker 'Hit' a 0,3 s."
+	),
+	actionAnimation(
+		"ANIM_Enemy_Crush",
+		"Ability:EnemyCrush",
+		"Carga muy visible con los brazos arriba y golpe al suelo. Marker 'Hit' a 0,45 s. Dura 1 s."
+	),
+	actionAnimation(
 		"ANIM_Combat_Block",
 		"State:Blocking",
 		"Guardia con el arma delante. En bucle mientras se bloquea."

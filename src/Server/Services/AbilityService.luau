@@ -13,6 +13,7 @@ local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local Resources = require(ReplicatedStorage.Shared.Content.Resources)
 local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
+local VelocityImpulse = require(ReplicatedStorage.Shared.Modules.VelocityImpulse)
 
 local Abilities = require(script.Parent.Parent.Content.Abilities)
 local Movesets = require(script.Parent.Parent.Content.Movesets)
@@ -43,8 +44,13 @@ local cooldowns = Cooldowns.new()
 -- Progreso de la cadena M1 por dueño (jugador o modelo de NPC).
 local chains: { [any]: ChainProgress } = {}
 
-local function respond(status: ServerResponseStatus, message: string?, movement: MovementSpec?): ServerCombatResponse
-	return { Status = status, Message = message, Movement = movement }
+local function respond(
+	status: ServerResponseStatus,
+	message: string?,
+	movement: MovementSpec?,
+	cooldown: number?
+): ServerCombatResponse
+	return { Status = status, Message = message, Movement = movement, Cooldown = cooldown }
 end
 
 local function getOwner(entity: CombatEntity): any
@@ -103,6 +109,18 @@ local function scheduleAction(entity: CombatEntity, action: ActiveAction): ()
 	end)
 end
 
+-- Hacia donde mira (las variantes "Input" no tienen input en un NPC).
+local function applyServerMovement(entity: CombatEntity, movement: MovementSpec): ()
+	local look = entity.RootPart.CFrame.LookVector
+	local flat = Vector3.new(look.X, 0, look.Z)
+	if flat.Magnitude < 1e-3 or movement.Duration <= 0 then
+		return
+	end
+	local backwards = movement.Direction == "Backward" or movement.Direction == "InputOrBackward"
+	local direction = if backwards then -flat.Unit else flat.Unit
+	VelocityImpulse.Apply(entity.RootPart, direction * (movement.Distance / movement.Duration), movement.Duration)
+end
+
 local AbilityService = {
 	Name = "AbilityService",
 }
@@ -124,6 +142,10 @@ end
 
 function AbilityService:Get(abilityId: string): AbilityDefinition?
 	return abilities[abilityId]
+end
+
+function AbilityService:IsReady(entity: CombatEntity, abilityId: string): boolean
+	return cooldowns:IsReady(getOwner(entity), abilityId)
 end
 
 -- Corta la habilidad en curso (golpes pendientes incluidos). No cambia el estado.
@@ -169,8 +191,12 @@ function AbilityService:Activate(entity: CombatEntity, abilityId: string): Serve
 	markAction(entity, ability)
 	character:TransitionTo(ability.State)
 	scheduleAction(entity, action)
+	-- La física de un NPC es del servidor: su desplazamiento se aplica aquí (D-026).
+	if movement ~= nil and entity.Player == nil then
+		applyServerMovement(entity, movement)
+	end
 
-	return respond("Accepted", nil, movement)
+	return respond("Accepted", nil, movement, if ability.Cooldown > 0 then ability.Cooldown else nil)
 end
 
 -- Resuelve la acción de input con el moveset del personaje. El cliente nunca

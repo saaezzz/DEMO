@@ -28,7 +28,7 @@ type CombatEntity = CombatRegistry.CombatEntity
 local log = Logger.new("CombatService")
 
 local function respond(status: ServerResponseStatus, message: string?): ServerCombatResponse
-	return { Status = status, Message = message, Movement = nil }
+	return { Status = status, Message = message, Movement = nil, Cooldown = nil }
 end
 
 -- Idempotente: pedir el estado que ya se tiene se acepta sin cambios, de modo
@@ -137,6 +137,11 @@ function CombatService:SetBlocking(model: Model, active: boolean): ServerCombatR
 		return respond("Rejected", "Personaje no disponible")
 	end
 	return processBlock(entity, active)
+end
+
+function CombatService:IsAbilityReady(model: Model, abilityId: string): boolean
+	local entity = CombatRegistry.Get(model)
+	return entity ~= nil and AbilityService:IsReady(entity, abilityId)
 end
 
 -- Para NPCs: ejecuta una habilidad concreta con las mismas reglas que un jugador.

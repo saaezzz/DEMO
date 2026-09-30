@@ -27,6 +27,20 @@ local SWORD_HITBOX: HitboxDefinition = {
 	MaxTargets = 5,
 }
 
+local CLAW_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(6, 5, 6),
+	Offset = CFrame.new(0, 0, -3.5),
+	MaxTargets = 3,
+}
+
+local CRUSH_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(9, 6, 9),
+	Offset = CFrame.new(0, 0, -4.5),
+	MaxTargets = 5,
+}
+
 local Abilities: { AbilityDefinition } = {
 	-- Cadena M1 (Moveset.LightAttack): dos tajos y un remate que empuja.
 	{
@@ -103,6 +117,61 @@ local Abilities: { AbilityDefinition } = {
 		IFrames = { Start = 0, End = 0.28 },
 		Movement = { Distance = 14, Duration = 0.25, Direction = "InputOrBackward", AllowAir = false },
 		Animation = "Combat.Dodge",
+	},
+
+	-- Enemigos (Content/Enemies) -------------------------------------------
+
+	-- Zarpazo rápido de corto alcance.
+	{
+		Id = "EnemySwipe",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.6,
+		Cooldown = 0,
+		Hits = {
+			{ MarkerName = "Hit", StartTime = 0.25, Damage = 8, PostureDamage = 10, Hitbox = CLAW_HITBOX },
+		},
+		Animation = "Enemy.Swipe",
+	},
+	-- Embestida: salta hacia delante y golpea.
+	{
+		Id = "EnemyLunge",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.7,
+		Cooldown = 3,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.3,
+				Damage = 14,
+				PostureDamage = 18,
+				Hitbox = CLAW_HITBOX,
+				Knockback = 40,
+			},
+		},
+		Movement = { Distance = 14, Duration = 0.25, Direction = "Forward", AllowAir = false },
+		Animation = "Enemy.Lunge",
+	},
+	-- Aplastamiento lento que rompe la guardia: se esquiva o se hace parry.
+	{
+		Id = "EnemyCrush",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 1,
+		Cooldown = 5,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.45,
+				Damage = 26,
+				PostureDamage = 35,
+				Hitbox = CRUSH_HITBOX,
+				GuardBreak = true,
+				Knockback = 50,
+			},
+		},
+		Animation = "Enemy.Crush",
 	},
 
 	-- GAMEPLAY ADAPTATION de Shunpo (paso instantáneo): dash direccional,

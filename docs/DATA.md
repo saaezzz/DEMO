@@ -8,13 +8,14 @@ Tipo en `src/Shared/Types/PlayerDataTypes.luau`; plantilla y versión en `src/Se
 
 | Clave | Tipo | Valor inicial | Uso |
 |---|---|---|---|
-| `DataVersion` | number | 1 | Versión del esquema (obligatoria) |
+| `DataVersion` | number | 2 | Versión del esquema (obligatoria) |
 | `Race` | RaceId | `Races.Default` | Raza del personaje (contenido) |
 | `Level` | number | 1 | Nivel (máx. 100, §14) |
 | `Experience` | number | 0 | EXP acumulada en el nivel |
 | `Currency` | number | 0 | Moneda |
 | `Inventory` | `{ { Id, Quantity } }` | `{}` | Inventario |
 | `Settings` | `{ MusicVolume, SfxVolume, CameraShake }` | 0.5 / 0.5 / true | Ajustes del jugador |
+| `Quests` | `{ Active = { { Id, Progress } }, Completed = { [Id]: true } }` | vacío | Misiones en curso y completadas (v2, M3) |
 
 Los valores de combate (vida actual, recursos, postura) **no** se guardan: se recalculan al aparecer.
 

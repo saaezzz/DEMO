@@ -151,6 +151,67 @@ local PlaceholderAnimations: { [string]: Clip } = {
 		EndTime = 0.92,
 	}),
 
+	-- Enemigos -------------------------------------------------------------
+
+	-- Zarpazo con una mano.
+	["Enemy.Swipe"] = strike({
+		WindupTime = 0.18,
+		Windup = {
+			RightShoulder = { 120, 0, 60 },
+			RightElbow = { 40, 0, 0 },
+			Waist = { 0, -30, 0 },
+		},
+		StrikeTime = 0.27,
+		Strike = {
+			RightShoulder = { 60, 0, -50 },
+			RightElbow = { 10, 0, 0 },
+			Waist = { -10, 35, 0 },
+		},
+		HoldUntil = 0.38,
+		EndTime = 0.6,
+	}),
+
+	-- Agacharse y saltar con las dos garras por delante.
+	["Enemy.Lunge"] = strike({
+		WindupTime = 0.15,
+		Windup = {
+			Waist = { 18, 0, 0 },
+			RightShoulder = { -30, 0, 20 },
+			LeftShoulder = { -30, 0, -20 },
+			RightHip = { 30, 0, 0 },
+			LeftHip = { 30, 0, 0 },
+		},
+		StrikeTime = 0.3,
+		Strike = {
+			Waist = { -30, 0, 0 },
+			Neck = { 20, 0, 0 },
+			RightShoulder = { 100, 0, -10 },
+			LeftShoulder = { 100, 0, 10 },
+		},
+		HoldUntil = 0.45,
+		EndTime = 0.7,
+	}),
+
+	-- Brazos muy arriba (aviso claro) y golpe al suelo.
+	["Enemy.Crush"] = strike({
+		WindupTime = 0.35,
+		Windup = {
+			RightShoulder = { 170, 0, 15 },
+			LeftShoulder = { 170, 0, -15 },
+			Waist = { 15, 0, 0 },
+			Neck = { -15, 0, 0 },
+		},
+		StrikeTime = 0.45,
+		Strike = {
+			RightShoulder = { 15, 0, 5 },
+			LeftShoulder = { 15, 0, -5 },
+			Waist = { -40, 0, 0 },
+			Neck = { 25, 0, 0 },
+		},
+		HoldUntil = 0.7,
+		EndTime = 1,
+	}),
+
 	-- Paso rápido agachado, en guardia.
 	["Combat.Dodge"] = {
 		Hold = false,
