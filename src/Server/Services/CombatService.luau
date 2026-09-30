@@ -13,6 +13,7 @@ local ServerNetwork = require(script.Parent.Parent.Network.ServerNetwork)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 local Signal = require(ReplicatedStorage.Shared.Utils.Signal)
 local Resources = require(ReplicatedStorage.Shared.Content.Resources)
+local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
 
 type Character = CharacterModule.Character
 type CharacterStateName = GameTypes.CharacterStateName
@@ -326,6 +327,8 @@ local function processAttack(player: Player, intent: CombatIntent): ServerCombat
 		return respond("InsufficientResource", costError)
 	end
 
+	-- Antes de la transición: el cliente lo lee al ver ActionState = Attacking (D-021).
+	model:SetAttribute(ReplicatedAttributes.ACTION_ID, combo.Id)
 	if not character:TransitionTo("Attacking") then
 		return respond("InvalidState", "Transición a Attacking bloqueada")
 	end

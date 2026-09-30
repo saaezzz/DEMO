@@ -16,6 +16,7 @@ local Races = require(ReplicatedStorage.Shared.Content.Races)
 local Resources = require(ReplicatedStorage.Shared.Content.Resources)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 
+local CharacterReplicator = require(script.Parent.Parent.Modules.CharacterReplicator)
 local CombatService = require(script.Parent.CombatService)
 local DataService = require(script.Parent.DataService)
 
@@ -123,6 +124,7 @@ local function onCharacterAdded(player: Player, model: Model): ()
 	local character = CharacterModule.new(buildAttributes(player, data))
 	humanoid.MaxHealth = character:GetMaxHealth()
 	humanoid.Health = character:GetHealth()
+	CharacterReplicator.Bind(model, character)
 
 	local record: CharacterRecord = {
 		Model = model,
