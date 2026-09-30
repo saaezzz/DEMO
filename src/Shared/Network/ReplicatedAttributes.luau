@@ -22,6 +22,11 @@ local ReplicatedAttributes = {
 	-- el mismo estado se distingan. Se escriben antes de la transición (D-025).
 	ACTION_ANIMATION = "ActionAnimation",
 	ACTION_SEQ = "ActionSeq",
+	-- NPCs de combate: nombre visible y aviso de ataque (sube antes de atacar, D-023).
+	DISPLAY_NAME = "DisplayName",
+	TELEGRAPH = "Telegraph",
+	-- Etiqueta (CollectionService) de los modelos de NPC que combaten.
+	NPC_TAG = "CombatNPC",
 }
 
 function ReplicatedAttributes.Resource(resourceId: string): string

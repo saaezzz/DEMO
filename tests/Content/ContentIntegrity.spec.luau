@@ -11,6 +11,7 @@ local AssetRegistry = require(ReplicatedStorage.Shared.Modules.AssetRegistry)
 local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
 local Abilities = require(ServerScriptService.Server.Content.Abilities)
 local Movesets = require(ServerScriptService.Server.Content.Movesets)
+local TrainingDummies = require(ServerScriptService.Server.Content.TrainingDummies)
 local Character = require(ReplicatedStorage.Shared.Modules.Character)
 local StateMachine = require(ReplicatedStorage.Shared.Modules.StateMachine)
 local StateAnimations = require(ReplicatedStorage.Shared.Content.StateAnimations)
@@ -109,6 +110,19 @@ return {
 						error(`habilidad {ability.Id}: marker "{hit.MarkerName}" no está en {key}`)
 					end
 				end
+			end
+		end
+	end,
+
+	["los muñecos de entrenamiento usan habilidades existentes y datos válidos"] = function()
+		local ids = {}
+		for _, ability in Abilities do
+			ids[ability.Id] = true
+		end
+		for _, dummy in TrainingDummies do
+			expect(dummy.MaxHealth > 0).toBe(true)
+			if dummy.Behavior == "Attacker" and not ids[dummy.AttackAbility] then
+				error(`muñeco {dummy.Id}: habilidad de ataque desconocida`)
 			end
 		end
 	end,

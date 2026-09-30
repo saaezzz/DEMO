@@ -124,6 +124,15 @@ function CombatService:GetEntity(model: Model): CombatEntity?
 	return CombatRegistry.Get(model)
 end
 
+-- Para NPCs: guardia con las mismas reglas que un jugador.
+function CombatService:SetBlocking(model: Model, active: boolean): ServerCombatResponse
+	local entity = CombatRegistry.Get(model)
+	if entity == nil or not entity.Character:IsAlive() then
+		return respond("Rejected", "Personaje no disponible")
+	end
+	return processBlock(entity, active)
+end
+
 -- Para NPCs: ejecuta una habilidad concreta con las mismas reglas que un jugador.
 function CombatService:ActivateAbility(model: Model, abilityId: string): ServerCombatResponse
 	local entity = CombatRegistry.Get(model)

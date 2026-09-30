@@ -21,6 +21,7 @@ local Theme = {
 		PostureFull = Color3.fromRGB(255, 80, 30),
 		DamageSelf = Color3.fromRGB(255, 70, 70),
 		DamageOther = Color3.fromRGB(255, 225, 120),
+		Telegraph = Color3.fromRGB(255, 30, 30),
 	},
 
 	PanelTransparency = 0.25,

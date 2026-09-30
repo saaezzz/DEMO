@@ -143,7 +143,7 @@ local function applyLocomotion(model: Model, humanoid: Humanoid): ()
 	end
 end
 
-local function onCharacter(player: Player, model: Model): CharacterWatcher.Cleanup?
+local function onCharacter(player: Player?, model: Model): CharacterWatcher.Cleanup?
 	local humanoid = model:WaitForChild("Humanoid", PARTS_TIMEOUT_SECONDS) :: Humanoid?
 	if humanoid == nil then
 		return nil

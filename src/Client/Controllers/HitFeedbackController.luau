@@ -1,10 +1,14 @@
 --!strict
 
 -- Respuesta visual al recibir daño (D-022): destello blanco en el personaje y
--- número de daño flotante. Local a cada cliente, a partir de la vida replicada.
+-- número de daño flotante; y aviso rojo antes de un ataque enemigo (D-023).
+-- Local a cada cliente, a partir de la vida y los atributos replicados.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+
+local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
 
 local CharacterWatcher = require(script.Parent.Parent.Utils.CharacterWatcher)
 local Theme = require(script.Parent.Parent.UI.Theme)
@@ -12,6 +16,7 @@ local UIUtil = require(script.Parent.Parent.UI.UIUtil)
 
 local PARTS_TIMEOUT_SECONDS = 5
 local FLASH_TWEEN = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local TELEGRAPH_TWEEN = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 local NUMBER_LIFETIME_SECONDS = 0.8
 local NUMBER_RISE_STUDS = 2.5
 -- Daño por debajo de esto (regeneración, redondeos) no se muestra.
@@ -50,7 +55,7 @@ local function spawnDamageNumber(rootPart: BasePart, amount: number, isSelf: boo
 	end)
 end
 
-local function onCharacter(player: Player, model: Model): CharacterWatcher.Cleanup?
+local function onCharacter(player: Player?, model: Model): CharacterWatcher.Cleanup?
 	local humanoid = model:WaitForChild("Humanoid", PARTS_TIMEOUT_SECONDS) :: Humanoid?
 	local rootPart = model:WaitForChild("HumanoidRootPart", PARTS_TIMEOUT_SECONDS) :: BasePart?
 	if humanoid == nil or rootPart == nil then
@@ -69,19 +74,34 @@ local function onCharacter(player: Player, model: Model): CharacterWatcher.Clean
 
 	local isSelf = player == localPlayer
 	local lastHealth = humanoid.Health
-	local connection = humanoid.HealthChanged:Connect(function(health: number)
-		local damage = lastHealth - health
-		lastHealth = health
-		if damage < MIN_DISPLAYED_DAMAGE then
-			return
-		end
-		highlight.FillTransparency = 0.3
-		TweenService:Create(highlight, FLASH_TWEEN, { FillTransparency = 1 }):Play()
-		spawnDamageNumber(rootPart, damage, isSelf)
-	end)
+	local connections = {
+		humanoid.HealthChanged:Connect(function(health: number)
+			local damage = lastHealth - health
+			lastHealth = health
+			if damage < MIN_DISPLAYED_DAMAGE then
+				return
+			end
+			highlight.FillColor = Color3.new(1, 1, 1)
+			highlight.FillTransparency = 0.3
+			highlight.OutlineTransparency = 1
+			TweenService:Create(highlight, FLASH_TWEEN, { FillTransparency = 1 }):Play()
+			spawnDamageNumber(rootPart, damage, isSelf)
+		end),
+
+		-- Aviso de ataque de un enemigo (D-023): contorno rojo que se apaga.
+		model:GetAttributeChangedSignal(ReplicatedAttributes.TELEGRAPH):Connect(function()
+			highlight.FillColor = Theme.Colors.Telegraph
+			highlight.OutlineColor = Theme.Colors.Telegraph
+			highlight.FillTransparency = 0.55
+			highlight.OutlineTransparency = 0
+			TweenService:Create(highlight, TELEGRAPH_TWEEN, { FillTransparency = 1, OutlineTransparency = 1 }):Play()
+		end),
+	}
 
 	return function()
-		connection:Disconnect()
+		for _, connection in connections do
+			connection:Disconnect()
+		end
 		highlight:Destroy()
 	end
 end

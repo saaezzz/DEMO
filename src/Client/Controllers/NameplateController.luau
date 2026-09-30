@@ -1,7 +1,7 @@
 --!strict
 
--- Placas propias sobre los demás jugadores (D-022): nombre, nivel, vida y
--- postura. Oculta el nombre y la barra de vida por defecto de Roblox.
+-- Placas propias sobre los demás jugadores y los NPCs (D-022): nombre, nivel,
+-- vida y postura. Oculta el nombre y la barra de vida por defecto de Roblox.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,7 +18,15 @@ local MAX_DISTANCE_STUDS = 90
 
 local localPlayer = Players.LocalPlayer
 
-local function onCharacter(player: Player, model: Model): CharacterWatcher.Cleanup?
+local function getDisplayName(player: Player?, model: Model): string
+	if player ~= nil then
+		return player.DisplayName
+	end
+	local name = model:GetAttribute(ReplicatedAttributes.DISPLAY_NAME)
+	return if typeof(name) == "string" then name else model.Name
+end
+
+local function onCharacter(player: Player?, model: Model): CharacterWatcher.Cleanup?
 	local humanoid = model:WaitForChild("Humanoid", PARTS_TIMEOUT_SECONDS) :: Humanoid?
 	local head = model:WaitForChild("Head", PARTS_TIMEOUT_SECONDS) :: BasePart?
 	if humanoid == nil or head == nil then
@@ -32,7 +40,7 @@ local function onCharacter(player: Player, model: Model): CharacterWatcher.Clean
 	end
 
 	local billboard = UIUtil.create("BillboardGui", {
-		Name = `Nameplate_{player.Name}`,
+		Name = `Nameplate_{model.Name}`,
 		Adornee = head,
 		Size = UDim2.fromOffset(150, 42),
 		StudsOffset = Vector3.new(0, 2.4, 0),
@@ -47,8 +55,9 @@ local function onCharacter(player: Player, model: Model): CharacterWatcher.Clean
 			Padding = UDim.new(0, 2),
 		}),
 	})
+	local displayName = getDisplayName(player, model)
 	local nameLabel = UIUtil.label({
-		Text = player.DisplayName,
+		Text = displayName,
 		TextSize = 16,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Size = UDim2.new(1, 0, 0, 18),
@@ -61,8 +70,8 @@ local function onCharacter(player: Player, model: Model): CharacterWatcher.Clean
 	local function updateName(): ()
 		local level = model:GetAttribute(ReplicatedAttributes.LEVEL)
 		nameLabel.Text = if typeof(level) == "number"
-			then string.format('%s  <font color="#FF7A1A">Nv.%d</font>', player.DisplayName, level)
-			else player.DisplayName
+			then string.format('%s  <font color="#FF7A1A">Nv.%d</font>', displayName, level)
+			else displayName
 	end
 	nameLabel.RichText = true
 

@@ -6,17 +6,20 @@ Controles definidos en `src/Client/Input/InputBindings.luau` (mantener esta tabl
 ## Controles
 | Acción | Teclado / ratón | Mando | Táctil | Estado |
 |---|---|---|---|---|
-| `LightAttack` | Clic izquierdo | X | Botón "Atacar" | En uso (M1 básico) |
-| `HeavyAttack` | R | Y | — | Reservada (M2) |
-| `Block` | F (mantener) | R1 (mantener) | Botón "Bloquear" (mantener) | En uso |
-| `Dodge` | Ctrl izquierdo | B | — | Reservada (M2) |
-| `Dash` | Q | L1 | Botón "Dash" | En uso |
-| `Ability1`–`Ability4` | Z / X / C / V | Cruceta ↑ → ↓ ← | — | Reservadas (M2) |
-| `Transform` | G | L3 | — | Reservada |
+| `LightAttack` | Clic izquierdo | X | Botón "Atacar" | En uso: cadena de 3 golpes |
+| `HeavyAttack` | R | Y | Botón "Pesado" | En uso: rompe la guardia |
+| `Block` | F (mantener) | R1 (mantener) | Botón "Bloquear" (mantener) | En uso (parry al empezar) |
+| `Dodge` | Ctrl izquierdo | B | Botón "Esquivar" | En uso: i-frames |
+| `Dash` | Q | L1 | Botón "Dash" | En uso: direccional y aéreo |
+| `Sprint` | Shift izquierdo (mantener) | L3 (mantener) | — (en móvil se corre a velocidad normal) | En uso: gasta stamina |
+| `Ability1`–`Ability4` | Z / X / C / V | Cruceta ↑ → ↓ ← | — | Reservadas |
+| `Transform` | G | R2 | — | Reservada |
 | `LockOn` | T | R3 | — | Reservada (M3) |
 | `Interact` | E | L2 | — | Reservada |
 
 Movimiento, salto y cámara son los de Roblox (WASD / Espacio / stick izquierdo / A); no se reasignan.
+El shift-lock de Roblox está desactivado (`StarterPlayer.EnableMouseLockOption = false`) porque Shift es sprint;
+la cámara de combate con fijado de objetivo llegará en M3.
 
 ## Cómo funciona
 - `InputController` enlaza cada acción con `ContextActionService`: respeta los TextBox enfocados y la UI que

@@ -13,6 +13,7 @@ local MovementService = require(script.Services.MovementService)
 local ResourceService = require(script.Services.ResourceService)
 local CombatService = require(script.Services.CombatService)
 local CharacterService = require(script.Services.CharacterService)
+local TrainingService = require(script.Services.TrainingService)
 
 Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
 
@@ -25,6 +26,7 @@ ServiceLoader.Run({
 	ResourceService,
 	CombatService,
 	CharacterService,
+	TrainingService,
 })
 
 Logger.new("Server"):Info("Servicios iniciados")
