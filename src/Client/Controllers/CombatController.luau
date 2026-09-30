@@ -30,6 +30,10 @@ local PRESS_ACTIONS: { [ActionName]: CombatAction } = {
 	HeavyAttack = "HeavyAttack",
 	Dodge = "Dodge",
 	Dash = "Dash",
+	Ability1 = "Ability1",
+	Ability2 = "Ability2",
+	Ability3 = "Ability3",
+	Ability4 = "Ability4",
 }
 
 -- Acciones que se mantienen: se envían al pulsar (Active = true) y al soltar.

@@ -3,6 +3,10 @@
 -- Definiciones de enemigos (§42, D-029). Todos los enemigos usan el mismo
 -- servicio y la misma IA; cada uno es solo datos.
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local ItemTypes = require(ReplicatedStorage.Shared.Types.ItemTypes)
+
 export type EnemyTier = "Weak" | "Standard" | "Elite"
 
 export type EnemyAttack = {
@@ -12,6 +16,8 @@ export type EnemyAttack = {
 	Range: number,
 	-- Aviso visible antes de atacar (D-023).
 	TelegraphSeconds: number,
+	-- Radio del área de impacto alrededor del enemigo: se marca en el suelo durante el aviso.
+	AreaRadius: number?,
 }
 
 export type EnemyAppearance = {
@@ -36,6 +42,9 @@ export type EnemyDefinition = {
 	Id: string,
 	DisplayName: string,
 	Tier: EnemyTier,
+	-- Modelo del manifiesto (MDL_...). Si no está colocado en Studio, se genera un
+	-- rig con Appearance.
+	Model: string?,
 	Level: number,
 	MaxHealth: number,
 	MaxPosture: number,
@@ -47,6 +56,8 @@ export type EnemyDefinition = {
 	AttackIntervalSeconds: number,
 	-- EXP para cada jugador que le haya hecho daño.
 	Experience: number,
+	-- Botín (D-036): cada jugador que le haya hecho daño tira el suyo.
+	Drops: { ItemTypes.DropEntry }?,
 }
 
 export type EnemySpawn = {

@@ -7,7 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ContentTypes = require(ReplicatedStorage.Shared.Types.ContentTypes)
 local Animations = require(ReplicatedStorage.Shared.Content.Animations)
-local AssetRegistry = require(ReplicatedStorage.Shared.Modules.AssetRegistry)
+local AssetLibrary = require(ReplicatedStorage.Shared.Modules.AssetLibrary)
 
 type AnimationDefinition = ContentTypes.AnimationDefinition
 type AnimationMarker = ContentTypes.AnimationMarker
@@ -40,13 +40,14 @@ function AnimationRegistry.Get(key: string): AnimationDefinition?
 	return Animations[key]
 end
 
--- ID de Roblox de la animación, o nil si no existe o el asset aún no se ha subido.
+-- ID de Roblox de la animación (del manifiesto o de la colocada en Studio,
+-- D-033), o nil si aún no existe: entonces se usa el placeholder.
 function AnimationRegistry.GetContentId(key: string): string?
 	local definition = Animations[key]
 	if definition == nil then
 		return nil
 	end
-	return AssetRegistry.GetContentId(definition.Asset)
+	return AssetLibrary.GetContentId(definition.Asset)
 end
 
 return AnimationRegistry

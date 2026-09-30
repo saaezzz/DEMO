@@ -11,7 +11,18 @@ local CombatIntentValidator = {}
 
 -- (true, CombatIntent) o (false, motivo).
 CombatIntentValidator.Validate = Schema.record({
-	Action = Schema.literal({ "LightAttack", "HeavyAttack", "Block", "Dodge", "Dash", "Sprint" }),
+	Action = Schema.literal({
+		"LightAttack",
+		"HeavyAttack",
+		"Block",
+		"Dodge",
+		"Dash",
+		"Sprint",
+		"Ability1",
+		"Ability2",
+		"Ability3",
+		"Ability4",
+	}),
 	Active = Schema.optional(Schema.boolean()),
 })
 

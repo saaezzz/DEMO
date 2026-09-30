@@ -10,11 +10,16 @@ local Assets = require(ReplicatedStorage.Shared.Content.Assets)
 local AssetRegistry = require(ReplicatedStorage.Shared.Modules.AssetRegistry)
 local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
 local Abilities = require(ServerScriptService.Server.Content.Abilities)
-local Movesets = require(ServerScriptService.Server.Content.Movesets)
+local Movesets = require(ReplicatedStorage.Shared.Content.Movesets)
 local TrainingDummies = require(ServerScriptService.Server.Content.TrainingDummies)
 local Enemies = require(ServerScriptService.Server.Content.Enemies)
 local EnemySpawns = require(ServerScriptService.Server.Content.EnemySpawns)
 local Quests = require(ReplicatedStorage.Shared.Content.Quests)
+local Weapons = require(ReplicatedStorage.Shared.Content.Weapons)
+local Items = require(ReplicatedStorage.Shared.Content.Items)
+local Effects = require(ReplicatedStorage.Shared.Content.Effects)
+local AbilityInfo = require(ReplicatedStorage.Shared.Content.AbilityInfo)
+local ItemConfig = require(ReplicatedStorage.Shared.Config.ItemConfig)
 local Character = require(ReplicatedStorage.Shared.Modules.Character)
 local StateMachine = require(ReplicatedStorage.Shared.Modules.StateMachine)
 local StateAnimations = require(ReplicatedStorage.Shared.Content.StateAnimations)
@@ -208,6 +213,110 @@ return {
 		end
 	end,
 
+	["los kits de raza usan movesets, armas y objetos existentes"] = function()
+		for key, race in Races.Definitions do
+			if Movesets[race.Kit.Moveset] == nil then
+				error(`raza {key}: moveset desconocido "{race.Kit.Moveset}"`)
+			end
+			if race.Kit.Weapon ~= nil and Weapons[race.Kit.Weapon] == nil then
+				error(`raza {key}: arma desconocida "{race.Kit.Weapon}"`)
+			end
+			for _, starting in race.Kit.StartingItems do
+				if Items[starting.Item] == nil then
+					error(`raza {key}: objeto inicial desconocido "{starting.Item}"`)
+				end
+			end
+		end
+	end,
+
+	["las armas usan un modelo del manifiesto"] = function()
+		for key, weapon in Weapons do
+			expect(weapon.Id).toBe(key)
+			local asset = AssetRegistry.Get(weapon.Model)
+			if asset == nil or asset.Category ~= "Model" then
+				error(`arma {key}: "{weapon.Model}" no es un modelo del manifiesto`)
+			end
+		end
+	end,
+
+	["los modelos de enemigo están en el manifiesto"] = function()
+		for _, enemy in Enemies do
+			local model = enemy.Model
+			if model ~= nil and (AssetRegistry.Get(model) == nil or AssetRegistry.Get(model).Category ~= "Model") then
+				error(`enemigo {enemy.Id}: "{model}" no es un modelo del manifiesto`)
+			end
+		end
+	end,
+
+	["los efectos usan assets VFX del manifiesto y colores válidos"] = function()
+		for key, effect in Effects do
+			if
+				effect.Asset ~= nil
+				and (AssetRegistry.Get(effect.Asset) == nil or AssetRegistry.Get(effect.Asset).Category ~= "VFX")
+			then
+				error(`efecto {key}: "{effect.Asset}" no es un VFX del manifiesto`)
+			end
+			if string.match(effect.Color, "^#%x%x%x%x%x%x$") == nil then
+				error(`efecto {key}: color inválido`)
+			end
+			expect(effect.Duration > 0).toBe(true)
+		end
+	end,
+
+	["la presentación de habilidades apunta a habilidades y efectos existentes"] = function()
+		local ids = {}
+		for _, ability in Abilities do
+			ids[ability.Id] = true
+		end
+		for key, info in AbilityInfo do
+			if not ids[key] then
+				error(`AbilityInfo: habilidad desconocida "{key}"`)
+			end
+			for _, effect in info.Effects or {} do
+				if Effects[effect.Effect] == nil then
+					error(`AbilityInfo {key}: efecto desconocido "{effect.Effect}"`)
+				end
+			end
+		end
+		-- Toda técnica de un moveset necesita nombre para la barra de acciones.
+		for name, moveset in Movesets do
+			for _, skill in moveset.Skills do
+				if AbilityInfo[skill] == nil then
+					error(`moveset {name}: la técnica "{skill}" no tiene AbilityInfo`)
+				end
+			end
+		end
+	end,
+
+	["los objetos tienen rareza válida y los consumibles un efecto real"] = function()
+		for key, item in Items do
+			expect(item.Id).toBe(key)
+			expect(item.MaxStack >= 1).toBe(true)
+			if ItemConfig.Rarities[item.Rarity] == nil then
+				error(`objeto {key}: rareza desconocida "{item.Rarity}"`)
+			end
+			local use = item.Use
+			if item.Category == "Consumable" and (use == nil or (use.Heal == nil and use.Restore == nil)) then
+				error(`objeto {key}: un consumible necesita Use con Heal o Restore`)
+			end
+			if use ~= nil and use.Restore ~= nil then
+				expectResource(use.Restore.Resource, `objeto {key}`)
+			end
+		end
+	end,
+
+	["el botín de los enemigos usa objetos existentes"] = function()
+		for _, enemy in Enemies do
+			for _, drop in enemy.Drops or {} do
+				if Items[drop.Item] == nil then
+					error(`enemigo {enemy.Id}: botín desconocido "{drop.Item}"`)
+				end
+				expect(drop.Chance > 0 and drop.Chance <= 1).toBe(true)
+				expect(drop.Min >= 1 and drop.Max >= drop.Min).toBe(true)
+			end
+		end
+	end,
+
 	["los movesets usan habilidades existentes"] = function()
 		local ids = {}
 		for _, ability in Abilities do
@@ -218,7 +327,12 @@ return {
 			for _, id in moveset.LightAttack do
 				expect(ids[id]).toBe(true)
 			end
-			for _, id in { moveset.HeavyAttack, moveset.Dodge, moveset.Dash } do
+			local named = { moveset.HeavyAttack, moveset.Dodge, moveset.Dash }
+			for _, skill in moveset.Skills do
+				table.insert(named, skill)
+			end
+			expect(#moveset.Skills <= 4).toBe(true)
+			for _, id in named do
 				if not ids[id] then
 					error(`moveset {name}: habilidad desconocida "{id}"`)
 				end

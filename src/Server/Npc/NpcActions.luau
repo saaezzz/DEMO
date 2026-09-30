@@ -26,15 +26,20 @@ end
 -- Avisa (el cliente resalta al NPC en rojo) y, tras `telegraphSeconds`, usa la
 -- habilidad mirando al objetivo. Si entretanto muere o deja de estar libre
 -- (aturdido por un golpe), el ataque no sale. `onDone` se llama siempre.
+-- Con `areaRadius`, el cliente marca además el área en el suelo.
 function NpcActions.TelegraphAttack(
 	npc: Npc,
 	abilityId: string,
 	telegraphSeconds: number,
 	target: BasePart,
-	onDone: () -> ()
+	onDone: () -> (),
+	areaRadius: number?
 ): ()
 	NpcActions.FaceTowards(npc, target.Position)
-	npc.Model:SetAttribute(ReplicatedAttributes.TELEGRAPH, os.clock())
+	local model = npc.Model
+	model:SetAttribute(ReplicatedAttributes.TELEGRAPH_RADIUS, areaRadius or 0)
+	model:SetAttribute(ReplicatedAttributes.TELEGRAPH_SECONDS, telegraphSeconds)
+	model:SetAttribute(ReplicatedAttributes.TELEGRAPH, os.clock())
 
 	task.delay(telegraphSeconds, function()
 		local character = npc.Character

@@ -27,6 +27,27 @@ end
 
 -- Locomoción provisional: pack "Ninja" del catálogo de Roblox (creador Roblox,
 -- uso libre en cualquier experiencia). Se sustituirá por animaciones propias (D-022).
+-- Asset aún sin crear de Arte (modelos) o Visual (efectos).
+local function pendingAsset(
+	name: string,
+	category: ContentTypes.AssetCategory,
+	owner: string,
+	usedBy: string,
+	notes: string
+): AssetEntry
+	return {
+		Name = name,
+		Category = category,
+		AssetId = nil,
+		Owner = owner,
+		Status = "TODO",
+		Version = 0,
+		Dependencies = {},
+		UsedBy = { usedBy },
+		Notes = notes,
+	}
+end
+
 local function catalogLocomotion(name: string, assetId: number): AssetEntry
 	return {
 		Name = name,
@@ -85,6 +106,69 @@ local Assets: { AssetEntry } = {
 	),
 	actionAnimation("ANIM_Combat_Dash", "Ability:Dash", "Impulso inclinado hacia delante, ~0,4 s."),
 	actionAnimation("ANIM_Reaction_Stun", "State:Stunned", "Tambaleo tras parry o rotura de postura. En bucle."),
+
+	actionAnimation(
+		"ANIM_Cast_Point",
+		"Ability:Byakurai",
+		"Brazo derecho extendido apuntando al frente. Marker 'Hit' a 0,35 s."
+	),
+	actionAnimation("ANIM_Cast_Bind", "Ability:Sai", "Ambas palmas hacia delante. Marker 'Hit' a 0,3 s."),
+
+	-- Modelos (Arte/Builder). Un modelo de personaje debe ser un rig R15 con Humanoid y
+	-- HumanoidRootPart; un arma, un Model con una pieza "Handle" (el mango). Ver docs/GUIA_EQUIPO.md.
+	pendingAsset(
+		"MDL_Weapon_Asauchi",
+		"Model",
+		"Arte/Builder",
+		"Weapon:Asauchi",
+		"Katana. Handle en el mango; hoja hacia -Z."
+	),
+	pendingAsset(
+		"MDL_Enemy_WeakHollow",
+		"Model",
+		"Arte/Builder",
+		"Enemy:WeakHollow",
+		"Rig R15 algo más bajo que un jugador."
+	),
+	pendingAsset("MDL_Enemy_StandardHollow", "Model", "Arte/Builder", "Enemy:StandardHollow", "Rig R15 ×1,1."),
+	pendingAsset(
+		"MDL_Enemy_EliteHollow",
+		"Model",
+		"Arte/Builder",
+		"Enemy:EliteHollow",
+		"Rig R15 ×1,45, aspecto más agresivo."
+	),
+
+	-- Efectos (Animación/Visual). Un Model o Part con ParticleEmitters; se coloca en
+	-- la posición del efecto y se emite. Ver docs/GUIA_EQUIPO.md.
+	pendingAsset(
+		"VFX_Kido_Byakurai",
+		"VFX",
+		"Animación/Visual",
+		"Effect:Kido.Byakurai",
+		"Rayo de 40 studs hacia -Z, ~0,3 s."
+	),
+	pendingAsset(
+		"VFX_Kido_Sai",
+		"VFX",
+		"Animación/Visual",
+		"Effect:Kido.Sai",
+		"Destello de atadura sobre el objetivo."
+	),
+	pendingAsset(
+		"VFX_Movement_Shunpo",
+		"VFX",
+		"Animación/Visual",
+		"Effect:Movement.Shunpo",
+		"Estela al desaparecer, ~0,25 s."
+	),
+	pendingAsset(
+		"VFX_Telegraph_Area",
+		"VFX",
+		"Animación/Visual",
+		"Effect:Telegraph.Area",
+		"Círculo rojo en el suelo; se escala al radio del ataque."
+	),
 
 	catalogLocomotion("ANIM_Locomotion_Idle", 656117400),
 	catalogLocomotion("ANIM_Locomotion_LookAround", 656118341),

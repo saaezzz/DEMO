@@ -1,6 +1,8 @@
 --!strict
 
--- Contenido: razas (capa IP, §4). Razas iniciales jugables según §3.
+-- Contenido: razas (capa IP, §4, §21). Cada raza define su kit inicial
+-- (D-034): moveset, arma y objetos. Para abrir una raza basta con completar
+-- su kit y poner Playable = true.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -13,27 +15,43 @@ local Definitions: { [string]: RaceDefinition } = {
 	Human = {
 		Id = "Human",
 		DisplayName = "Humano",
+		Description = "Todavía no has despertado tu poder.",
 		Playable = false,
 		Resources = { "Reiatsu", "Stamina" },
+		Kit = { Moveset = "Default", StartingItems = {} },
 	},
 	Shinigami = {
 		Id = "Shinigami",
 		DisplayName = "Shinigami",
+		Description = "Guardianes de las almas. Combaten con su Zanpakuto, se mueven con Shunpo y lanzan Kido.",
 		Playable = true,
 		Resources = { "Reiatsu", "Stamina" },
+		Kit = {
+			Moveset = "Shinigami",
+			Weapon = "Asauchi",
+			StartingItems = {
+				{ Item = "HealingBalm", Quantity = 3 },
+				{ Item = "ReiatsuTonic", Quantity = 2 },
+			},
+		},
 	},
+	-- M5 (vertical slice 0.2).
 	Hollow = {
 		Id = "Hollow",
 		DisplayName = "Hollow",
-		Playable = true,
+		Description = "Almas devoradas por el hambre. Garras, devorar y Cero.",
+		Playable = false,
 		Resources = { "Reiatsu", "Stamina" },
+		Kit = { Moveset = "Default", StartingItems = {} },
 	},
-	-- El Reishi ambiental (§32) se añadirá como recurso propio con la raza.
+	-- M5. El Reishi ambiental (§32) se añadirá como recurso propio de la raza.
 	Quincy = {
 		Id = "Quincy",
 		DisplayName = "Quincy",
-		Playable = true,
+		Description = "Arqueros que absorben el Reishi del entorno.",
+		Playable = false,
 		Resources = { "Reiatsu", "Stamina" },
+		Kit = { Moveset = "Default", StartingItems = {} },
 	},
 }
 

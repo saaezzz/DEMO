@@ -34,6 +34,8 @@ local Animations: { [string]: AnimationDefinition } = {
 		Markers = {},
 	},
 	["Combat.Dash"] = action("ANIM_Combat_Dash", {}),
+	["Cast.Point"] = action("ANIM_Cast_Point", { "Hit" }),
+	["Cast.Bind"] = action("ANIM_Cast_Bind", { "Hit" }),
 	["Reaction.Stun"] = {
 		Asset = "ANIM_Reaction_Stun",
 		Priority = "Action",

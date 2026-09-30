@@ -18,6 +18,9 @@ local QuestTrackerController = require(script.Controllers.QuestTrackerController
 local ActionBarController = require(script.Controllers.ActionBarController)
 local LockOnController = require(script.Controllers.LockOnController)
 local TargetFrameController = require(script.Controllers.TargetFrameController)
+local VfxController = require(script.Controllers.VfxController)
+local InventoryController = require(script.Controllers.InventoryController)
+local RaceSelectionController = require(script.Controllers.RaceSelectionController)
 local CharacterAnimationController = require(script.Controllers.CharacterAnimationController)
 
 Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
@@ -35,6 +38,9 @@ ServiceLoader.Run({
 	ActionBarController,
 	LockOnController,
 	TargetFrameController,
+	VfxController,
+	InventoryController,
+	RaceSelectionController,
 	CharacterAnimationController,
 })
 

@@ -15,10 +15,12 @@ local Enemies = require(script.Parent.Parent.Content.Enemies)
 local EnemySpawns = require(script.Parent.Parent.Content.EnemySpawns)
 local CombatRegistry = require(script.Parent.Parent.Combat.CombatRegistry)
 local DamageService = require(script.Parent.Parent.Combat.DamageService)
+local DropLogic = require(script.Parent.Parent.Modules.DropLogic)
 local EnemyBrain = require(script.Parent.Parent.Npc.EnemyBrain)
 local NpcActions = require(script.Parent.Parent.Npc.NpcActions)
 local NpcFactory = require(script.Parent.Parent.Npc.NpcFactory)
 local CombatService = require(script.Parent.CombatService)
+local InventoryService = require(script.Parent.InventoryService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local QuestService = require(script.Parent.QuestService)
 
@@ -52,6 +54,15 @@ local definitions: { [string]: EnemyDefinition } = {}
 local enemies: { [Model]: Enemy } = {}
 local folder: Folder
 local random = Random.new()
+-- Azar del botín, con la forma que espera DropLogic.
+local dropRandom: DropLogic.RandomSource = {
+	Chance = function()
+		return random:NextNumber()
+	end,
+	Between = function(min: number, max: number)
+		return random:NextInteger(min, max)
+	end,
+}
 
 local spawnEnemy: (spawn: EnemySpawn) -> ()
 
@@ -113,7 +124,7 @@ local function startAttack(enemy: Enemy, target: CombatEntity, distance: number,
 	stop(enemy)
 	NpcActions.TelegraphAttack(enemy.Npc, attack.Ability, attack.TelegraphSeconds, target.RootPart, function()
 		enemy.Winding = false
-	end)
+	end, attack.AreaRadius)
 end
 
 local function think(enemy: Enemy, now: number): ()
@@ -184,6 +195,9 @@ local function onEnemyDied(enemy: Enemy): ()
 		if player.Parent == Players then
 			ProgressionService:AwardExperience(player, definition.Experience)
 			QuestService:RecordKill(player, definition.Id)
+			for _, drop in DropLogic.Roll(definition.Drops or {}, dropRandom) do
+				InventoryService:AddItem(player, drop.Item, drop.Quantity)
+			end
 		end
 	end
 
@@ -226,6 +240,7 @@ spawnEnemy = function(spawn: EnemySpawn): ()
 		BodyColor = Color3.fromHex(definition.Appearance.BodyColor),
 		Scale = definition.Appearance.Scale,
 		Mask = definition.Appearance.Mask,
+		ModelAsset = definition.Model,
 	})
 
 	local enemy: Enemy = {

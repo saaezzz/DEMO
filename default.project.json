@@ -5,6 +5,26 @@
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/Shared"
+      },
+      "Assets": {
+        "$className": "Folder",
+        "$ignoreUnknownInstances": true,
+        "Animations": {
+          "$className": "Folder",
+          "$ignoreUnknownInstances": true
+        },
+        "Models": {
+          "$className": "Folder",
+          "$ignoreUnknownInstances": true
+        },
+        "VFX": {
+          "$className": "Folder",
+          "$ignoreUnknownInstances": true
+        },
+        "Sounds": {
+          "$className": "Folder",
+          "$ignoreUnknownInstances": true
+        }
       }
     },
     "ServerScriptService": {

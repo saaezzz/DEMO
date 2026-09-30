@@ -18,6 +18,7 @@ export type ActionName =
 	| "Transform"
 	| "LockOn"
 	| "Interact"
+	| "Inventory"
 
 export type InputBinding = {
 	-- Teclas o botones de ratón (Enum.KeyCode o Enum.UserInputType).
@@ -27,6 +28,8 @@ export type InputBinding = {
 	TouchTitle: string?,
 	-- Orden en que se crean los botones táctiles (menor = antes).
 	TouchOrder: number?,
+	-- Sin botón de mando: se abre con su botón en pantalla (navegación de UI de Roblox).
+	GamepadUsesMenuButton: boolean?,
 }
 
 local InputBindings: { [ActionName]: InputBinding } = {
@@ -39,8 +42,6 @@ local InputBindings: { [ActionName]: InputBinding } = {
 	HeavyAttack = {
 		KeyboardMouse = { Enum.KeyCode.R },
 		Gamepad = { Enum.KeyCode.ButtonY },
-		TouchTitle = "Pesado",
-		TouchOrder = 4,
 	},
 	Block = {
 		KeyboardMouse = { Enum.KeyCode.F },
@@ -51,14 +52,10 @@ local InputBindings: { [ActionName]: InputBinding } = {
 	Dodge = {
 		KeyboardMouse = { Enum.KeyCode.LeftControl },
 		Gamepad = { Enum.KeyCode.ButtonB },
-		TouchTitle = "Esquivar",
-		TouchOrder = 5,
 	},
 	Dash = {
 		KeyboardMouse = { Enum.KeyCode.Q },
 		Gamepad = { Enum.KeyCode.ButtonL1 },
-		TouchTitle = "Dash",
-		TouchOrder = 3,
 	},
 	-- Mantener pulsado. En táctil no hay botón: se corre a velocidad normal.
 	Sprint = {
@@ -89,11 +86,17 @@ local InputBindings: { [ActionName]: InputBinding } = {
 		KeyboardMouse = { Enum.KeyCode.T },
 		Gamepad = { Enum.KeyCode.ButtonR3 },
 		TouchTitle = "Fijar",
-		TouchOrder = 6,
+		TouchOrder = 3,
 	},
 	Interact = {
 		KeyboardMouse = { Enum.KeyCode.E },
 		Gamepad = { Enum.KeyCode.ButtonL2 },
+	},
+	-- Mochila (D-036). En táctil y mando se abre con el botón de la pantalla.
+	Inventory = {
+		KeyboardMouse = { Enum.KeyCode.B },
+		Gamepad = {},
+		GamepadUsesMenuButton = true,
 	},
 }
 

@@ -1,16 +1,21 @@
 --!strict
 
 -- Barra de acciones abajo al centro (§52 habilidades y cooldowns, D-031): una
--- casilla por acción con cooldown, con su tecla o botón según el mando que se
--- esté usando y el tiempo restante. En táctil se oculta: ya están los botones.
+-- casilla por acción del moveset (pesado, esquiva, movimiento y técnicas), con
+-- su tecla o botón según el mando y el cooldown restante. Las casillas se
+-- pueden pulsar: en táctil son la forma de lanzar estas acciones.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
+local AbilityInfo = require(ReplicatedStorage.Shared.Content.AbilityInfo)
+local Movesets = require(ReplicatedStorage.Shared.Content.Movesets)
+local Races = require(ReplicatedStorage.Shared.Content.Races)
 
 local CombatController = require(script.Parent.CombatController)
+local PlayerDataController = require(script.Parent.PlayerDataController)
 local InputController = require(script.Parent.InputController)
 local InputBindings = require(script.Parent.Parent.Input.InputBindings)
 local Theme = require(script.Parent.Parent.UI.Theme)
@@ -26,12 +31,8 @@ type SlotDefinition = {
 	Label: string,
 }
 
--- Orden de izquierda a derecha.
-local SLOTS: { SlotDefinition } = {
-	{ Action = "HeavyAttack", Label = "PESADO" },
-	{ Action = "Dodge", Label = "ESQUIVA" },
-	{ Action = "Dash", Label = "DASH" },
-}
+-- Acciones de las técnicas, en el orden de Moveset.Skills.
+local SKILL_ACTIONS: { ActionName } = { "Ability1", "Ability2", "Ability3", "Ability4" }
 
 -- Nombres cortos de teclas y botones.
 local SHORT_NAMES: { [string]: string } = {
@@ -52,6 +53,7 @@ local SHORT_NAMES: { [string]: string } = {
 }
 
 type Slot = {
+	Frame: TextButton,
 	Key: TextLabel,
 	Overlay: Frame,
 	Timer: TextLabel,
@@ -60,6 +62,7 @@ type Slot = {
 }
 
 local gui: ScreenGui
+local bar: Frame
 local slots: { [ActionName]: Slot } = {}
 
 local function keyName(action: ActionName): string
@@ -75,15 +78,16 @@ local function keyName(action: ActionName): string
 end
 
 local function refreshKeys(): ()
-	gui.Enabled = InputController:GetInputMode() ~= "Touch"
 	for action: ActionName, slot in slots do
 		slot.Key.Text = keyName(action)
 	end
 end
 
 local function buildSlot(parent: Instance, definition: SlotDefinition, order: number): Slot
-	local frame = UIUtil.create("Frame", {
+	local frame = UIUtil.create("TextButton", {
 		Name = definition.Action,
+		Text = "",
+		AutoButtonColor = true,
 		Size = UDim2.fromOffset(SLOT_SIZE, SLOT_SIZE),
 		BackgroundColor3 = Theme.Colors.Panel,
 		BackgroundTransparency = 0.2,
@@ -133,7 +137,10 @@ local function buildSlot(parent: Instance, definition: SlotDefinition, order: nu
 		ZIndex = 4,
 		Parent = frame,
 	})
-	return { Key = key, Overlay = overlay, Timer = timer, ReadyAt = 0, Duration = 0 }
+	frame.Activated:Connect(function()
+		InputController:Trigger(definition.Action)
+	end)
+	return { Frame = frame, Key = key, Overlay = overlay, Timer = timer, ReadyAt = 0, Duration = 0 }
 end
 
 local function onCooldownStarted(action: CombatAction, seconds: number): ()
@@ -158,6 +165,47 @@ local function update(): ()
 	end
 end
 
+-- Casillas según el moveset de la raza del jugador: pesado, esquiva, movimiento
+-- y sus técnicas (D-034). El nombre sale de Content/AbilityInfo.
+local function currentSlots(): { SlotDefinition }
+	local data = PlayerDataController:GetData()
+	local race = if data ~= nil then Races.Definitions[data.Race] else nil
+	local moveset = Movesets[if race ~= nil then race.Kit.Moveset else "Default"]
+	if moveset == nil then
+		return {}
+	end
+
+	local result: { SlotDefinition } = {}
+	local function add(action: ActionName, abilityId: string?): ()
+		if abilityId ~= nil then
+			local info = AbilityInfo[abilityId]
+			local label = if info ~= nil then info.DisplayName else abilityId
+			table.insert(result, { Action = action, Label = string.upper(label) })
+		end
+	end
+	add("HeavyAttack", moveset.HeavyAttack)
+	add("Dodge", moveset.Dodge)
+	add("Dash", moveset.Dash)
+	for index, skill in moveset.Skills do
+		local action: ActionName? = SKILL_ACTIONS[index]
+		if action ~= nil then
+			add(action, skill)
+		end
+	end
+	return result
+end
+
+local function rebuildSlots(): ()
+	for _, slot in slots do
+		slot.Frame:Destroy()
+	end
+	table.clear(slots)
+	for order, definition in currentSlots() do
+		slots[definition.Action] = buildSlot(bar, definition, order)
+	end
+	refreshKeys()
+end
+
 local ActionBarController = {
 	Name = "ActionBarController",
 }
@@ -168,7 +216,7 @@ function ActionBarController:Start(): ()
 		ResetOnSpawn = false,
 		Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
 	})
-	local bar = UIUtil.create("Frame", {
+	bar = UIUtil.create("Frame", {
 		Name = "Bar",
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 1, -16),
@@ -183,11 +231,13 @@ function ActionBarController:Start(): ()
 			Padding = UDim.new(0, 8),
 		}),
 	})
-	for order, definition in SLOTS do
-		slots[definition.Action] = buildSlot(bar, definition, order)
-	end
-
-	refreshKeys()
+	rebuildSlots()
+	PlayerDataController.Loaded:Connect(rebuildSlots)
+	PlayerDataController.Changed:Connect(function(key)
+		if key == "Race" then
+			rebuildSlots()
+		end
+	end)
 	InputController.InputModeChanged:Connect(refreshKeys)
 	CombatController.CooldownStarted:Connect(onCooldownStarted)
 	RunService.Heartbeat:Connect(update)

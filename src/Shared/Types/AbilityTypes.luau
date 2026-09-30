@@ -26,6 +26,10 @@ export type AbilityHit = {
 	GuardBreak: boolean?,
 	-- Velocidad (studs/s) con la que empuja al objetivo si le golpea de lleno.
 	Knockback: number?,
+	-- Aturde al objetivo estos segundos al alcanzarle (ataduras, D-034).
+	Stun: number?,
+	-- Ignora el bloqueo y el parry.
+	Unblockable: boolean?,
 }
 
 -- Invulnerabilidad desde el inicio de la habilidad (segundos).
@@ -58,6 +62,8 @@ export type Moveset = {
 	HeavyAttack: string?,
 	Dodge: string?,
 	Dash: string?,
+	-- Técnicas en Ability1..Ability4 (Z X C V / cruceta), en orden.
+	Skills: { string },
 }
 
 return {}

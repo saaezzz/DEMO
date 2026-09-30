@@ -1,7 +1,7 @@
 --!strict
 
--- Avisos de progreso arriba al centro (D-031): EXP ganada, subida de nivel y
--- misiones nuevas o completadas. Se deducen de los cambios en los datos del
+-- Avisos de progreso arriba al centro (D-031): EXP ganada, subida de nivel,
+-- misiones nuevas o completadas y objetos conseguidos (D-036). Se deducen de los cambios en los datos del
 -- jugador (PlayerDataController); no hace falta ningún remote más.
 
 local Players = game:GetService("Players")
@@ -10,6 +10,8 @@ local TweenService = game:GetService("TweenService")
 
 local Progression = require(ReplicatedStorage.Shared.Modules.Progression)
 local Quests = require(ReplicatedStorage.Shared.Content.Quests)
+local Items = require(ReplicatedStorage.Shared.Content.Items)
+local ItemConfig = require(ReplicatedStorage.Shared.Config.ItemConfig)
 local PlayerDataTypes = require(ReplicatedStorage.Shared.Types.PlayerDataTypes)
 
 local PlayerDataController = require(script.Parent.PlayerDataController)
@@ -28,6 +30,8 @@ local lastLevel = 1
 local lastExperience = 0
 local lastActive: { [string]: boolean } = {}
 local lastCompleted: { [string]: boolean } = {}
+-- Cantidad de cada objeto, para anunciar lo que se consigue.
+local lastItems: { [string]: number } = {}
 local progressPending = false
 
 local function show(text: string, color: Color3, size: number): ()
@@ -73,6 +77,29 @@ local function flushProgress(): ()
 	end
 	lastLevel = data.Level
 	lastExperience = data.Experience
+end
+
+local function countItems(data: PlayerData): { [string]: number }
+	local counts: { [string]: number } = {}
+	for _, slot in data.Inventory do
+		counts[slot.Id] = (counts[slot.Id] or 0) + slot.Quantity
+	end
+	return counts
+end
+
+-- Solo se anuncian las ganancias (usar un objeto no avisa).
+local function onInventoryChanged(data: PlayerData): ()
+	local counts = countItems(data)
+	for itemId, count in counts do
+		local gained = count - (lastItems[itemId] or 0)
+		local item = Items[itemId]
+		if gained > 0 and item ~= nil then
+			local rarity = ItemConfig.Rarities[item.Rarity]
+			local color = if rarity ~= nil then Color3.fromHex(rarity.Color) else Theme.Colors.Text
+			show(`+{gained} {item.DisplayName}`, color, 20)
+		end
+	end
+	lastItems = counts
 end
 
 local function snapshotQuests(data: PlayerData): ()
@@ -131,6 +158,7 @@ function NotificationController:Start(): ()
 		lastLevel = data.Level
 		lastExperience = data.Experience
 		snapshotQuests(data)
+		lastItems = countItems(data)
 	end
 	PlayerDataController.Loaded:Connect(initialize)
 	local current = PlayerDataController:GetData()
@@ -145,6 +173,8 @@ function NotificationController:Start(): ()
 		end
 		if key == "Quests" then
 			onQuestsChanged(data)
+		elseif key == "Inventory" then
+			onInventoryChanged(data)
 		elseif (key == "Experience" or key == "Level") and not progressPending then
 			progressPending = true
 			task.delay(PROGRESS_SETTLE_SECONDS, flushProgress)

@@ -19,7 +19,8 @@ end
 return {
 	["cada acción tiene control en teclado/ratón y en mando"] = function()
 		for action, binding in InputBindings do
-			if #binding.KeyboardMouse == 0 or #binding.Gamepad == 0 then
+			local gamepadCovered = #binding.Gamepad > 0 or binding.GamepadUsesMenuButton == true
+			if #binding.KeyboardMouse == 0 or not gamepadCovered then
 				error(`{action} no tiene controles en todas las plataformas`)
 			end
 		end
@@ -33,8 +34,10 @@ return {
 		expect(#findDuplicates("Gamepad")).toBe(0)
 	end,
 
+	-- Las acciones de pulsar (pesado, esquiva, dash, técnicas) se lanzan en táctil
+	-- desde la barra de acciones; las de mantener necesitan su botón.
 	["las acciones básicas de combate tienen botón táctil"] = function()
-		for _, action in { "LightAttack", "Block", "Dash" } do
+		for _, action in { "LightAttack", "Block", "LockOn" } do
 			expect(InputBindings[action].TouchTitle ~= nil).toBe(true)
 		end
 	end,

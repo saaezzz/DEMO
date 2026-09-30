@@ -74,7 +74,18 @@ export type HitboxDefinition = {
 
 -- Acciones de combate que el cliente puede pedir (D-025). El cliente pide la
 -- acción; el servidor decide qué habilidad ejecuta según el moveset.
-export type CombatAction = "LightAttack" | "HeavyAttack" | "Block" | "Dodge" | "Dash" | "Sprint"
+export type CombatAction =
+	"LightAttack"
+	| "HeavyAttack"
+	| "Block"
+	| "Dodge"
+	| "Dash"
+	| "Sprint"
+	-- Técnicas del moveset (Moveset.Skills).
+	| "Ability1"
+	| "Ability2"
+	| "Ability3"
+	| "Ability4"
 
 -- Intención enviada por el cliente al servidor; nunca contiene datos resolutivos como daño.
 export type CombatIntent = {
@@ -103,6 +114,12 @@ export type ServerCombatResponse = {
 	Movement: MovementSpec?,
 	-- Habilidad aceptada con cooldown: segundos hasta poder repetirla (para la UI).
 	Cooldown: number?,
+}
+
+-- Respuesta de las peticiones que no son de combate (elegir raza, usar objeto...).
+export type RequestResponse = {
+	Status: "Accepted" | "Rejected",
+	Message: string?,
 }
 
 export type StateTransitionTable = { [CharacterStateName]: { CharacterStateName } }

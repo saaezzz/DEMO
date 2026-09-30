@@ -41,6 +41,22 @@ local CRUSH_HITBOX: HitboxDefinition = {
 	MaxTargets = 5,
 }
 
+-- Rayo recto y largo.
+local BEAM_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(3, 3, 40),
+	Offset = CFrame.new(0, 0.5, -21),
+	MaxTargets = 3,
+}
+
+-- Atadura a un único objetivo cercano.
+local BIND_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(6, 6, 14),
+	Offset = CFrame.new(0, 0, -7),
+	MaxTargets = 1,
+}
+
 local Abilities: { AbilityDefinition } = {
 	-- Cadena M1 (Moveset.LightAttack): dos tajos y un remate que empuja.
 	{
@@ -174,10 +190,23 @@ local Abilities: { AbilityDefinition } = {
 		Animation = "Enemy.Crush",
 	},
 
-	-- GAMEPLAY ADAPTATION de Shunpo (paso instantáneo): dash direccional,
-	-- también en el aire. Sonido, Hirenkyaku, etc. serán otras definiciones (§18).
+	-- Movimiento (§18, §28): el mismo motor con distintos datos. Sonido,
+	-- Hirenkyaku, Utsusemi... serán más definiciones como estas.
+
+	-- Paso rápido de quien aún no tiene raza: corto, en el suelo, con stamina.
 	{
-		Id = "Dash",
+		Id = "Step",
+		State = "Dashing",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.3,
+		Cooldown = 1.2,
+		Cost = { Resource = "Stamina", Amount = 15 },
+		Movement = { Distance = 16, Duration = 0.2, Direction = "InputOrForward", AllowAir = false },
+		Animation = "Combat.Dash",
+	},
+	-- GAMEPLAY ADAPTATION de Shunpo (paso instantáneo): largo, también en el aire, con Reiatsu.
+	{
+		Id = "Shunpo",
 		State = "Dashing",
 		Requirements = { StartStates = { "Idle" } },
 		Duration = 0.3,
@@ -185,6 +214,49 @@ local Abilities: { AbilityDefinition } = {
 		Cost = { Resource = "Reiatsu", Amount = 15 },
 		Movement = { Distance = 28, Duration = 0.2, Direction = "InputOrForward", AllowAir = true },
 		Animation = "Combat.Dash",
+	},
+
+	-- Kido (§26): hechizos con el mismo framework. Hado = ataque, Bakudo = control.
+
+	-- Hado #4 Byakurai: rayo recto de largo alcance.
+	{
+		Id = "Byakurai",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.7,
+		Cooldown = 6,
+		Cost = { Resource = "Reiatsu", Amount = 25 },
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.35,
+				Damage = 22,
+				PostureDamage = 12,
+				Hitbox = BEAM_HITBOX,
+			},
+		},
+		Animation = "Cast.Point",
+	},
+	-- Bakudo #1 Sai: inmoviliza a un objetivo cercano. Ignora la guardia.
+	{
+		Id = "Sai",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.6,
+		Cooldown = 10,
+		Cost = { Resource = "Reiatsu", Amount = 20 },
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.3,
+				Damage = 0,
+				PostureDamage = 0,
+				Hitbox = BIND_HITBOX,
+				Stun = 2,
+				Unblockable = true,
+			},
+		},
+		Animation = "Cast.Bind",
 	},
 }
 

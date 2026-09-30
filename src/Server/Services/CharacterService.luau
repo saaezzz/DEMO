@@ -19,6 +19,7 @@ local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 
 local CharacterReplicator = require(script.Parent.Parent.Modules.CharacterReplicator)
 local CombatService = require(script.Parent.CombatService)
+local WeaponService = require(script.Parent.WeaponService)
 local DataService = require(script.Parent.DataService)
 
 type Character = CharacterModule.Character
@@ -169,6 +170,9 @@ local function onCharacterAdded(player: Player, model: Model): ()
 	)
 
 	CombatService:RegisterCharacter(player, model, character)
+
+	local race = Races.Definitions[character.Race]
+	WeaponService:Equip(model, if race ~= nil then race.Kit.Weapon else nil)
 end
 
 local function onPlayerAdded(player: Player): ()
@@ -210,6 +214,11 @@ end
 function CharacterService:GetCharacter(player: Player): Character?
 	local record: CharacterRecord? = records[player]
 	return if record ~= nil then record.Character else nil
+end
+
+-- Vuelve a crear el personaje (p. ej. tras elegir raza, para aplicar su kit).
+function CharacterService:Respawn(player: Player): ()
+	spawnCharacter(player)
 end
 
 return CharacterService

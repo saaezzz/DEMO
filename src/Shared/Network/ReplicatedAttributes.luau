@@ -22,9 +22,14 @@ local ReplicatedAttributes = {
 	-- el mismo estado se distingan. Se escriben antes de la transición (D-025).
 	ACTION_ANIMATION = "ActionAnimation",
 	ACTION_SEQ = "ActionSeq",
+	-- Id de la habilidad en curso (para sus efectos visuales, Content/AbilityInfo).
+	ACTION_ID = "ActionId",
 	-- NPCs de combate: nombre visible y aviso de ataque (sube antes de atacar, D-023).
 	DISPLAY_NAME = "DisplayName",
 	TELEGRAPH = "Telegraph",
+	-- Del aviso actual: radio del área en el suelo (0 = sin área) y segundos hasta el golpe.
+	TELEGRAPH_RADIUS = "TelegraphRadius",
+	TELEGRAPH_SECONDS = "TelegraphSeconds",
 	-- Etiqueta (CollectionService) de los modelos de NPC que combaten.
 	NPC_TAG = "CombatNPC",
 }

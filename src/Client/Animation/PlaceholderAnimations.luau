@@ -151,6 +151,47 @@ local PlaceholderAnimations: { [string]: Clip } = {
 		EndTime = 0.92,
 	}),
 
+	-- Técnicas lanzadas -----------------------------------------------------
+
+	-- Apuntar con el brazo derecho (rayos).
+	["Cast.Point"] = strike({
+		WindupTime = 0.2,
+		Windup = {
+			RightShoulder = { 60, 0, 20 },
+			RightElbow = { 70, 0, 0 },
+			LeftShoulder = { 50, 0, 30 },
+			Waist = { 0, 20, 0 },
+		},
+		StrikeTime = 0.35,
+		Strike = {
+			RightShoulder = { 90, 0, 0 },
+			LeftShoulder = { 70, 0, 45 },
+			LeftElbow = { 60, 0, 0 },
+			Waist = { 0, -10, 0 },
+		},
+		HoldUntil = 0.55,
+		EndTime = 0.72,
+	}),
+
+	-- Palmas hacia delante (ataduras).
+	["Cast.Bind"] = strike({
+		WindupTime = 0.15,
+		Windup = {
+			RightShoulder = { 40, 0, 30 },
+			LeftShoulder = { 40, 0, -30 },
+			RightElbow = { 80, 0, 0 },
+			LeftElbow = { 80, 0, 0 },
+		},
+		StrikeTime = 0.3,
+		Strike = {
+			RightShoulder = { 85, 0, -15 },
+			LeftShoulder = { 85, 0, 15 },
+			Waist = { -8, 0, 0 },
+		},
+		HoldUntil = 0.45,
+		EndTime = 0.62,
+	}),
+
 	-- Enemigos -------------------------------------------------------------
 
 	-- Zarpazo con una mano.

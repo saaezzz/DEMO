@@ -141,6 +141,13 @@ function InputController:Start(): ()
 	UserInputService.LastInputTypeChanged:Connect(setInputMode)
 end
 
+-- Pulsa una acción desde la UI (p. ej. una casilla de la barra de acciones),
+-- como si se hubiera pulsado y soltado su control.
+function InputController:Trigger(action: ActionName): ()
+	InputController.ActionBegan:Fire(action)
+	InputController.ActionEnded:Fire(action)
+end
+
 function InputController:IsDown(action: ActionName): boolean
 	return pressed[action] == true
 end

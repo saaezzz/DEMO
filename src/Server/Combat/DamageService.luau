@@ -83,7 +83,7 @@ function DamageService.ApplyHit(attacker: CombatEntity, defender: CombatEntity, 
 		PostureDamage = hit.PostureDamage,
 		GuardBreak = hit.GuardBreak == true,
 		Knockback = hit.Knockback or 0,
-		DefenderBlocking = state == "Blocking" or state == "Parrying",
+		DefenderBlocking = (state == "Blocking" or state == "Parrying") and not hit.Unblockable,
 		DefenderInParryWindow = isInParryWindow(defender, now),
 		DefenderInvulnerable = isInvulnerable(defender, now),
 		DefenderPosture = character:GetPosture(),
@@ -112,6 +112,11 @@ function DamageService.ApplyHit(attacker: CombatEntity, defender: CombatEntity, 
 		DamageService.ApplyStun(defender, CombatConfig.PostureBreakStunSeconds)
 	elseif outcome.Kind == "Hit" then
 		DamageService.ApplyStun(defender, CombatConfig.HitStunSeconds)
+	end
+	-- Ataduras: aturden aunque el golpe no haga daño.
+	local stun = hit.Stun
+	if stun ~= nil and stun > 0 and outcome.Kind ~= "Blocked" then
+		DamageService.ApplyStun(defender, stun)
 	end
 	if outcome.Knockback > 0 then
 		applyKnockback(attacker, defender, outcome.Knockback)

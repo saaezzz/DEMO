@@ -12,11 +12,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
 local Races = require(ReplicatedStorage.Shared.Content.Races)
 local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
+local AssetLibrary = require(ReplicatedStorage.Shared.Modules.AssetLibrary)
+local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 
 local CharacterReplicator = require(script.Parent.Parent.Modules.CharacterReplicator)
 local CombatService = require(script.Parent.Parent.Services.CombatService)
 
 type Character = CharacterModule.Character
+
+local log = Logger.new("NpcFactory")
 
 export type NpcOptions = {
 	Name: string,
@@ -27,6 +31,9 @@ export type NpcOptions = {
 	CFrame: CFrame,
 	WalkSpeed: number,
 	Parent: Instance,
+	-- Modelo del manifiesto (MDL_...) colocado en Studio. Si falta, se genera un rig
+	-- R15 con BodyColor, Scale y Mask.
+	ModelAsset: string?,
 	BodyColor: Color3?,
 	-- 1 = tamaño normal.
 	Scale: number?,
@@ -82,22 +89,50 @@ local function addMask(model: Model, scale: number): ()
 	mask.Parent = model
 end
 
+-- Rig generado para cuando Arte aún no ha colocado el modelo.
+local function buildRig(options: NpcOptions): Model
+	local model = Players:CreateHumanoidModelFromDescription(buildDescription(options), Enum.HumanoidRigType.R15)
+	if options.Mask then
+		addMask(model, options.Scale or 1)
+	end
+	return model
+end
+
+-- Copia del modelo de Arte, si está colocado y es un personaje válido.
+local function cloneArtModel(assetName: string?): Model?
+	if assetName == nil then
+		return nil
+	end
+	local clone = AssetLibrary.Clone(assetName)
+	if clone == nil then
+		return nil
+	end
+	if
+		clone:IsA("Model")
+		and clone:FindFirstChildOfClass("Humanoid") ~= nil
+		and clone:FindFirstChild("HumanoidRootPart") ~= nil
+	then
+		return clone
+	end
+	log:Warn("%s debe ser un Model con Humanoid y HumanoidRootPart; se usa el rig provisional", assetName)
+	clone:Destroy()
+	return nil
+end
+
 local NpcFactory = {}
 
 function NpcFactory.Spawn(options: NpcOptions): Npc
-	local model = Players:CreateHumanoidModelFromDescription(buildDescription(options), Enum.HumanoidRigType.R15)
+	local model = cloneArtModel(options.ModelAsset) or buildRig(options)
 	model.Name = options.Name
 	local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
 	local rootPart = model:FindFirstChild("HumanoidRootPart") :: BasePart
+	model.PrimaryPart = rootPart
 	humanoid.WalkSpeed = options.WalkSpeed
 	humanoid.AutoRotate = options.WalkSpeed > 0
 	humanoid.MaxHealth = options.MaxHealth
 	humanoid.Health = options.MaxHealth
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	model:PivotTo(options.CFrame)
-	if options.Mask then
-		addMask(model, options.Scale or 1)
-	end
 	model:SetAttribute(ReplicatedAttributes.DISPLAY_NAME, options.DisplayName)
 
 	local character = CharacterModule.new({

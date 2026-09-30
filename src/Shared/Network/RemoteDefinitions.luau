@@ -7,7 +7,7 @@
 -- Los remotes que inicia el cliente (Function, ToServerEvent) necesitan
 -- RateLimit y un handler registrado en el servidor con un validador de Schema.
 
-export type RemoteName = "CombatIntent" | "PlayerData"
+export type RemoteName = "CombatIntent" | "PlayerData" | "ChooseRace" | "UseItem"
 
 export type RemoteKind =
 	"Function" -- petición del cliente con respuesta del servidor
@@ -27,6 +27,10 @@ export type RemoteDefinition = {
 
 local RemoteDefinitions: { [RemoteName]: RemoteDefinition } = {
 	CombatIntent = { Kind = "Function", RateLimit = { Burst = 10, PerSecond = 8 } },
+	-- Elegir raza una sola vez (D-034). Poco frecuente: límite bajo.
+	ChooseRace = { Kind = "Function", RateLimit = { Burst = 3, PerSecond = 0.5 } },
+	-- Usar un objeto del inventario (D-036).
+	UseItem = { Kind = "Function", RateLimit = { Burst = 5, PerSecond = 2 } },
 	-- Replicación de los datos del propio jugador (D-005).
 	PlayerData = { Kind = "ToClientEvent" },
 }

@@ -16,7 +16,8 @@ local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 local VelocityImpulse = require(ReplicatedStorage.Shared.Modules.VelocityImpulse)
 
 local Abilities = require(script.Parent.Parent.Content.Abilities)
-local Movesets = require(script.Parent.Parent.Content.Movesets)
+local Movesets = require(ReplicatedStorage.Shared.Content.Movesets)
+local Races = require(ReplicatedStorage.Shared.Content.Races)
 local CombatConfig = require(script.Parent.Parent.Config.CombatConfig)
 local CombatRegistry = require(script.Parent.Parent.Combat.CombatRegistry)
 local ComboChain = require(script.Parent.Parent.Combat.ComboChain)
@@ -26,6 +27,7 @@ local HitboxService = require(script.Parent.Parent.Combat.HitboxService)
 
 type AbilityDefinition = AbilityTypes.AbilityDefinition
 type AbilityHit = AbilityTypes.AbilityHit
+type Moveset = AbilityTypes.Moveset
 type CombatAction = GameTypes.CombatAction
 type ResourceCost = GameTypes.ResourceCost
 type ServerCombatResponse = GameTypes.ServerCombatResponse
@@ -37,6 +39,8 @@ type ChainProgress = ComboChain.ChainProgress
 
 local ACTION_GROUP = "Action"
 local DEFAULT_MOVESET = "Default"
+-- Acción de input → posición en Moveset.Skills.
+local SKILL_SLOTS: { [string]: number } = { Ability1 = 1, Ability2 = 2, Ability3 = 3, Ability4 = 4 }
 
 local log = Logger.new("AbilityService")
 local abilities: { [string]: AbilityDefinition } = {}
@@ -55,6 +59,13 @@ end
 
 local function getOwner(entity: CombatEntity): any
 	return entity.Player or entity.Model
+end
+
+-- Moveset del kit de la raza del personaje (D-034).
+local function getMoveset(entity: CombatEntity): Moveset
+	local race = Races.Definitions[entity.Character.Race]
+	local movesetId = if race ~= nil then race.Kit.Moveset else DEFAULT_MOVESET
+	return Movesets[movesetId] or Movesets[DEFAULT_MOVESET]
 end
 
 -- Cobra el coste completo o nada. Sin coste, siempre tiene éxito.
@@ -77,6 +88,7 @@ end
 local function markAction(entity: CombatEntity, ability: AbilityDefinition): ()
 	local model = entity.Model
 	local sequence = model:GetAttribute(ReplicatedAttributes.ACTION_SEQ)
+	model:SetAttribute(ReplicatedAttributes.ACTION_ID, ability.Id)
 	model:SetAttribute(ReplicatedAttributes.ACTION_ANIMATION, ability.Animation)
 	model:SetAttribute(ReplicatedAttributes.ACTION_SEQ, (if typeof(sequence) == "number" then sequence else 0) + 1)
 end
@@ -202,7 +214,7 @@ end
 -- Resuelve la acción de input con el moveset del personaje. El cliente nunca
 -- elige la habilidad (D-025).
 function AbilityService:ActivateAction(entity: CombatEntity, action: CombatAction): ServerCombatResponse
-	local moveset = Movesets[DEFAULT_MOVESET]
+	local moveset = getMoveset(entity)
 
 	if action == "LightAttack" then
 		local owner = getOwner(entity)
@@ -216,10 +228,12 @@ function AbilityService:ActivateAction(entity: CombatEntity, action: CombatActio
 		return response
 	end
 
+	local skillSlot = SKILL_SLOTS[action]
 	local abilityId: string? = if action == "HeavyAttack"
 		then moveset.HeavyAttack
 		elseif action == "Dodge" then moveset.Dodge
 		elseif action == "Dash" then moveset.Dash
+		elseif skillSlot ~= nil then moveset.Skills[skillSlot]
 		else nil
 	if abilityId == nil then
 		return respond("Rejected", "Acción sin habilidad asignada")

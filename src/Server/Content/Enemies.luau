@@ -13,6 +13,7 @@ local Enemies: { EnemyDefinition } = {
 		Id = "WeakHollow",
 		DisplayName = "Hollow débil",
 		Tier = "Weak",
+		Model = "MDL_Enemy_WeakHollow",
 		Level = 1,
 		MaxHealth = 60,
 		MaxPosture = 50,
@@ -24,11 +25,16 @@ local Enemies: { EnemyDefinition } = {
 		},
 		AttackIntervalSeconds = 2.2,
 		Experience = 20,
+		Drops = {
+			{ Item = "MaskFragment", Chance = 0.6, Min = 1, Max = 2 },
+			{ Item = "HealingBalm", Chance = 0.1, Min = 1, Max = 1 },
+		},
 	},
 	{
 		Id = "StandardHollow",
 		DisplayName = "Hollow",
 		Tier = "Standard",
+		Model = "MDL_Enemy_StandardHollow",
 		Level = 3,
 		MaxHealth = 140,
 		MaxPosture = 80,
@@ -41,11 +47,17 @@ local Enemies: { EnemyDefinition } = {
 		},
 		AttackIntervalSeconds = 1.8,
 		Experience = 55,
+		Drops = {
+			{ Item = "MaskFragment", Chance = 0.8, Min = 1, Max = 3 },
+			{ Item = "HollowCore", Chance = 0.15, Min = 1, Max = 1 },
+			{ Item = "ReiatsuTonic", Chance = 0.15, Min = 1, Max = 1 },
+		},
 	},
 	{
 		Id = "EliteHollow",
 		DisplayName = "Hollow élite",
 		Tier = "Elite",
+		Model = "MDL_Enemy_EliteHollow",
 		Level = 6,
 		MaxHealth = 400,
 		MaxPosture = 150,
@@ -60,6 +72,11 @@ local Enemies: { EnemyDefinition } = {
 		},
 		AttackIntervalSeconds = 1.6,
 		Experience = 180,
+		Drops = {
+			{ Item = "HollowCore", Chance = 0.6, Min = 1, Max = 2 },
+			{ Item = "EliteFang", Chance = 0.25, Min = 1, Max = 1 },
+			{ Item = "HealingBalm", Chance = 0.5, Min = 1, Max = 2 },
+		},
 	},
 }
 
