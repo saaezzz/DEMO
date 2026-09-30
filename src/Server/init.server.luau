@@ -8,6 +8,9 @@ local ServiceLoader = require(ReplicatedStorage.Shared.Utils.ServiceLoader)
 
 local ServerNetwork = require(script.Network.ServerNetwork)
 local DataService = require(script.Services.DataService)
+local AbilityService = require(script.Services.AbilityService)
+local MovementService = require(script.Services.MovementService)
+local ResourceService = require(script.Services.ResourceService)
 local CombatService = require(script.Services.CombatService)
 local CharacterService = require(script.Services.CharacterService)
 
@@ -17,6 +20,9 @@ Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
 ServiceLoader.Run({
 	ServerNetwork,
 	DataService,
+	AbilityService,
+	MovementService,
+	ResourceService,
 	CombatService,
 	CharacterService,
 })

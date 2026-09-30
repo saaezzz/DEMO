@@ -14,6 +14,8 @@ export type ResourceDefinition = {
 	DefaultMax: number,
 	-- Regeneración pasiva por segundo mientras el personaje está vivo.
 	RegenPerSecond: number,
+	-- Segundos sin gastarlo antes de empezar a regenerarse (0 o nil = sin espera).
+	RegenDelaySeconds: number?,
 	-- Color de su barra en la UI, en hexadecimal ("#RRGGBB").
 	Color: string,
 }

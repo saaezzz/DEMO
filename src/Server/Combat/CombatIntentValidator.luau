@@ -7,14 +7,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Schema = require(ReplicatedStorage.Shared.Network.Schema)
 
-local MAX_ID_LENGTH = 64
-
 local CombatIntentValidator = {}
 
 -- (true, CombatIntent) o (false, motivo).
 CombatIntentValidator.Validate = Schema.record({
-	Type = Schema.literal({ "Attack", "Block", "Dash" }),
-	ComboId = Schema.optional(Schema.string(MAX_ID_LENGTH)),
+	Action = Schema.literal({ "LightAttack", "HeavyAttack", "Block", "Dodge", "Dash", "Sprint" }),
 	Active = Schema.optional(Schema.boolean()),
 })
 

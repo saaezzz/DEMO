@@ -25,8 +25,9 @@ local INTERRUPT_STATES: { CharacterStateName } = { "Stunned", "Knocked", "Ragdol
 -- Transiciones voluntarias (o de fin de acción) de cada estado.
 local VOLUNTARY_TRANSITIONS: StateTransitionTable = {
 	Idle = { "Attacking", "Blocking", "Parrying", "Dodging", "Dashing", "Casting", "Transforming" },
-	Attacking = { "Idle" },
-	Blocking = { "Idle", "Parrying" },
+	-- Esquivar cancela un ataque o un bloqueo (D-025).
+	Attacking = { "Idle", "Dodging" },
+	Blocking = { "Idle", "Parrying", "Dodging" },
 	Parrying = { "Idle", "Blocking" },
 	Dodging = { "Idle" },
 	Dashing = { "Idle" },
@@ -60,6 +61,9 @@ local STATE_TRANSITIONS = buildTransitionTable()
 
 local Character = {}
 Character.__index = Character
+
+-- Tabla de transiciones completa (solo lectura), para validar contenido.
+Character.TRANSITIONS = STATE_TRANSITIONS
 
 type CharacterData = {
 	Race: RaceId,

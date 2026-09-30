@@ -2,16 +2,16 @@
 
 -- Animaciones de los personajes (D-022):
 -- - Locomoción: sustituye las del script Animate por defecto del personaje propio.
--- - Acciones: según el estado replicado (D-021) de cada personaje. Si la
---   animación tiene asset subido, el dueño la reproduce en su Animator (replica
---   sola a los demás); si no, cada cliente muestra su placeholder procedural.
+-- - Habilidades: cada vez que sube ActionSeq se reproduce ActionAnimation (D-025).
+-- - Estados sin habilidad (guardia, aturdimiento): Content/StateAnimations.
+-- Si la animación tiene asset subido, el dueño la reproduce en su Animator
+-- (replica sola a los demás); si no, cada cliente muestra su placeholder procedural.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
-local ComboAnimations = require(ReplicatedStorage.Shared.Content.ComboAnimations)
 local StateAnimations = require(ReplicatedStorage.Shared.Content.StateAnimations)
 local LocomotionAnimations = require(ReplicatedStorage.Shared.Content.LocomotionAnimations)
 local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
@@ -38,16 +38,6 @@ local log = Logger.new("CharacterAnimation")
 local localPlayer = Players.LocalPlayer
 -- Rigs con animación procedural en curso; se recorren cada frame.
 local activeRigs: { [Rig]: boolean } = {}
-
--- Clave de animación para el estado actual del modelo, o nil si no tiene.
-local function resolveAnimationKey(model: Model): string?
-	local state = model:GetAttribute(ReplicatedAttributes.STATE)
-	if state == "Attacking" then
-		local actionId = model:GetAttribute(ReplicatedAttributes.ACTION_ID)
-		return if typeof(actionId) == "string" then ComboAnimations[actionId] else nil
-	end
-	return if typeof(state) == "string" then StateAnimations[state :: any] else nil
-end
 
 local function getTrack(rig: Rig, key: string, contentId: string): AnimationTrack?
 	local cached: AnimationTrack? = rig.Tracks[key]
@@ -113,10 +103,18 @@ local function playKey(rig: Rig, key: string): ()
 end
 
 local function onStateChanged(rig: Rig): ()
-	local key = resolveAnimationKey(rig.Model)
+	local state = rig.Model:GetAttribute(ReplicatedAttributes.STATE)
+	local key = if typeof(state) == "string" then StateAnimations[state :: any] else nil
 	if key == nil then
 		stopHeld(rig)
 	else
+		playKey(rig, key)
+	end
+end
+
+local function onActionStarted(rig: Rig): ()
+	local key = rig.Model:GetAttribute(ReplicatedAttributes.ACTION_ANIMATION)
+	if typeof(key) == "string" then
 		playKey(rig, key)
 	end
 end
@@ -165,13 +163,20 @@ local function onCharacter(player: Player, model: Model): CharacterWatcher.Clean
 		Procedural = nil,
 	}
 
-	local connection = model:GetAttributeChangedSignal(ReplicatedAttributes.STATE):Connect(function()
-		onStateChanged(rig)
-	end)
+	local connections = {
+		model:GetAttributeChangedSignal(ReplicatedAttributes.STATE):Connect(function()
+			onStateChanged(rig)
+		end),
+		model:GetAttributeChangedSignal(ReplicatedAttributes.ACTION_SEQ):Connect(function()
+			onActionStarted(rig)
+		end),
+	}
 	onStateChanged(rig)
 
 	return function()
-		connection:Disconnect()
+		for _, connection in connections do
+			connection:Disconnect()
+		end
 		activeRigs[rig] = nil
 		if rig.Procedural ~= nil then
 			rig.Procedural:Destroy()

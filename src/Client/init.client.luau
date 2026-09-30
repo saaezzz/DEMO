@@ -8,6 +8,7 @@ local ServiceLoader = require(ReplicatedStorage.Shared.Utils.ServiceLoader)
 
 local PlayerDataController = require(script.Controllers.PlayerDataController)
 local InputController = require(script.Controllers.InputController)
+local MovementController = require(script.Controllers.MovementController)
 local CombatController = require(script.Controllers.CombatController)
 local HudController = require(script.Controllers.HudController)
 local NameplateController = require(script.Controllers.NameplateController)
@@ -19,6 +20,7 @@ Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
 ServiceLoader.Run({
 	PlayerDataController,
 	InputController,
+	MovementController,
 	CombatController,
 	HudController,
 	NameplateController,

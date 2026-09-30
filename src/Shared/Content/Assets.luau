@@ -43,16 +43,32 @@ end
 
 local Assets: { AssetEntry } = {
 	actionAnimation(
-		"ANIM_Sword_BasicSlash",
-		"Combo:BasicSlash",
-		"Tajo horizontal de una mano. Marker 'Hit' en el frame del impacto (~0,2 s)."
+		"ANIM_Sword_Slash1",
+		"Ability:Slash1",
+		"Tajo horizontal de derecha a izquierda. Marker 'Hit' en el impacto (0,2 s). Dura 0,45 s."
 	),
+	actionAnimation(
+		"ANIM_Sword_Slash2",
+		"Ability:Slash2",
+		"Revés de izquierda a derecha. Marker 'Hit' en el impacto (0,2 s). Dura 0,45 s."
+	),
+	actionAnimation(
+		"ANIM_Sword_Slash3",
+		"Ability:Slash3",
+		"Remate vertical de arriba abajo. Marker 'Hit' en el impacto (0,3 s). Dura 0,65 s."
+	),
+	actionAnimation(
+		"ANIM_Sword_HeavySlash",
+		"Ability:HeavySlash",
+		"Carga larga y golpe descendente a dos manos. Marker 'Hit' en el impacto (0,5 s). Dura 0,9 s."
+	),
+	actionAnimation("ANIM_Combat_Dodge", "Ability:Dodge", "Paso rápido agachado, ~0,4 s."),
 	actionAnimation(
 		"ANIM_Combat_Block",
 		"State:Blocking",
 		"Guardia con el arma delante. En bucle mientras se bloquea."
 	),
-	actionAnimation("ANIM_Combat_Dash", "State:Dashing", "Impulso inclinado hacia delante, ~0,4 s."),
+	actionAnimation("ANIM_Combat_Dash", "Ability:Dash", "Impulso inclinado hacia delante, ~0,4 s."),
 	actionAnimation("ANIM_Reaction_Stun", "State:Stunned", "Tambaleo tras parry o rotura de postura. En bucle."),
 
 	catalogLocomotion("ANIM_Locomotion_Idle", 656117400),

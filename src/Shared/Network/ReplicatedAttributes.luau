@@ -17,8 +17,11 @@ local ReplicatedAttributes = {
 	-- Capa de locomoción (LocomotionState) y forma (id de transformación o nil), D-024.
 	LOCOMOTION = "Locomotion",
 	FORM = "Form",
-	-- Id del combo en curso; se escribe antes de pasar a Attacking.
-	ACTION_ID = "ActionId",
+	-- Animación de la habilidad en curso (clave de Content/Animations) y un
+	-- contador que sube con cada habilidad, para que dos habilidades seguidas con
+	-- el mismo estado se distingan. Se escriben antes de la transición (D-025).
+	ACTION_ANIMATION = "ActionAnimation",
+	ACTION_SEQ = "ActionSeq",
 }
 
 function ReplicatedAttributes.Resource(resourceId: string): string

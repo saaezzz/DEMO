@@ -5,13 +5,14 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local Races = require(ReplicatedStorage.Shared.Content.Races)
 local Resources = require(ReplicatedStorage.Shared.Content.Resources)
-local ComboAnimations = require(ReplicatedStorage.Shared.Content.ComboAnimations)
 local Animations = require(ReplicatedStorage.Shared.Content.Animations)
 local Assets = require(ReplicatedStorage.Shared.Content.Assets)
 local AssetRegistry = require(ReplicatedStorage.Shared.Modules.AssetRegistry)
 local AnimationRegistry = require(ReplicatedStorage.Shared.Modules.AnimationRegistry)
-local Combos = require(ServerScriptService.Server.Content.Combos)
-local CombatActions = require(ServerScriptService.Server.Content.CombatActions)
+local Abilities = require(ServerScriptService.Server.Content.Abilities)
+local Movesets = require(ServerScriptService.Server.Content.Movesets)
+local Character = require(ReplicatedStorage.Shared.Modules.Character)
+local StateMachine = require(ReplicatedStorage.Shared.Modules.StateMachine)
 local StateAnimations = require(ReplicatedStorage.Shared.Content.StateAnimations)
 local LocomotionAnimations = require(ReplicatedStorage.Shared.Content.LocomotionAnimations)
 local PlaceholderAnimations =
@@ -55,43 +56,76 @@ return {
 		expect(playable > 0).toBe(true)
 	end,
 
-	["los combos tienen Id único, golpes válidos y coste con recurso existente"] = function()
+	["las habilidades tienen Id único y datos coherentes"] = function()
 		local seen = {}
-		for _, combo in Combos do
-			expect(seen[combo.Id]).toBeNil()
-			seen[combo.Id] = true
-			expect(#combo.Hits > 0).toBe(true)
-			for _, hit in combo.Hits do
-				expect(hit.EndTime >= hit.StartTime).toBe(true)
+		for _, ability in Abilities do
+			if seen[ability.Id] then
+				error(`habilidad duplicada: {ability.Id}`)
 			end
-			if combo.Cost ~= nil then
-				expectResource(combo.Cost.Resource, `combo {combo.Id}`)
+			seen[ability.Id] = true
+			expect(ability.Duration > 0).toBe(true)
+			expect(ability.Cooldown >= 0).toBe(true)
+			expect(#ability.Requirements.StartStates > 0).toBe(true)
+			if ability.Cost ~= nil then
+				expectResource(ability.Cost.Resource, `habilidad {ability.Id}`)
+			end
+			for _, hit in ability.Hits or {} do
+				if hit.StartTime < 0 or hit.StartTime > ability.Duration then
+					error(`habilidad {ability.Id}: golpe fuera de la duración`)
+				end
+			end
+			local iframes = ability.IFrames
+			if iframes ~= nil and (iframes.Start > iframes.End or iframes.End > ability.Duration) then
+				error(`habilidad {ability.Id}: i-frames inválidos`)
+			end
+			local movement = ability.Movement
+			if movement ~= nil and (movement.Distance <= 0 or movement.Duration <= 0) then
+				error(`habilidad {ability.Id}: movimiento inválido`)
 			end
 		end
 	end,
 
-	["las animaciones de combo apuntan a combos y animaciones existentes"] = function()
-		local comboIds = {}
-		for _, combo in Combos do
-			comboIds[combo.Id] = true
-		end
-		for comboId, animationKey in ComboAnimations do
-			expect(comboIds[comboId]).toBe(true)
-			if Animations[animationKey] == nil then
-				error(`combo {comboId}: animación desconocida "{animationKey}"`)
+	["cada habilidad puede empezar: su estado es alcanzable desde sus StartStates"] = function()
+		for _, ability in Abilities do
+			for _, startState in ability.Requirements.StartStates do
+				local machine = StateMachine.new(startState, Character.TRANSITIONS)
+				if not machine:CanTransition(ability.State) then
+					error(`habilidad {ability.Id}: no se puede pasar de {startState} a {ability.State}`)
+				end
 			end
 		end
 	end,
 
-	["los markers de cada golpe existen en la animación del combo"] = function()
-		for _, combo in Combos do
-			local animationKey = ComboAnimations[combo.Id]
-			local animation = if animationKey ~= nil then Animations[animationKey] else nil
-			if animation ~= nil then
-				for _, hit in combo.Hits do
+	["las animaciones de las habilidades existen y tienen los markers de sus golpes"] = function()
+		for _, ability in Abilities do
+			local key = ability.Animation
+			if key ~= nil then
+				local animation = Animations[key]
+				if animation == nil then
+					error(`habilidad {ability.Id}: animación desconocida "{key}"`)
+				end
+				for _, hit in ability.Hits or {} do
 					if not table.find(animation.Markers, hit.MarkerName) then
-						error(`combo {combo.Id}: marker "{hit.MarkerName}" no está en {animationKey}`)
+						error(`habilidad {ability.Id}: marker "{hit.MarkerName}" no está en {key}`)
 					end
+				end
+			end
+		end
+	end,
+
+	["los movesets usan habilidades existentes"] = function()
+		local ids = {}
+		for _, ability in Abilities do
+			ids[ability.Id] = true
+		end
+		for name, moveset in Movesets do
+			expect(#moveset.LightAttack > 0).toBe(true)
+			for _, id in moveset.LightAttack do
+				expect(ids[id]).toBe(true)
+			end
+			for _, id in { moveset.HeavyAttack, moveset.Dodge, moveset.Dash } do
+				if not ids[id] then
+					error(`moveset {name}: habilidad desconocida "{id}"`)
 				end
 			end
 		end
@@ -180,20 +214,15 @@ return {
 		for _, key in StateAnimations do
 			actionKeys[key] = true
 		end
-		for _, key in ComboAnimations do
-			actionKeys[key] = true
+		for _, ability in Abilities do
+			if ability.Animation ~= nil then
+				actionKeys[ability.Animation] = true
+			end
 		end
 		for key in actionKeys do
 			if AnimationRegistry.GetContentId(key) == nil and PlaceholderAnimations[key] == nil then
 				error(`{key} no tiene asset ni placeholder: no se vería nada`)
 			end
-		end
-	end,
-
-	["el coste del dash usa un recurso existente"] = function()
-		local cost = CombatActions.Dash.Cost
-		if cost ~= nil then
-			expectResource(cost.Resource, "Dash")
 		end
 	end,
 }

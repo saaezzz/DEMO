@@ -1,4 +1,4 @@
-local Validator = require(game:GetService("ServerScriptService").Server.Modules.CombatIntentValidator)
+local Validator = require(game:GetService("ServerScriptService").Server.Combat.CombatIntentValidator)
 
 local function isValid(payload)
 	local ok = Validator.Validate(payload)
@@ -7,38 +7,39 @@ end
 
 return {
 	["acepta intents válidos"] = function()
-		expect(isValid({ Type = "Attack", ComboId = "BasicSlash" })).toBe(true)
-		expect(isValid({ Type = "Block" })).toBe(true)
-		expect(isValid({ Type = "Dash" })).toBe(true)
-		expect(isValid({ Type = "Shunpo" })).toBe(false)
+		for _, action in { "LightAttack", "HeavyAttack", "Block", "Dodge", "Dash", "Sprint" } do
+			expect(isValid({ Action = action })).toBe(true)
+		end
 	end,
 
 	["devuelve una copia saneada, no la tabla del cliente"] = function()
-		local payload = { Type = "Attack", ComboId = "BasicSlash" }
+		local payload = { Action = "Block", Active = true }
 		local _, intent = Validator.Validate(payload)
 		expect(intent == payload).toBe(false)
-		expect(intent).toEqual({ Type = "Attack", ComboId = "BasicSlash" })
+		expect(intent).toEqual({ Action = "Block", Active = true })
 	end,
 
 	["rechaza payloads que no son tablas"] = function()
 		expect(isValid(nil)).toBe(false)
 		expect(isValid(5)).toBe(false)
-		expect(isValid("Attack")).toBe(false)
+		expect(isValid("LightAttack")).toBe(false)
 	end,
 
-	["rechaza tipos desconocidos o mal tipados"] = function()
-		expect(isValid({ Type = "Nuke" })).toBe(false)
-		expect(isValid({ Type = 1 })).toBe(false)
+	["rechaza acciones desconocidas o mal tipadas"] = function()
+		expect(isValid({ Action = "Nuke" })).toBe(false)
+		expect(isValid({ Action = "Slash1" })).toBe(false)
+		expect(isValid({ Action = 1 })).toBe(false)
 		expect(isValid({})).toBe(false)
 	end,
 
 	["rechaza campos no permitidos"] = function()
-		expect(isValid({ Type = "Attack", Damage = 9999 })).toBe(false)
-		expect(isValid({ [1] = "Attack" })).toBe(false)
+		expect(isValid({ Action = "LightAttack", Damage = 9999 })).toBe(false)
+		expect(isValid({ Action = "LightAttack", AbilityId = "HeavySlash" })).toBe(false)
+		expect(isValid({ [1] = "LightAttack" })).toBe(false)
 	end,
 
 	["rechaza payloads demasiado grandes"] = function()
-		local payload = { Type = "Attack" }
+		local payload = { Action = "LightAttack" }
 		for index = 1, 100 do
 			payload[index] = index
 		end
@@ -48,15 +49,8 @@ return {
 	end,
 
 	["valida Active como booleano opcional"] = function()
-		expect(isValid({ Type = "Block", Active = true })).toBe(true)
-		expect(isValid({ Type = "Block", Active = false })).toBe(true)
-		expect(isValid({ Type = "Block", Active = "yes" })).toBe(false)
-	end,
-
-	["valida ComboId"] = function()
-		expect(isValid({ Type = "Attack", ComboId = 5 })).toBe(false)
-		expect(isValid({ Type = "Attack", ComboId = "" })).toBe(false)
-		expect(isValid({ Type = "Attack", ComboId = string.rep("a", 65) })).toBe(false)
-		expect(isValid({ Type = "Attack", ComboId = string.rep("a", 64) })).toBe(true)
+		expect(isValid({ Action = "Block", Active = true })).toBe(true)
+		expect(isValid({ Action = "Sprint", Active = false })).toBe(true)
+		expect(isValid({ Action = "Block", Active = "yes" })).toBe(false)
 	end,
 }

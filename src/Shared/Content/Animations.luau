@@ -9,29 +9,28 @@ local ContentTypes = require(ReplicatedStorage.Shared.Types.ContentTypes)
 
 type AnimationDefinition = ContentTypes.AnimationDefinition
 
+-- Animación de una sola pasada de una habilidad.
+local function action(asset: string, markers: { string }): AnimationDefinition
+	return { Asset = asset, Priority = "Action", Looped = false, Markers = markers }
+end
+
 local function locomotion(asset: string, looped: boolean): AnimationDefinition
 	return { Asset = asset, Priority = "Core", Looped = looped, Markers = {} }
 end
 
 local Animations: { [string]: AnimationDefinition } = {
-	["Combat.BasicSlash"] = {
-		Asset = "ANIM_Sword_BasicSlash",
-		Priority = "Action",
-		Looped = false,
-		Markers = { "Hit" },
-	},
+	["Combat.Slash1"] = action("ANIM_Sword_Slash1", { "Hit" }),
+	["Combat.Slash2"] = action("ANIM_Sword_Slash2", { "Hit" }),
+	["Combat.Slash3"] = action("ANIM_Sword_Slash3", { "Hit" }),
+	["Combat.HeavySlash"] = action("ANIM_Sword_HeavySlash", { "Hit" }),
+	["Combat.Dodge"] = action("ANIM_Combat_Dodge", {}),
 	["Combat.Block"] = {
 		Asset = "ANIM_Combat_Block",
 		Priority = "Action",
 		Looped = true,
 		Markers = {},
 	},
-	["Combat.Dash"] = {
-		Asset = "ANIM_Combat_Dash",
-		Priority = "Action",
-		Looped = false,
-		Markers = {},
-	},
+	["Combat.Dash"] = action("ANIM_Combat_Dash", {}),
 	["Reaction.Stun"] = {
 		Asset = "ANIM_Reaction_Stun",
 		Priority = "Action",

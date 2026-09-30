@@ -10,6 +10,7 @@ export type ActionName =
 	| "Block"
 	| "Dodge"
 	| "Dash"
+	| "Sprint"
 	| "Ability1"
 	| "Ability2"
 	| "Ability3"
@@ -38,6 +39,8 @@ local InputBindings: { [ActionName]: InputBinding } = {
 	HeavyAttack = {
 		KeyboardMouse = { Enum.KeyCode.R },
 		Gamepad = { Enum.KeyCode.ButtonY },
+		TouchTitle = "Pesado",
+		TouchOrder = 4,
 	},
 	Block = {
 		KeyboardMouse = { Enum.KeyCode.F },
@@ -48,12 +51,19 @@ local InputBindings: { [ActionName]: InputBinding } = {
 	Dodge = {
 		KeyboardMouse = { Enum.KeyCode.LeftControl },
 		Gamepad = { Enum.KeyCode.ButtonB },
+		TouchTitle = "Esquivar",
+		TouchOrder = 5,
 	},
 	Dash = {
 		KeyboardMouse = { Enum.KeyCode.Q },
 		Gamepad = { Enum.KeyCode.ButtonL1 },
 		TouchTitle = "Dash",
 		TouchOrder = 3,
+	},
+	-- Mantener pulsado. En táctil no hay botón: se corre a velocidad normal.
+	Sprint = {
+		KeyboardMouse = { Enum.KeyCode.LeftShift },
+		Gamepad = { Enum.KeyCode.ButtonL3 },
 	},
 	Ability1 = {
 		KeyboardMouse = { Enum.KeyCode.Z },
@@ -73,7 +83,7 @@ local InputBindings: { [ActionName]: InputBinding } = {
 	},
 	Transform = {
 		KeyboardMouse = { Enum.KeyCode.G },
-		Gamepad = { Enum.KeyCode.ButtonL3 },
+		Gamepad = { Enum.KeyCode.ButtonR2 },
 	},
 	LockOn = {
 		KeyboardMouse = { Enum.KeyCode.T },

@@ -14,26 +14,26 @@ local Definitions: { [string]: RaceDefinition } = {
 		Id = "Human",
 		DisplayName = "Humano",
 		Playable = false,
-		Resources = { "Reiatsu" },
+		Resources = { "Reiatsu", "Stamina" },
 	},
 	Shinigami = {
 		Id = "Shinigami",
 		DisplayName = "Shinigami",
 		Playable = true,
-		Resources = { "Reiatsu" },
+		Resources = { "Reiatsu", "Stamina" },
 	},
 	Hollow = {
 		Id = "Hollow",
 		DisplayName = "Hollow",
 		Playable = true,
-		Resources = { "Reiatsu" },
+		Resources = { "Reiatsu", "Stamina" },
 	},
 	-- El Reishi ambiental (§32) se añadirá como recurso propio con la raza.
 	Quincy = {
 		Id = "Quincy",
 		DisplayName = "Quincy",
 		Playable = true,
-		Resources = { "Reiatsu" },
+		Resources = { "Reiatsu", "Stamina" },
 	},
 }
 

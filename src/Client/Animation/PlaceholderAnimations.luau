@@ -31,24 +31,133 @@ local DASH_LEAN: Pose = {
 	LeftHip = { -25, 0, 0 },
 }
 
-local PlaceholderAnimations: { [string]: Clip } = {
-	["Combat.BasicSlash"] = {
+local DODGE_CROUCH: Pose = {
+	Waist = { -22, 0, 0 },
+	Neck = { 18, 0, 0 },
+	RightShoulder = { 45, 0, -20 },
+	LeftShoulder = { 45, 0, 20 },
+	RightElbow = { 50, 0, 0 },
+	LeftElbow = { 50, 0, 0 },
+	RightHip = { 30, 0, 0 },
+	LeftHip = { -10, 0, 0 },
+}
+
+export type StrikeOptions = {
+	WindupTime: number,
+	Windup: Pose,
+	StrikeTime: number,
+	Strike: Pose,
+	-- Mantiene el golpe hasta aquí y después vuelve a reposo en EndTime.
+	HoldUntil: number,
+	EndTime: number,
+}
+
+-- Golpe con arma: preparación, impacto rápido, pausa y recuperación.
+local function strike(options: StrikeOptions): Clip
+	return {
 		Hold = false,
 		Keyframes = {
-			{
-				Time = 0.1,
-				Easing = "QuadOut",
-				Pose = {
-					RightShoulder = { 140, 0, 45 },
-					RightElbow = { 30, 0, 0 },
-					LeftShoulder = { 30, 0, -20 },
-					Waist = { 0, -35, 0 },
-					Neck = { 0, 20, 0 },
-				},
-			},
-			{ Time = 0.22, Easing = "QuadIn", Pose = SLASH_STRIKE },
-			{ Time = 0.34, Pose = SLASH_STRIKE },
-			{ Time = 0.55, Easing = "SineInOut", Pose = {} },
+			{ Time = options.WindupTime, Easing = "QuadOut", Pose = options.Windup },
+			{ Time = options.StrikeTime, Easing = "QuadIn", Pose = options.Strike },
+			{ Time = options.HoldUntil, Pose = options.Strike },
+			{ Time = options.EndTime, Easing = "SineInOut", Pose = {} },
+		},
+	}
+end
+
+local PlaceholderAnimations: { [string]: Clip } = {
+	-- Tajo de derecha a izquierda.
+	["Combat.Slash1"] = strike({
+		WindupTime = 0.1,
+		Windup = {
+			RightShoulder = { 140, 0, 45 },
+			RightElbow = { 30, 0, 0 },
+			LeftShoulder = { 30, 0, -20 },
+			Waist = { 0, -35, 0 },
+			Neck = { 0, 20, 0 },
+		},
+		StrikeTime = 0.22,
+		Strike = SLASH_STRIKE,
+		HoldUntil = 0.34,
+		EndTime = 0.5,
+	}),
+
+	-- Revés de izquierda a derecha.
+	["Combat.Slash2"] = strike({
+		WindupTime = 0.1,
+		Windup = {
+			RightShoulder = { 95, 0, -70 },
+			RightElbow = { 60, 0, 0 },
+			Waist = { 0, 35, 0 },
+			Neck = { 0, -15, 0 },
+		},
+		StrikeTime = 0.22,
+		Strike = {
+			RightShoulder = { 85, 0, 60 },
+			RightElbow = { 5, 0, 0 },
+			LeftShoulder = { 10, 0, -25 },
+			Waist = { -8, -40, 0 },
+			Neck = { 0, 20, 0 },
+		},
+		HoldUntil = 0.34,
+		EndTime = 0.5,
+	}),
+
+	-- Remate vertical de arriba abajo.
+	["Combat.Slash3"] = strike({
+		WindupTime = 0.18,
+		Windup = {
+			RightShoulder = { 170, 0, 10 },
+			LeftShoulder = { 150, 0, -10 },
+			RightElbow = { 20, 0, 0 },
+			LeftElbow = { 20, 0, 0 },
+			Waist = { 12, 0, 0 },
+			Neck = { -10, 0, 0 },
+		},
+		StrikeTime = 0.3,
+		Strike = {
+			RightShoulder = { 40, 0, 0 },
+			LeftShoulder = { 35, 0, 0 },
+			Waist = { -25, 0, 0 },
+			Neck = { 15, 0, 0 },
+			RightHip = { 20, 0, 0 },
+		},
+		HoldUntil = 0.45,
+		EndTime = 0.68,
+	}),
+
+	-- Pesado: carga larga y exagerada para que se pueda leer y hacer parry (D-023).
+	["Combat.HeavySlash"] = strike({
+		WindupTime = 0.4,
+		Windup = {
+			RightShoulder = { 175, 0, 15 },
+			LeftShoulder = { 160, 0, -15 },
+			RightElbow = { 30, 0, 0 },
+			LeftElbow = { 30, 0, 0 },
+			Waist = { 18, -25, 0 },
+			Neck = { -12, 15, 0 },
+			LeftHip = { 25, 0, 0 },
+		},
+		StrikeTime = 0.5,
+		Strike = {
+			RightShoulder = { 20, 0, -10 },
+			LeftShoulder = { 20, 0, 10 },
+			Waist = { -35, 10, 0 },
+			Neck = { 25, 0, 0 },
+			RightHip = { 30, 0, 0 },
+			LeftHip = { -15, 0, 0 },
+		},
+		HoldUntil = 0.68,
+		EndTime = 0.92,
+	}),
+
+	-- Paso rápido agachado, en guardia.
+	["Combat.Dodge"] = {
+		Hold = false,
+		Keyframes = {
+			{ Time = 0.06, Easing = "QuadOut", Pose = DODGE_CROUCH },
+			{ Time = 0.25, Pose = DODGE_CROUCH },
+			{ Time = 0.42, Easing = "SineInOut", Pose = {} },
 		},
 	},
 

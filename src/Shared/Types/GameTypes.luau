@@ -72,35 +72,26 @@ export type HitboxDefinition = {
 	MaxTargets: number,
 }
 
--- Ventana temporal de un golpe dentro de un combo. MarkerName es el Keyframe
--- Marker de la animación que corresponde a este golpe.
-export type ComboHitWindow = {
-	MarkerName: string,
-	StartTime: number,
-	EndTime: number,
-	BaseDamage: number,
-	PostureDamage: number,
-	Hitbox: HitboxDefinition,
-}
-
--- Definición autoritativa (solo servidor). La animación asociada vive en
--- Shared/Content/ComboAnimations, indexada por el mismo Id.
-export type ComboDefinition = {
-	Id: string,
-	Hits: { ComboHitWindow },
-	CooldownSeconds: number,
-	Cost: ResourceCost?,
-}
-
-export type CombatIntentType = "Attack" | "Block" | "Dash"
+-- Acciones de combate que el cliente puede pedir (D-025). El cliente pide la
+-- acción; el servidor decide qué habilidad ejecuta según el moveset.
+export type CombatAction = "LightAttack" | "HeavyAttack" | "Block" | "Dodge" | "Dash" | "Sprint"
 
 -- Intención enviada por el cliente al servidor; nunca contiene datos resolutivos como daño.
 export type CombatIntent = {
-	Type: CombatIntentType,
-	-- Attack: combo a ejecutar.
-	ComboId: string?,
-	-- Block: true al empezar a bloquear, false al soltar (idempotente).
+	Action: CombatAction,
+	-- Block y Sprint: true al pulsar, false al soltar (idempotente).
 	Active: boolean?,
+}
+
+-- Cómo se desplaza el personaje en una habilidad de movimiento (§18).
+-- "InputOr*": dirección del movimiento del jugador; si no se mueve, la alternativa.
+export type MovementDirection = "InputOrForward" | "InputOrBackward" | "Forward" | "Backward"
+
+export type MovementSpec = {
+	Distance: number,
+	Duration: number,
+	Direction: MovementDirection,
+	AllowAir: boolean,
 }
 
 export type ServerResponseStatus = "Accepted" | "Rejected" | "OnCooldown" | "InsufficientResource" | "InvalidState"
@@ -108,6 +99,8 @@ export type ServerResponseStatus = "Accepted" | "Rejected" | "OnCooldown" | "Ins
 export type ServerCombatResponse = {
 	Status: ServerResponseStatus,
 	Message: string?,
+	-- Habilidad de movimiento aceptada: el cliente aplica el desplazamiento (D-026).
+	Movement: MovementSpec?,
 }
 
 export type StateTransitionTable = { [CharacterStateName]: { CharacterStateName } }
