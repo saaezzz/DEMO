@@ -8,6 +8,9 @@ local Signal = require(Shared.Utils.Signal)
 
 type CharacterAttributes = GameTypes.CharacterAttributes
 type CharacterStateName = GameTypes.CharacterStateName
+type LocomotionState = GameTypes.LocomotionState
+type StateQuery = GameTypes.StateQuery
+type StateRequirements = GameTypes.StateRequirements
 type ResourcePool = GameTypes.ResourcePool
 type StateTransitionTable = GameTypes.StateTransitionTable
 type RaceId = ContentTypes.RaceId
@@ -67,6 +70,8 @@ type CharacterData = {
 	PostureChanged: Signal<number, number>, -- (nuevo, anterior)
 	ResourceChanged: Signal<ResourceId, number, number>, -- (recurso, nuevo, anterior)
 	Died: Signal<>,
+	LocomotionChanged: Signal<LocomotionState, LocomotionState>, -- (nueva, anterior)
+	FormChanged: Signal<string?, string?>, -- (nueva, anterior); nil = sin transformar
 
 	_health: number,
 	_maxHealth: number,
@@ -75,6 +80,8 @@ type CharacterData = {
 	_resources: { [ResourceId]: ResourcePool },
 	_isAlive: boolean,
 	_stateMachine: StateMachine,
+	_locomotion: LocomotionState,
+	_form: string?,
 	_destroyed: boolean,
 }
 
@@ -97,6 +104,8 @@ function Character.new(attributes: CharacterAttributes): Character
 		PostureChanged = Signal.new(),
 		ResourceChanged = Signal.new(),
 		Died = Signal.new(),
+		LocomotionChanged = Signal.new(),
+		FormChanged = Signal.new(),
 
 		_health = attributes.MaxHealth,
 		_maxHealth = attributes.MaxHealth,
@@ -105,6 +114,8 @@ function Character.new(attributes: CharacterAttributes): Character
 		_resources = resources,
 		_isAlive = attributes.MaxHealth > 0,
 		_stateMachine = StateMachine.new("Idle", STATE_TRANSITIONS),
+		_locomotion = "Stationary" :: LocomotionState,
+		_form = nil,
 		_destroyed = false,
 	}, Character)
 end
@@ -133,6 +144,7 @@ function Character.TakeDamage(self: Character, amount: number): number
 	self.HealthChanged:Fire(self._health, oldHealth)
 
 	if self._health <= 0 then
+		self:SetLocomotion("Stationary")
 		self._isAlive = false
 		self._stateMachine:TransitionTo("Dead")
 		self.Died:Fire()
@@ -271,6 +283,71 @@ function Character.OnStateChanged(self: Character, callback: StateMachine.StateC
 	return self._stateMachine:OnStateChanged(callback)
 end
 
+-- Capas de locomoción y forma (D-024) --------------------------------------------
+
+function Character.GetLocomotion(self: Character): LocomotionState
+	return self._locomotion
+end
+
+-- La decide MovementService a partir del movimiento real del personaje.
+function Character.SetLocomotion(self: Character, locomotion: LocomotionState): ()
+	if self._destroyed or not self._isAlive or locomotion == self._locomotion then
+		return
+	end
+	local old: LocomotionState = self._locomotion
+	self._locomotion = locomotion
+	self.LocomotionChanged:Fire(locomotion, old)
+end
+
+-- Id de la transformación activa, o nil.
+function Character.GetForm(self: Character): string?
+	return self._form
+end
+
+function Character.SetForm(self: Character, formId: string?): ()
+	if self._destroyed or not self._isAlive or formId == self._form then
+		return
+	end
+	local old = self._form
+	self._form = formId
+	self.FormChanged:Fire(formId, old)
+end
+
+function Character.IsTransformed(self: Character): boolean
+	return self._form ~= nil
+end
+
+-- Consulta cualquier estado de §15, sea de la capa que sea.
+function Character.IsInState(self: Character, query: StateQuery): boolean
+	if query == "Transformed" then
+		return self._form ~= nil
+	elseif query == "Stationary" or query == "Moving" or query == "Running" or query == "Sprinting" then
+		return self._locomotion == query
+	end
+	return self._stateMachine:GetState() == query
+end
+
+-- ¿Cumple los requisitos de estado de una habilidad? (§15). No comprueba si
+-- la transición al estado de la habilidad está permitida: eso es CanTransitionTo.
+function Character.MeetsRequirements(self: Character, requirements: StateRequirements): (boolean, string?)
+	if not self._isAlive then
+		return false, "Personaje muerto"
+	end
+	local state = self._stateMachine:GetState()
+	if not table.find(requirements.StartStates, state) then
+		return false, `No se puede desde {state}`
+	end
+	local locomotion = requirements.Locomotion
+	if locomotion ~= nil and not table.find(locomotion, self._locomotion) then
+		return false, `No se puede en {self._locomotion}`
+	end
+	local transformed = requirements.Transformed
+	if transformed ~= nil and transformed ~= (self._form ~= nil) then
+		return false, if transformed then "Requiere estar transformado" else "No se puede transformado"
+	end
+	return true, nil
+end
+
 -- Tras Destroy, los métodos siguen siendo seguros de llamar: no mutan estado
 -- ni emiten señales.
 function Character.Destroy(self: Character): ()
@@ -284,6 +361,8 @@ function Character.Destroy(self: Character): ()
 	self.PostureChanged:DisconnectAll()
 	self.ResourceChanged:DisconnectAll()
 	self.Died:DisconnectAll()
+	self.LocomotionChanged:DisconnectAll()
+	self.FormChanged:DisconnectAll()
 end
 
 return Character

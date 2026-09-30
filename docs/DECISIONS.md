@@ -135,7 +135,7 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
   - `Moving`, `Running`, `Sprinting` no son estados de acción sino una **capa de locomoción** independiente (MovementService, M2): un personaje puede atacar mientras se mueve, y meterlos en la misma máquina obligaría a duplicar cada acción por modo de movimiento.
   - `Transformed` es un **flag/capa** de TransformationService (M2), no un estado exclusivo: un personaje transformado sigue atacando, bloqueando, etc. `Transforming` (la animación de transformación) sí es un estado.
   - Se añade `Dashing` (movimiento rápido tipo Shunpo), distinto de `Dodging` (esquiva con i-frames).
-- **Revisión:** esta adaptación cambia la lista de §15 de la constitución; el Lead Programmer debe confirmarla o pedir el modelo literal.
+- **Revisión:** revisada y confirmada en D-024 (capas centralizadas en `Character`).
 
 ## D-018 — DataService v1: versionado, migraciones y aparición tras cargar datos
 - **Fecha:** 2026-09-29
@@ -191,3 +191,20 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
   - Ataques de jefe con **aviso visible** (círculos o zonas de peligro) para que el jugador pueda aprender el combate.
   - Probar el bucle completo con un personaje **nuevo de nivel 1**, incluida la derrota y el modo multijugador; arreglar un sistema cada vez.
 - **Qué no se adopta:** la generación de código con su herramienta. El proyecto tiene su propia arquitectura y su propio flujo de trabajo (constitución).
+
+## D-024 — Revisión de D-017: tres capas de estado centralizadas en Character
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED (revisión de D-017 pedida por el Lead Programmer antes de M2)
+- **Revisión:** §15 pide dos cosas: un sistema de estados **centralizado** con al menos 16 estados, y que las habilidades declaren desde qué estados pueden empezar. D-017 acertaba al separar acción, locomoción y forma: si `Running` o `Transformed` fueran estados exclusivos, cada acción habría que duplicarla (atacar corriendo, bloquear transformado…). Pero dejaba la locomoción y la forma para "algún servicio" futuro, con lo que el sistema ya no sería centralizado.
+- **Decisión:** `Character` guarda las tres capas y es el único sitio donde se consultan:
+
+  | Capa | Valores | Quién la cambia |
+  |---|---|---|
+  | Acción (máquina de estados) | `Idle`, `Attacking`, `Blocking`, `Parrying`, `Dodging`, `Dashing`, `Casting`, `Transforming`, `Stunned`, `Knocked`, `Ragdolled`, `Disabled`, `Dead` | Servicios de combate y habilidades |
+  | Locomoción | `Stationary`, `Moving` (lento), `Running`, `Sprinting` | `MovementService` según el movimiento real |
+  | Forma | id de transformación o `nil` (= `Transformed` o no) | Framework de transformaciones (futuro) |
+
+  - `Character:IsInState(nombre)` responde a cualquiera de los 16 estados de §15 (+ `Dashing`, + `Stationary`). `Idle` es el de acción; "parado" es `Stationary`.
+  - Las habilidades declaran `StateRequirements`: `StartStates` (obligatorio) y, opcionalmente, `Locomotion` y `Transformed`. `Character:MeetsRequirements` los comprueba.
+  - Las tres capas se replican como atributos (`ActionState`, `Locomotion`, `Form`; D-021).
+- **Motivo:** cumple §15 al completo sin duplicar acciones por modo de movimiento o forma.

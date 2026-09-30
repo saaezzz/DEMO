@@ -7,9 +7,11 @@ local ContentTypes = require(ReplicatedStorage.Shared.Types.ContentTypes)
 type RaceId = ContentTypes.RaceId
 type ResourceId = ContentTypes.ResourceId
 
--- Estados de acción de un personaje (§15, adaptado en D-017). Son exclusivos
--- entre sí. La locomoción (Moving/Running/Sprinting) y la forma transformada
--- (Transformed) son capas independientes, no estados de esta máquina.
+-- Estados de un personaje (§15, D-017 revisado en D-024). Tres capas
+-- centralizadas en Character:
+-- - Acción (CharacterStateName): exclusivos entre sí, máquina de estados.
+-- - Locomoción (LocomotionState): cómo se desplaza, a la vez que cualquier acción.
+-- - Forma: transformado o no ("Transformed").
 export type CharacterStateName =
 	"Idle"
 	| "Attacking"
@@ -24,6 +26,21 @@ export type CharacterStateName =
 	| "Ragdolled"
 	| "Disabled"
 	| "Dead"
+
+-- "Stationary" = sin desplazarse (el "Idle" de §15 es el estado de acción).
+export type LocomotionState = "Stationary" | "Moving" | "Running" | "Sprinting"
+
+-- Cualquier estado de §15, de cualquier capa (para Character:IsInState).
+export type StateQuery = CharacterStateName | LocomotionState | "Transformed"
+
+-- Estados desde los que puede empezar una habilidad (§15). Solo StartStates
+-- es obligatorio; el resto restringe además por locomoción o forma.
+export type StateRequirements = {
+	StartStates: { CharacterStateName },
+	Locomotion: { LocomotionState }?,
+	-- true: solo transformado; false: solo sin transformar; nil: da igual.
+	Transformed: boolean?,
+}
 
 export type ResourcePool = {
 	Current: number,

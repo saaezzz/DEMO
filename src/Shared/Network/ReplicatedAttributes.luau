@@ -14,6 +14,9 @@ local ReplicatedAttributes = {
 	MAX_POSTURE = "MaxPosture",
 	-- Estado de acción (CharacterStateName).
 	STATE = "ActionState",
+	-- Capa de locomoción (LocomotionState) y forma (id de transformación o nil), D-024.
+	LOCOMOTION = "Locomotion",
+	FORM = "Form",
 	-- Id del combo en curso; se escribe antes de pasar a Attacking.
 	ACTION_ID = "ActionId",
 }

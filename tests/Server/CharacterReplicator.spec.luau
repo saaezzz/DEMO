@@ -37,6 +37,8 @@ return {
 		expect(attributes.MaxPosture).toBe(80)
 		expect(attributes.Posture).toBe(0)
 		expect(attributes.ActionState).toBe("Idle")
+		expect(attributes.Locomotion).toBe("Stationary")
+		expect(attributes.Form).toBeNil()
 		expect(attributes[ReplicatedAttributes.Resource("Energy")]).toBe(40)
 		expect(attributes[ReplicatedAttributes.ResourceMax("Energy")]).toBe(100)
 	end,
@@ -45,8 +47,12 @@ return {
 		local attributes, character = bind()
 		character:ApplyPostureDamage(25)
 		character:SpendResource("Energy", 15)
+		character:SetLocomotion("Running")
+		character:SetForm("TestForm")
 		character:TransitionTo("Blocking")
 		expect(attributes.Posture).toBe(25)
+		expect(attributes.Locomotion).toBe("Running")
+		expect(attributes.Form).toBe("TestForm")
 		expect(attributes[ReplicatedAttributes.Resource("Energy")]).toBe(25)
 		expect(attributes.ActionState).toBe("Blocking")
 	end,

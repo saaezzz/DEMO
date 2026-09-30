@@ -7,7 +7,8 @@ viven como constantes al inicio de `src/Server/Services/CombatService.luau`.
 Estados de acción (exclusivos, D-017): `Idle`, `Attacking`, `Blocking`, `Parrying`, `Dodging`, `Dashing`,
 `Casting`, `Transforming`, `Stunned`, `Knocked`, `Ragdolled`, `Disabled`, `Dead`.
 Las interrupciones (`Stunned`, `Knocked`, `Ragdolled`, `Disabled`, `Dead`) pueden ocurrir desde cualquier estado vivo;
-`Dead` es terminal. Locomoción y forma transformada serán capas aparte (M2).
+`Dead` es terminal. Además hay dos capas simultáneas (D-024): locomoción (`Stationary`, `Moving`, `Running`, `Sprinting`)
+y forma (`Transformed` o no). Las habilidades declaran desde qué estados pueden empezar.
 En uso actualmente: `Idle`, `Attacking`, `Blocking`, `Dashing`, `Stunned`, `Dead`.
 
 ## Combate

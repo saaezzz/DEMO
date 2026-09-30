@@ -195,4 +195,70 @@ return {
 		expect(character:GetHealth()).toBe(100)
 		expect(emitted).toBe(false)
 	end,
+
+	["empieza parado y sin transformar"] = function()
+		local character = newCharacter()
+		expect(character:GetLocomotion()).toBe("Stationary")
+		expect(character:IsTransformed()).toBe(false)
+		expect(character:IsInState("Stationary")).toBe(true)
+		expect(character:IsInState("Transformed")).toBe(false)
+	end,
+
+	["las capas son independientes de la acción"] = function()
+		local character = newCharacter()
+		character:SetLocomotion("Sprinting")
+		character:SetForm("TestForm")
+		character:TransitionTo("Attacking")
+		expect(character:IsInState("Attacking")).toBe(true)
+		expect(character:IsInState("Sprinting")).toBe(true)
+		expect(character:IsInState("Transformed")).toBe(true)
+		expect(character:IsInState("Idle")).toBe(false)
+	end,
+
+	["SetLocomotion y SetForm emiten solo si cambian"] = function()
+		local character = newCharacter()
+		local locomotions, forms = {}, {}
+		character.LocomotionChanged:Connect(function(new, old)
+			table.insert(locomotions, `{old}>{new}`)
+		end)
+		character.FormChanged:Connect(function(new, old)
+			table.insert(forms, `{old}>{new}`)
+		end)
+		character:SetLocomotion("Running")
+		character:SetLocomotion("Running")
+		character:SetForm("A")
+		character:SetForm(nil)
+		expect(locomotions).toEqual({ "Stationary>Running" })
+		expect(forms).toEqual({ "nil>A", "A>nil" })
+	end,
+
+	["al morir la locomoción vuelve a Stationary y ya no cambia"] = function()
+		local character = newCharacter()
+		character:SetLocomotion("Running")
+		character:TakeDamage(1000)
+		expect(character:GetLocomotion()).toBe("Stationary")
+		character:SetLocomotion("Running")
+		expect(character:GetLocomotion()).toBe("Stationary")
+	end,
+
+	["MeetsRequirements comprueba estado, locomoción y forma"] = function()
+		local character = newCharacter()
+		expect((character:MeetsRequirements({ StartStates = { "Idle" } }))).toBe(true)
+		expect((character:MeetsRequirements({ StartStates = { "Blocking" } }))).toBe(false)
+		expect((character:MeetsRequirements({ StartStates = { "Idle" }, Locomotion = { "Sprinting" } }))).toBe(false)
+		character:SetLocomotion("Sprinting")
+		expect((character:MeetsRequirements({ StartStates = { "Idle" }, Locomotion = { "Sprinting" } }))).toBe(true)
+		expect((character:MeetsRequirements({ StartStates = { "Idle" }, Transformed = true }))).toBe(false)
+		character:SetForm("A")
+		expect((character:MeetsRequirements({ StartStates = { "Idle" }, Transformed = true }))).toBe(true)
+		expect((character:MeetsRequirements({ StartStates = { "Idle" }, Transformed = false }))).toBe(false)
+	end,
+
+	["MeetsRequirements falla si está muerto"] = function()
+		local character = newCharacter()
+		character:TakeDamage(1000)
+		local ok, reason = character:MeetsRequirements({ StartStates = { "Dead" } })
+		expect(ok).toBe(false)
+		expect(reason).toBe("Personaje muerto")
+	end,
 }
