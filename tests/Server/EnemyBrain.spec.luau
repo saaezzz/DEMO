@@ -85,4 +85,37 @@ return {
 		expect(noneReady).toBeNil()
 		expect(minimum).toBe(7)
 	end,
+
+	["PhaseIndex elige la última fase cuyo umbral se ha cruzado"] = function()
+		local boss = {
+			Attacks = ATTACKS,
+			AttackIntervalSeconds = 2,
+			WalkSpeed = 10,
+			Phases = { { HealthBelow = 0.6 }, { HealthBelow = 0.25 } },
+		}
+		expect(EnemyBrain.PhaseIndex(boss, 1)).toBe(0)
+		expect(EnemyBrain.PhaseIndex(boss, 0.6)).toBe(1)
+		expect(EnemyBrain.PhaseIndex(boss, 0.3)).toBe(1)
+		expect(EnemyBrain.PhaseIndex(boss, 0.1)).toBe(2)
+		expect(EnemyBrain.PhaseIndex({ Attacks = ATTACKS }, 0.1)).toBe(0)
+	end,
+
+	["PhaseSettings hereda lo que una fase no cambia"] = function()
+		local fury = { { Ability = "Charge", Range = 30, TelegraphSeconds = 1 } }
+		local boss = {
+			Attacks = ATTACKS,
+			AttackIntervalSeconds = 2,
+			WalkSpeed = 10,
+			Phases = {
+				{ HealthBelow = 0.6, Attacks = fury, WalkSpeed = 15 },
+				{ HealthBelow = 0.25, AttackIntervalSeconds = 1 },
+			},
+		}
+		local base = EnemyBrain.PhaseSettings(boss, 0)
+		expect(base.WalkSpeed).toBe(10)
+		local last = EnemyBrain.PhaseSettings(boss, 2)
+		expect(last.Attacks).toBe(fury)
+		expect(last.WalkSpeed).toBe(15)
+		expect(last.AttackIntervalSeconds).toBe(1)
+	end,
 }

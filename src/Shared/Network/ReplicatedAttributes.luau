@@ -30,6 +30,10 @@ local ReplicatedAttributes = {
 	-- Del aviso actual: radio del área en el suelo (0 = sin área) y segundos hasta el golpe.
 	TELEGRAPH_RADIUS = "TelegraphRadius",
 	TELEGRAPH_SECONDS = "TelegraphSeconds",
+	-- Jefes (D-037): marca de jefe, fase actual y aviso de la fase (texto).
+	IS_BOSS = "IsBoss",
+	ENEMY_PHASE = "EnemyPhase",
+	ANNOUNCEMENT = "Announcement",
 	-- Etiqueta (CollectionService) de los modelos de NPC que combaten.
 	NPC_TAG = "CombatNPC",
 }

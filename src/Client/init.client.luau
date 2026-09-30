@@ -21,6 +21,7 @@ local TargetFrameController = require(script.Controllers.TargetFrameController)
 local VfxController = require(script.Controllers.VfxController)
 local InventoryController = require(script.Controllers.InventoryController)
 local RaceSelectionController = require(script.Controllers.RaceSelectionController)
+local BossBarController = require(script.Controllers.BossBarController)
 local CharacterAnimationController = require(script.Controllers.CharacterAnimationController)
 
 Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
@@ -41,6 +42,7 @@ ServiceLoader.Run({
 	VfxController,
 	InventoryController,
 	RaceSelectionController,
+	BossBarController,
 	CharacterAnimationController,
 })
 

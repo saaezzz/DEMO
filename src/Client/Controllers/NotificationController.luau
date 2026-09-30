@@ -130,6 +130,11 @@ local NotificationController = {
 	Name = "NotificationController",
 }
 
+-- Muestra un aviso propio (p. ej. el cambio de fase de un jefe).
+function NotificationController:Show(text: string, color: Color3, size: number): ()
+	show(text, color, size)
+end
+
 function NotificationController:Start(): ()
 	local gui = UIUtil.create("ScreenGui", {
 		Name = "Notifications",

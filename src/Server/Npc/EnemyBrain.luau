@@ -9,6 +9,8 @@ local EnemyTypes = require(ReplicatedStorage.Shared.Types.EnemyTypes)
 
 type EnemyAggro = EnemyTypes.EnemyAggro
 type EnemyAttack = EnemyTypes.EnemyAttack
+type EnemyDefinition = EnemyTypes.EnemyDefinition
+type EnemyPhase = EnemyTypes.EnemyPhase
 
 export type Decision =
 	"Idle" -- sin objetivo: quieto
@@ -94,6 +96,43 @@ function EnemyBrain.Ranges(attacks: { EnemyAttack }, isReady: (abilityId: string
 		end
 	end
 	return readyRange, minRange
+end
+
+-- Ajustes con los que pelea en una fase (0 = sin fase: los de la base).
+export type PhaseSettings = {
+	Attacks: { EnemyAttack },
+	AttackIntervalSeconds: number,
+	WalkSpeed: number,
+}
+
+-- Índice de la fase para una vida `healthRatio` (0-1): la última cuyo umbral
+-- ya se ha cruzado. 0 si no ha entrado en ninguna.
+function EnemyBrain.PhaseIndex(definition: EnemyDefinition, healthRatio: number): number
+	local current = 0
+	local phases: { EnemyPhase } = definition.Phases or {}
+	for index, phase in phases do
+		if healthRatio <= phase.HealthBelow then
+			current = index
+		end
+	end
+	return current
+end
+
+-- Cada fase hereda lo que no cambia de las anteriores.
+function EnemyBrain.PhaseSettings(definition: EnemyDefinition, phaseIndex: number): PhaseSettings
+	local settings: PhaseSettings = {
+		Attacks = definition.Attacks,
+		AttackIntervalSeconds = definition.AttackIntervalSeconds,
+		WalkSpeed = definition.WalkSpeed,
+	}
+	local phases = definition.Phases or {}
+	for index = 1, math.min(phaseIndex, #phases) do
+		local phase = phases[index]
+		settings.Attacks = phase.Attacks or settings.Attacks
+		settings.AttackIntervalSeconds = phase.AttackIntervalSeconds or settings.AttackIntervalSeconds
+		settings.WalkSpeed = phase.WalkSpeed or settings.WalkSpeed
+	end
+	return settings
 end
 
 return EnemyBrain

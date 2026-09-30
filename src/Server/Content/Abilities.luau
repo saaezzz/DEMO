@@ -57,6 +57,28 @@ local BIND_HITBOX: HitboxDefinition = {
 	MaxTargets = 1,
 }
 
+local BOSS_SWIPE_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(14, 8, 12),
+	Offset = CFrame.new(0, 0, -7),
+	MaxTargets = 0,
+}
+
+-- Esfera centrada en el jefe: el radio (14) debe coincidir con el AreaRadius del ataque.
+local BOSS_SLAM_HITBOX: HitboxDefinition = {
+	Shape = "Sphere",
+	Size = Vector3.new(28, 28, 28),
+	Offset = CFrame.identity,
+	MaxTargets = 0,
+}
+
+local BOSS_CHARGE_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(9, 8, 10),
+	Offset = CFrame.new(0, 0, -5),
+	MaxTargets = 0,
+}
+
 local Abilities: { AbilityDefinition } = {
 	-- Cadena M1 (Moveset.LightAttack): dos tajos y un remate que empuja.
 	{
@@ -188,6 +210,69 @@ local Abilities: { AbilityDefinition } = {
 			},
 		},
 		Animation = "Enemy.Crush",
+	},
+
+	-- Jefe (Content/Enemies: GreatHollow) --------------------------------------
+
+	-- Zarpazo amplio delante.
+	{
+		Id = "BossSwipe",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.8,
+		Cooldown = 0,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.3,
+				Damage = 18,
+				PostureDamage = 20,
+				Hitbox = BOSS_SWIPE_HITBOX,
+				Knockback = 40,
+			},
+		},
+		Animation = "Enemy.Swipe",
+	},
+	-- Golpe al suelo en área alrededor del jefe: rompe la guardia. Se avisa con
+	-- un círculo en el suelo (AreaRadius en Content/Enemies): hay que salir o hacer parry.
+	{
+		Id = "BossSlam",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 1.1,
+		Cooldown = 6,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.35,
+				Damage = 32,
+				PostureDamage = 40,
+				Hitbox = BOSS_SLAM_HITBOX,
+				GuardBreak = true,
+				Knockback = 60,
+			},
+		},
+		Animation = "Enemy.Crush",
+	},
+	-- Carga en línea recta (fase 2+).
+	{
+		Id = "BossCharge",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.9,
+		Cooldown = 7,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.3,
+				Damage = 25,
+				PostureDamage = 25,
+				Hitbox = BOSS_CHARGE_HITBOX,
+				Knockback = 70,
+			},
+		},
+		Movement = { Distance = 30, Duration = 0.4, Direction = "Forward", AllowAir = false },
+		Animation = "Enemy.Lunge",
 	},
 
 	-- Movimiento (§18, §28): el mismo motor con distintos datos. Sonido,

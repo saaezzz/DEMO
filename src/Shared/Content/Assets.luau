@@ -138,6 +138,13 @@ local Assets: { AssetEntry } = {
 		"Enemy:EliteHollow",
 		"Rig R15 ×1,45, aspecto más agresivo."
 	),
+	pendingAsset(
+		"MDL_Boss_GreatHollow",
+		"Model",
+		"Arte/Builder",
+		"Enemy:GreatHollow",
+		"Rig R15 ×2,2. Jefe: silueta muy reconocible."
+	),
 
 	-- Efectos (Animación/Visual). Un Model o Part con ParticleEmitters; se coloca en
 	-- la posición del efecto y se emite. Ver docs/GUIA_EQUIPO.md.

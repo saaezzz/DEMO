@@ -29,11 +29,24 @@ local function startQuest(player: Player, questId: string): ()
 	end
 end
 
--- Un personaje nuevo (o que aún no la tenía) empieza la primera misión.
-local function ensureStartingQuest(player: Player): ()
+-- Al cargar el perfil: un personaje nuevo empieza la primera misión, y si se
+-- ha añadido una misión nueva a una cadena que el jugador ya había terminado,
+-- la empieza (así el contenido nuevo llega también a jugadores existentes).
+local function ensureQuests(player: Player): ()
 	local data = DataService:GetData(player)
-	if data ~= nil and #data.Quests.Active == 0 and not data.Quests.Completed[Quests.Starting] then
+	if data == nil then
+		return
+	end
+	if #data.Quests.Active == 0 and not data.Quests.Completed[Quests.Starting] then
 		startQuest(player, Quests.Starting)
+	end
+	for questId in data.Quests.Completed do
+		local definition = Quests.Definitions[questId]
+		local nextQuest = if definition ~= nil then definition.Next else nil
+		if nextQuest ~= nil then
+			-- startQuest ignora las que ya están en curso o completadas.
+			startQuest(player, nextQuest)
+		end
 	end
 end
 
@@ -42,11 +55,11 @@ local QuestService = {
 }
 
 function QuestService:Start(): ()
-	DataService.ProfileLoaded:Connect(ensureStartingQuest)
+	DataService.ProfileLoaded:Connect(ensureQuests)
 	-- Perfiles que terminaron de cargar antes de este Start.
 	for _, player in Players:GetPlayers() do
 		if DataService:IsLoaded(player) then
-			ensureStartingQuest(player)
+			ensureQuests(player)
 		end
 	end
 end

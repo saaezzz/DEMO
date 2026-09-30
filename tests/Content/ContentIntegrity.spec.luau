@@ -163,6 +163,56 @@ return {
 		end
 	end,
 
+	["las fases de los enemigos están ordenadas y usan habilidades existentes"] = function()
+		local abilityIds = {}
+		for _, ability in Abilities do
+			abilityIds[ability.Id] = true
+		end
+		for _, enemy in Enemies do
+			local previous = 1
+			for index, phase in enemy.Phases or {} do
+				if not (phase.HealthBelow > 0 and phase.HealthBelow < previous) then
+					error(`enemigo {enemy.Id}: la fase {index} debe tener HealthBelow menor que la anterior`)
+				end
+				previous = phase.HealthBelow
+				for _, attack in phase.Attacks or {} do
+					if not abilityIds[attack.Ability] then
+						error(`enemigo {enemy.Id}, fase {index}: habilidad desconocida "{attack.Ability}"`)
+					end
+				end
+			end
+		end
+	end,
+
+	["el círculo de aviso coincide con el radio real del golpe en área"] = function()
+		local byId = {}
+		for _, ability in Abilities do
+			byId[ability.Id] = ability
+		end
+		local function check(enemyId, attack)
+			if attack.AreaRadius == nil then
+				return
+			end
+			for _, hit in byId[attack.Ability].Hits or {} do
+				if hit.Hitbox.Shape == "Sphere" and math.abs(hit.Hitbox.Size.X / 2 - attack.AreaRadius) > 0.01 then
+					error(
+						`enemigo {enemyId}: AreaRadius {attack.AreaRadius} no coincide con la hitbox de {attack.Ability}`
+					)
+				end
+			end
+		end
+		for _, enemy in Enemies do
+			for _, attack in enemy.Attacks do
+				check(enemy.Id, attack)
+			end
+			for _, phase in enemy.Phases or {} do
+				for _, attack in phase.Attacks or {} do
+					check(enemy.Id, attack)
+				end
+			end
+		end
+	end,
+
 	["las apariciones usan enemigos existentes"] = function()
 		local ids = {}
 		for _, enemy in Enemies do

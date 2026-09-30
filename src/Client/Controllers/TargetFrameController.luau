@@ -31,7 +31,9 @@ end
 local function bind(model: Model?): ()
 	disconnectAll()
 	local humanoid = if model ~= nil then model:FindFirstChildOfClass("Humanoid") else nil
-	if model == nil or humanoid == nil then
+	-- Los jefes ya tienen su barra (BossBarController).
+	local isBoss = model ~= nil and model:GetAttribute(ReplicatedAttributes.IS_BOSS) == true
+	if model == nil or humanoid == nil or isBoss then
 		panel.Visible = false
 		return
 	end

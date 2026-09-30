@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local EnemyTypes = require(ReplicatedStorage.Shared.Types.EnemyTypes)
+local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 
 local Enemies = require(script.Parent.Parent.Content.Enemies)
@@ -28,6 +29,7 @@ type EnemyDefinition = EnemyTypes.EnemyDefinition
 type EnemySpawn = EnemyTypes.EnemySpawn
 type CombatEntity = CombatRegistry.CombatEntity
 type Npc = NpcFactory.Npc
+type PhaseSettings = EnemyBrain.PhaseSettings
 
 local FOLDER_NAME = "Enemies"
 local THINK_SECONDS = 0.2
@@ -47,6 +49,8 @@ type Enemy = {
 	NextAttackAt: number,
 	-- Jugadores que le han hecho daño: reciben EXP y cuentan para misiones.
 	Contributors: { [Player]: boolean },
+	-- Fase actual (0 = base, D-037).
+	Phase: number,
 }
 
 local log = Logger.new("EnemyService")
@@ -111,20 +115,46 @@ local function finishReturn(enemy: Enemy): ()
 	stop(enemy)
 end
 
-local function startAttack(enemy: Enemy, target: CombatEntity, distance: number, now: number): ()
+local function startAttack(
+	enemy: Enemy,
+	settings: PhaseSettings,
+	target: CombatEntity,
+	distance: number,
+	now: number
+): ()
 	local model = enemy.Npc.Model
-	local attack = EnemyBrain.PickAttack(enemy.Definition.Attacks, distance, random:NextNumber(), function(abilityId)
+	local attack = EnemyBrain.PickAttack(settings.Attacks, distance, random:NextNumber(), function(abilityId)
 		return CombatService:IsAbilityReady(model, abilityId)
 	end)
 	if attack == nil then
 		return
 	end
 	enemy.Winding = true
-	enemy.NextAttackAt = now + enemy.Definition.AttackIntervalSeconds
+	enemy.NextAttackAt = now + settings.AttackIntervalSeconds
 	stop(enemy)
 	NpcActions.TelegraphAttack(enemy.Npc, attack.Ability, attack.TelegraphSeconds, target.RootPart, function()
 		enemy.Winding = false
 	end, attack.AreaRadius)
+end
+
+-- Fase según la vida actual y sus ajustes. Al entrar en una fase más avanzada
+-- se publica para el cliente (barra de jefe y aviso, D-037).
+local function updatePhase(enemy: Enemy): PhaseSettings
+	local character = enemy.Npc.Character
+	local ratio = character:GetHealth() / character:GetMaxHealth()
+	local phase = EnemyBrain.PhaseIndex(enemy.Definition, ratio)
+	if phase ~= enemy.Phase then
+		local advanced = phase > enemy.Phase
+		enemy.Phase = phase
+		local model = enemy.Npc.Model
+		model:SetAttribute(ReplicatedAttributes.ENEMY_PHASE, phase)
+		local phases = enemy.Definition.Phases
+		local announcement = if advanced and phases ~= nil then phases[phase].Announcement else nil
+		if announcement ~= nil then
+			model:SetAttribute(ReplicatedAttributes.ANNOUNCEMENT, announcement)
+		end
+	end
+	return EnemyBrain.PhaseSettings(enemy.Definition, phase)
 end
 
 local function think(enemy: Enemy, now: number): ()
@@ -133,12 +163,11 @@ local function think(enemy: Enemy, now: number): ()
 	if not character:IsAlive() then
 		return
 	end
+	local settings = updatePhase(enemy)
 
 	-- Solo se desplaza mientras está libre (no atacando ni aturdido).
 	local state = character:GetState()
-	local speed = if enemy.Returning
-		then enemy.Definition.WalkSpeed * RETURN_SPEED_MULTIPLIER
-		else enemy.Definition.WalkSpeed
+	local speed = if enemy.Returning then settings.WalkSpeed * RETURN_SPEED_MULTIPLIER else settings.WalkSpeed
 	npc.Humanoid.WalkSpeed = if state == "Idle" and not enemy.Winding then speed else 0
 	if enemy.Winding then
 		return
@@ -156,7 +185,7 @@ local function think(enemy: Enemy, now: number): ()
 	local position = npc.RootPart.Position
 	local targetDistance = if target ~= nil then flatDistance(target.RootPart.Position, position) else nil
 	local model = npc.Model
-	local readyRange, minRange = EnemyBrain.Ranges(enemy.Definition.Attacks, function(abilityId)
+	local readyRange, minRange = EnemyBrain.Ranges(settings.Attacks, function(abilityId)
 		return CombatService:IsAbilityReady(model, abilityId)
 	end)
 
@@ -185,7 +214,7 @@ local function think(enemy: Enemy, now: number): ()
 		stop(enemy)
 		NpcActions.FaceTowards(npc, target.RootPart.Position)
 	elseif decision == "Attack" and target ~= nil and targetDistance ~= nil then
-		startAttack(enemy, target, targetDistance, now)
+		startAttack(enemy, settings, target, targetDistance, now)
 	end
 end
 
@@ -241,6 +270,7 @@ spawnEnemy = function(spawn: EnemySpawn): ()
 		Scale = definition.Appearance.Scale,
 		Mask = definition.Appearance.Mask,
 		ModelAsset = definition.Model,
+		Attributes = if definition.Tier == "Boss" then { [ReplicatedAttributes.IS_BOSS] = true } else nil,
 	})
 
 	local enemy: Enemy = {
@@ -253,6 +283,7 @@ spawnEnemy = function(spawn: EnemySpawn): ()
 		Winding = false,
 		NextAttackAt = 0,
 		Contributors = {},
+		Phase = 0,
 	}
 	enemies[npc.Model] = enemy
 	-- En su propio hilo: Died se emite dentro de un golpe (Signal síncrona, D-013).

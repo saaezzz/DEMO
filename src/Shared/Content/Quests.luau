@@ -60,6 +60,23 @@ local Definitions: { [string]: QuestDefinition } = {
 			},
 		},
 		Rewards = { Experience = 300 },
+		Next = "GreatHollowHunt",
+	},
+	GreatHollowHunt = {
+		Id = "GreatHollowHunt",
+		Title = "El Gran Hollow",
+		Type = "BossHunt",
+		Description = "Algo enorme acecha al fondo de la zona. Id en grupo si podéis: el círculo rojo avisa de su golpe en área.",
+		Objectives = {
+			{
+				Kind = "Kill",
+				Target = "GreatHollow",
+				Count = 1,
+				Description = "Derrota al Gran Hollow",
+				Location = Vector3.new(0, 6, -240),
+			},
+		},
+		Rewards = { Experience = 500 },
 	},
 }
 

@@ -39,6 +39,8 @@ export type NpcOptions = {
 	Scale: number?,
 	-- Máscara blanca en la cara.
 	Mask: boolean?,
+	-- Atributos extra del modelo (p. ej. IsBoss), puestos antes de que aparezca.
+	Attributes: { [string]: any }?,
 }
 
 export type Npc = {
@@ -134,6 +136,10 @@ function NpcFactory.Spawn(options: NpcOptions): Npc
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	model:PivotTo(options.CFrame)
 	model:SetAttribute(ReplicatedAttributes.DISPLAY_NAME, options.DisplayName)
+	local attributes: { [string]: any } = options.Attributes or {}
+	for name, value in attributes do
+		model:SetAttribute(name, value)
+	end
 
 	local character = CharacterModule.new({
 		Race = Races.Default,

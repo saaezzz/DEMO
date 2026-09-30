@@ -52,6 +52,14 @@ local Items: { [string]: ItemDefinition } = {
 		Rarity = "Epic",
 		MaxStack = 20,
 	},
+	GreatHollowMask = {
+		Id = "GreatHollowMask",
+		DisplayName = "Máscara del Gran Hollow",
+		Description = "Trofeo de haber derrotado al Gran Hollow.",
+		Category = "Material",
+		Rarity = "Legendary",
+		MaxStack = 5,
+	},
 }
 
 return Items

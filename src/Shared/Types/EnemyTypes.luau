@@ -7,7 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ItemTypes = require(ReplicatedStorage.Shared.Types.ItemTypes)
 
-export type EnemyTier = "Weak" | "Standard" | "Elite"
+export type EnemyTier = "Weak" | "Standard" | "Elite" | "Boss"
 
 export type EnemyAttack = {
 	-- Habilidad de Content/Abilities.
@@ -38,6 +38,17 @@ export type EnemyAggro = {
 	LeashRange: number,
 }
 
+-- Fase de un enemigo (§43): al bajar su vida de HealthBelow (fracción 0-1)
+-- cambia su forma de pelear. Los campos que falten se heredan de la base.
+export type EnemyPhase = {
+	HealthBelow: number,
+	Attacks: { EnemyAttack }?,
+	AttackIntervalSeconds: number?,
+	WalkSpeed: number?,
+	-- Aviso en pantalla al entrar en la fase.
+	Announcement: string?,
+}
+
 export type EnemyDefinition = {
 	Id: string,
 	DisplayName: string,
@@ -58,6 +69,8 @@ export type EnemyDefinition = {
 	Experience: number,
 	-- Botín (D-036): cada jugador que le haya hecho daño tira el suyo.
 	Drops: { ItemTypes.DropEntry }?,
+	-- Fases, de mayor a menor HealthBelow (jefes, D-037).
+	Phases: { EnemyPhase }?,
 }
 
 export type EnemySpawn = {

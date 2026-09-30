@@ -7,6 +7,27 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local EnemyTypes = require(ReplicatedStorage.Shared.Types.EnemyTypes)
 
 type EnemyDefinition = EnemyTypes.EnemyDefinition
+type EnemyPhase = EnemyTypes.EnemyPhase
+
+-- Fases del jefe: en la 2 añade la carga y acelera; en la 3 ataca sin pausa.
+local GREAT_HOLLOW_PHASES: { EnemyPhase } = {
+	{
+		HealthBelow = 0.6,
+		Attacks = {
+			{ Ability = "BossSwipe", Range = 12, TelegraphSeconds = 0.5 },
+			{ Ability = "BossSlam", Range = 12, TelegraphSeconds = 1.1, AreaRadius = 14 },
+			{ Ability = "BossCharge", Range = 35, TelegraphSeconds = 0.9 },
+		},
+		AttackIntervalSeconds = 1.5,
+		WalkSpeed = 16,
+		Announcement = "¡El Gran Hollow se enfurece!",
+	},
+	{
+		HealthBelow = 0.25,
+		AttackIntervalSeconds = 1.1,
+		Announcement = "¡El Gran Hollow está desesperado!",
+	},
+}
 
 local Enemies: { EnemyDefinition } = {
 	{
@@ -77,6 +98,34 @@ local Enemies: { EnemyDefinition } = {
 			{ Item = "EliteFang", Chance = 0.25, Min = 1, Max = 1 },
 			{ Item = "HealingBalm", Chance = 0.5, Min = 1, Max = 2 },
 		},
+	},
+
+	-- Jefe (§43, D-037): la dificultad sale de sus patrones y avisos, no de una
+	-- vida enorme. Contraataques: su postura se rompe (aturdido 1,5 s) y se le
+	-- puede hacer parry; el golpe en área se esquiva saliendo del círculo.
+	{
+		Id = "GreatHollow",
+		DisplayName = "Gran Hollow",
+		Tier = "Boss",
+		Model = "MDL_Boss_GreatHollow",
+		Level = 10,
+		MaxHealth = 1600,
+		MaxPosture = 250,
+		WalkSpeed = 13,
+		Appearance = { BodyColor = "#141418", Scale = 2.2, Mask = true },
+		Aggro = { DetectionRange = 50, LoseRange = 90, LeashRange = 110 },
+		Attacks = {
+			{ Ability = "BossSwipe", Range = 12, TelegraphSeconds = 0.6 },
+			{ Ability = "BossSlam", Range = 12, TelegraphSeconds = 1.2, AreaRadius = 14 },
+		},
+		AttackIntervalSeconds = 1.9,
+		Experience = 600,
+		Drops = {
+			{ Item = "HollowCore", Chance = 1, Min = 2, Max = 3 },
+			{ Item = "EliteFang", Chance = 1, Min = 1, Max = 2 },
+			{ Item = "GreatHollowMask", Chance = 0.3, Min = 1, Max = 1 },
+		},
+		Phases = GREAT_HOLLOW_PHASES,
 	},
 }
 
