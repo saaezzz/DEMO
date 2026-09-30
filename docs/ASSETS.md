@@ -8,7 +8,7 @@ de los IDs de Roblox: ningún sistema escribe un `rbxassetid://` a mano.
 
 | Categoría | Prefijo | Ejemplo |
 |---|---|---|
-| Animation | `ANIM` | `ANIM_Sword_BasicSlash` |
+| Animation | `ANIM` | `ANIM_Sword_Slash1` |
 | Model | `MDL` | `MDL_Weapon_StarterSword` |
 | VFX | `VFX` | `VFX_Combat_SlashTrail` |
 | SFX | `SFX` | `SFX_Combat_SwordHit` |
@@ -28,7 +28,7 @@ El mismo nombre se usa en Studio y en los archivos fuente (`assets/`, Blender) p
 | `Status` | Ver flujo de estados |
 | `Version` | Se incrementa cada vez que se sustituye el asset subido |
 | `Dependencies` | Otros assets del manifiesto que necesita |
-| `UsedBy` | Qué lo usa (p. ej. `Combo:BasicSlash`) |
+| `UsedBy` | Qué lo usa (p. ej. `Ability:Slash1`) |
 | `Notes` | Indicaciones para quien lo crea (duración, markers, estilo...) |
 
 ## Flujo de estados
@@ -44,8 +44,10 @@ Un asset `APPROVED` o `INTEGRATED` debe tener `AssetId` (lo comprueba un test).
 ## Assets actuales
 | Nombre | Categoría | Estado | Usado por |
 |---|---|---|---|
-| `ANIM_Sword_BasicSlash` | Animation | TODO | `Combo:BasicSlash` |
+| `ANIM_Sword_Slash1`–`3` | Animation | TODO | `Ability:Slash1`–`3` |
+| `ANIM_Sword_HeavySlash` | Animation | TODO | `Ability:HeavySlash` |
+| `ANIM_Combat_Dodge` | Animation | TODO | `Ability:Dodge` |
 | `ANIM_Combat_Block` | Animation | TODO | `State:Blocking` |
-| `ANIM_Combat_Dash` | Animation | TODO | `State:Dashing` |
+| `ANIM_Combat_Dash` | Animation | TODO | `Ability:Dash` |
 | `ANIM_Reaction_Stun` | Animation | TODO | `State:Stunned` |
 | `ANIM_Locomotion_*` (9) | Animation | INTEGRATED (catálogo Roblox, provisional) | `Locomotion` |

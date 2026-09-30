@@ -1,13 +1,13 @@
 # Animations
 
-Constitución §53 y D-020. Los sistemas usan **claves** de animación (`Combat.BasicSlash`), nunca IDs.
+Constitución §53 y D-020. Los sistemas usan **claves** de animación (`Combat.Slash1`), nunca IDs.
 
 ## Piezas
 | Módulo | Función |
 |---|---|
 | `Shared/Content/Assets` | Asset de la animación (ID de Roblox, estado, dueño) |
 | `Shared/Content/Animations` | Clave → asset, prioridad, bucle y markers esperados |
-| `Shared/Content/ComboAnimations` | Combo → clave de animación |
+| `Server/Content/Abilities` | Cada habilidad lleva su clave de animación (`Animation`) |
 | `Shared/Modules/AnimationRegistry` | `Get`, `GetContentId`, `GetEnumPriority`, `IsValidMarker` |
 
 Si el asset aún no tiene `AssetId`, la animación no se reproduce, pero la mecánica funciona igual
@@ -34,7 +34,7 @@ Mientras Animación/Visual no entregue los assets:
   que `Content/Animations`. Son keyframes de ángulos por articulación R15 que se suman al `C0` de los `Motor6D`.
 
 Qué animación toca en cada momento sale del estado replicado del personaje (D-021):
-`Attacking` → animación del combo (`ComboAnimations[ActionId]`); el resto de estados, `Content/StateAnimations`.
+cada habilidad lleva su animación y el servidor la replica con `ActionAnimation` y `ActionSeq` (D-025); los estados que no vienen de una habilidad (guardia, aturdimiento), con `Content/StateAnimations`.
 
 **Al subir un asset real:** rellenar su `AssetId` y su estado en el manifiesto. El asset sustituye al
 placeholder sin cambiar código: lo reproduce el dueño en su `Animator` y replica a los demás.
@@ -43,7 +43,9 @@ Un test exige que toda animación de acción tenga asset o placeholder.
 ## Pendientes de crear
 | Clave | Asset | Uso |
 |---|---|---|
-| `Combat.BasicSlash` | `ANIM_Sword_BasicSlash` | Combo `BasicSlash` (marker `Hit`) |
+| `Combat.Slash1`–`Slash3` | `ANIM_Sword_Slash1`–`3` | Cadena M1 (marker `Hit`) |
+| `Combat.HeavySlash` | `ANIM_Sword_HeavySlash` | Ataque pesado (marker `Hit`) |
+| `Combat.Dodge` | `ANIM_Combat_Dodge` | Esquiva |
 | `Combat.Block` | `ANIM_Combat_Block` | Estados `Blocking` y `Parrying` (bucle) |
-| `Combat.Dash` | `ANIM_Combat_Dash` | Estado `Dashing` |
+| `Combat.Dash` | `ANIM_Combat_Dash` | Dash |
 | `Reaction.Stun` | `ANIM_Reaction_Stun` | Estados `Stunned` y `Knocked` (bucle) |

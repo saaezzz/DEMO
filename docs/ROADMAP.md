@@ -20,8 +20,12 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [ ] Registro de habilidades → se hace con el framework de habilidades en M2 (D-020).
 - [x] UI y animaciones provisionales propias (D-022), adelantadas del HUD de M3 a petición del Lead Programmer.
 
-## M2 — Combat Foundation (P0/P1)
-- Framework y registro de habilidades, Hitbox/Damage/Cooldown/Resource, dodge, heavy, stamina, dummy de entrenamiento, framework de movimiento.
+## M2 — Combat Foundation (P0/P1) — HECHO (pendiente de verificación en Studio)
+- [x] Revisión de D-017: capas de estado centralizadas (D-024).
+- [x] Framework y registro de habilidades; cadena M1, ataque pesado, esquiva, dash (D-025).
+- [x] Servicios compartidos: hitbox, daño, cooldowns, recursos (stamina), movimiento (D-025, D-026).
+- [x] Muñecos de entrenamiento (D-027).
+- [ ] Validación anti speed-hack del movimiento (antes de abrir el juego; `SECURITY.md`).
 
 ## M3 — Loop PvE mínimo (P1)
 - Enemigos + IA básica (con avisos visibles en ataques fuertes, D-023), EXP/nivel data-driven, HUD completo (EXP, cooldowns, quest tracker, objetivo), cámara + lock-on.

@@ -33,7 +33,7 @@ local AssetRegistry = {}
 AssetRegistry.CATEGORY_PREFIXES = CATEGORY_PREFIXES
 
 -- <PREFIJO>_<Grupo>_<Nombre>, en PascalCase y sin espacios.
--- Ej.: ANIM_Sword_BasicSlash, VFX_Combat_SlashTrail, UI_Hud_HealthBar.
+-- Ej.: ANIM_Sword_Slash1, VFX_Combat_SlashTrail, UI_Hud_HealthBar.
 function AssetRegistry.IsValidName(name: string, category: AssetCategory): boolean
 	local prefix = CATEGORY_PREFIXES[category]
 	if prefix == nil or string.sub(name, 1, #prefix + 1) ~= prefix .. "_" then

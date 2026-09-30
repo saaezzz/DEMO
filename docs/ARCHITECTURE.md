@@ -29,13 +29,21 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Services/CharacterService` — aparición tras cargar el perfil, sincronización con el `Humanoid`, reaparición y liberación.
 - `Data/DataSchema`, `Data/Migrator` — versión, plantilla y migraciones del perfil.
 - `Packages/ProfileStore` — tercero, no se modifica.
-- `Services/CombatService` — carga los combos, atiende `CombatIntent`: ataque, bloqueo/parry, dash, aturdimientos, regeneración.
-- `Modules/HitboxUtil` — consultas espaciales y resolución de objetivos.
+- `Services/CombatService` — registra a los personajes que combaten, atiende `CombatIntent` y gestiona la guardia (bloqueo/parry).
+- `Services/AbilityService` — framework de habilidades (§17, D-025): requisitos, cooldown, coste, golpes, cadena M1.
+- `Services/MovementService` — velocidad, sprint y capa de locomoción (D-026).
+- `Services/ResourceService` — regeneración de recursos (con espera tras gastar) y postura.
+- `Services/TrainingService` — muñecos de entrenamiento (D-027).
+- `Combat/CombatRegistry` — personajes en combate y su estado de combate; punto común de los servicios.
+- `Combat/DamageService`, `Combat/DamageResolver` — aplicación y resolución (pura) de golpes: parry, bloqueo, guardia rota, i-frames, aturdimiento, empuje.
+- `Combat/HitboxService`, `Combat/HitboxUtil` — objetivos válidos y consultas espaciales.
+- `Combat/Cooldowns`, `Combat/ComboChain`, `Combat/TaskScheduler` — piezas puras de cooldowns, cadena M1 y tareas agrupadas.
+- `Config/CombatConfig`, `Config/MovementConfig` — valores de balance.
 - `Network/ServerNetwork` — crea los remotes y registra handlers con validación obligatoria.
 - `Network/RemoteGuard` — rate limit + validación + `pcall` para cada handler.
-- `Modules/CombatIntentValidator` — esquema del payload de `CombatIntent`.
+- `Combat/CombatIntentValidator` — esquema del payload de `CombatIntent`.
 - `Modules/RateLimiter` — token bucket por clave (Luau puro).
-- `Content/Combos`, `Content/CombatActions` — contenido autoritativo (combos, parámetros del dash).
+- `Content/Abilities`, `Content/Movesets`, `Content/TrainingDummies` — contenido autoritativo (habilidades, qué habilidad va en cada acción, muñecos).
 - `Modules/CharacterReplicator` — refleja el estado del `Character` en atributos del modelo (D-021).
 
 ### Client
@@ -43,21 +51,23 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 - `Controllers/InputController` — acciones abstractas de input (teclado, mando, táctil; `docs/INPUT.md`).
 - `Input/InputBindings` — controles por acción y plataforma.
 - `Controllers/CombatController` — traduce acciones a intents de combate.
+- `Controllers/MovementController` — aplica el desplazamiento de dash y esquiva aprobados (D-026).
 - `Controllers/HudController`, `Controllers/NameplateController`, `Controllers/HitFeedbackController` — UI provisional (`docs/UI.md`, D-022).
 - `Controllers/CharacterAnimationController` — locomoción y animaciones de acción según el estado replicado (`docs/ANIMATIONS.md`, D-022).
 - `UI/Theme`, `UI/UIUtil`, `UI/StatBar` — estilo y componentes de UI.
 - `Animation/ProceduralClip`, `Animation/ProceduralAnimator`, `Animation/PlaceholderAnimations` — animaciones procedurales provisionales.
-- `Utils/CharacterWatcher` — callback por cada personaje de jugador que aparece, con limpieza al irse.
+- `Utils/CharacterWatcher` — callback por cada personaje que aparece (jugadores y NPCs etiquetados), con limpieza al irse.
 - `Network/ClientNetwork` — `Invoke`/`Fire`/`OnEvent` sobre los remotes.
 - `Controllers/PlayerDataController` — copia local de los datos del jugador.
 
 ### Shared
-- `Types/GameTypes`, `Types/ContentTypes`, `Types/PlayerDataTypes` — tipos del núcleo, del contenido y del perfil.
+- `Types/GameTypes`, `Types/AbilityTypes`, `Types/ContentTypes`, `Types/PlayerDataTypes` — tipos del núcleo, del contenido y del perfil.
 - `Config/CharacterConfig` — valores base de balance (no IP).
 - `Content/Races`, `Content/Resources` — contenido público (capa IP).
-- `Content/Assets`, `Content/Animations`, `Content/ComboAnimations`, `Content/StateAnimations`, `Content/LocomotionAnimations` — manifiesto de assets y animaciones (`docs/ASSETS.md`, `docs/ANIMATIONS.md`).
+- `Content/Assets`, `Content/Animations`, `Content/StateAnimations`, `Content/LocomotionAnimations` — manifiesto de assets y animaciones (`docs/ASSETS.md`, `docs/ANIMATIONS.md`).
 - `Modules/StateMachine` — máquina de estados genérica.
-- `Modules/Character` — vida, recursos genéricos, postura y estado de un personaje.
+- `Modules/Character` — vida, recursos genéricos, postura y las tres capas de estado de un personaje (D-024).
+- `Modules/VelocityImpulse` — velocidad temporal (dash, esquiva, empuje).
 - `Modules/AssetRegistry`, `Modules/AnimationRegistry` — acceso al manifiesto de assets y a las animaciones (D-020).
 - `Network/RemoteDefinitions` — catálogo de remotes y rate limits (D-016).
 - `Network/Schema` — validadores declarativos de payloads.
@@ -68,15 +78,19 @@ El cliente envía **intenciones**; el servidor las valida y decide.
 
 ## Arranque
 `ServiceLoader.Run` ejecuta `Init` de todos los servicios en orden y después `Start` (D-014).
-Servidor: `ServerNetwork` → `DataService` → `CombatService` → `CharacterService`. Cliente: `PlayerDataController` → `InputController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `CharacterAnimationController`.
+Servidor: `ServerNetwork` → `DataService` → `AbilityService` → `MovementService` → `ResourceService` → `CombatService` → `CharacterService` → `TrainingService`. Cliente: `PlayerDataController` → `InputController` → `MovementController` → `CombatController` → `HudController` → `NameplateController` → `HitFeedbackController` → `CharacterAnimationController`.
 
-## Flujo de un ataque
-1. El cliente envía `{ Type = "Attack", ComboId }` por `CombatIntent`.
-2. `RemoteGuard` aplica rate limit y valida el payload; `CombatService` comprueba personaje vivo, estado, cooldown y recurso.
-3. Transición a `Attacking` y programación de los golpes (`task.delay` por ventana de golpe).
-4. Cada golpe consulta la hitbox en la posición actual del atacante y resuelve bloqueo, parry, daño y postura.
-5. Al salir de `Attacking` por cualquier motivo se cancelan los golpes pendientes.
-6. El servidor escribe `ActionId` y `ActionState` en el modelo (D-021); todos los clientes animan el ataque a partir de ahí (D-022).
+## Flujo de una habilidad (D-025)
+1. El cliente envía `{ Action = "LightAttack" }` por `CombatIntent`.
+2. `RemoteGuard` aplica rate limit y valida el payload; `CombatService` busca el personaje vivo del jugador.
+3. `AbilityService` elige la habilidad con el moveset (y la cadena M1), y comprueba requisitos de estado (§15),
+   transición, aire, cooldown y coste.
+4. Escribe `ActionAnimation`/`ActionSeq` en el modelo, pasa al estado de la habilidad y programa sus golpes.
+5. Cada golpe consulta `HitboxService` desde la posición actual del atacante y `DamageService` resuelve
+   i-frames, parry, bloqueo, guardia rota, daño, postura, aturdimiento y empuje.
+6. Salir del estado de la habilidad por cualquier motivo (aturdido, esquiva, muerte) cancela los golpes pendientes.
+7. Si es de movimiento, la respuesta lleva el desplazamiento y el cliente lo aplica (D-026).
+8. Todos los clientes animan la habilidad a partir de los atributos replicados (D-021, D-022).
 
 ## Capa de contenido (IP)
 Constitución §4 y D-017. El núcleo (servicios, módulos, tipos, red) no contiene nombres de la IP;

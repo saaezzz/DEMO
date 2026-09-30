@@ -1,7 +1,7 @@
 --!strict
 
 -- Acceso a las animaciones de juego (§53, D-020). Los sistemas usan claves
--- ("Combat.BasicSlash") y markers estándar; nunca IDs de Roblox.
+-- ("Combat.Slash1") y markers estándar; nunca IDs de Roblox.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 

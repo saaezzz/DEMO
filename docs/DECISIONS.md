@@ -208,3 +208,32 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
   - Las habilidades declaran `StateRequirements`: `StartStates` (obligatorio) y, opcionalmente, `Locomotion` y `Transformed`. `Character:MeetsRequirements` los comprueba.
   - Las tres capas se replican como atributos (`ActionState`, `Locomotion`, `Form`; D-021).
 - **Motivo:** cumple §15 al completo sin duplicar acciones por modo de movimiento o forma.
+
+## D-025 — Framework de habilidades y servicios de combate compartidos
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:**
+  - **Toda acción de combate es una `AbilityDefinition`** (`Shared/Types/AbilityTypes`, contenido en `Server/Content/Abilities`): estado de acción, `StateRequirements` (§15), duración, cooldown, coste, golpes (`AbilityHit` con marker, daño, postura, hitbox, rompe-guardia, empuje), i-frames, movimiento y animación. `AbilityService` las ejecuta todas por el mismo camino. Los combos de M1 y `CombatActions` desaparecen: son habilidades.
+  - **El cliente pide acciones, no habilidades:** `CombatIntent = { Action, Active? }`. El servidor elige la habilidad con el **moveset** (`Server/Content/Movesets`); `LightAttack` es una cadena (`ComboChain`) que avanza si se pulsa dentro de `ComboWindowSeconds` tras el golpe anterior. Un cliente no puede pedir una habilidad que no tiene.
+  - **Servicios de §13/§17 sin dependencias circulares:** `CombatRegistry` guarda las entidades de combate (personaje, humanoid, tareas, guardia, acción en curso, gastos, sprint) y es lo único que comparten `CombatService` (intents y guardia), `AbilityService`, `DamageService`, `HitboxService`, `ResourceService` y `MovementService`. Las piezas con lógica pura (`DamageResolver`, `Cooldowns`, `ComboChain`, `TaskScheduler`) tienen tests.
+  - **Replicación de la habilidad:** `ActionAnimation` + `ActionSeq` (contador) en el modelo, escritos antes de la transición. El contador hace que dos habilidades seguidas del mismo estado (tajo 1 → tajo 2) se distingan. Sustituyen a `ActionId`.
+  - **Reglas nuevas (§16):** hitstun breve en golpes limpios, empuje, guardia rota, i-frames, esquiva que cancela ataques y bloqueos, y aturdimientos que solo se alargan. **PvE:** solo hay daño entre jugadores y NPCs (`CombatRegistry.AreHostile`).
+  - `StatusEffectService`, `AnimationService`, `VFXService` y `SFXService` de §17 no se crean todavía: el único efecto de estado es el aturdimiento (en `DamageService`) y las animaciones ya tienen su sistema (D-022). Se crearán cuando haya un segundo caso real (§66).
+- **Motivo:** §17 (una habilidad nueva solo necesita definición, animación, VFX, SFX y balance) y §15 (requisitos de estado declarados por la habilidad).
+
+## D-026 — Framework de movimiento: el servidor decide, el cliente desplaza
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:**
+  - Los desplazamientos de las habilidades (`MovementSpec`: distancia, duración, dirección, si vale en el aire) son datos de la habilidad (§18): Shunpo, Sonido o Hirenkyaku serán definiciones distintas del mismo motor.
+  - El servidor valida y cobra; si acepta, la respuesta de `CombatIntent` lleva el `MovementSpec` y **el cliente aplica el impulso** (`VelocityImpulse`, un `LinearVelocity` temporal). El cliente es dueño de la física de su personaje en Roblox; aplicarlo en el servidor añadiría una ida y vuelta de latencia sin impedir nada a un exploit.
+  - `MovementService` (servidor) decide la `WalkSpeed` según el estado (normal, sprint, lento al atacar/bloquear, casi quieto aturdido), gasta stamina al correr (con un mínimo para empezar, para que no sea entrecortado) y actualiza la capa de locomoción (D-024).
+  - El empuje de los golpes lo aplica el servidor con el mismo `VelocityImpulse`: la restricción replica al dueño de la física.
+  - Se desactiva el shift-lock de Roblox (`EnableMouseLockOption = false`) porque Shift es sprint; la cámara de combate llega en M3.
+- **Riesgo aceptado:** falta validar el desplazamiento real contra speed-hacks y teletransportes (`SECURITY.md`). Pendiente antes de abrir el juego.
+
+## D-027 — Muñecos de entrenamiento
+- **Fecha:** 2026-09-30
+- **Estado:** ACCEPTED
+- **Decisión:** `TrainingService` crea tres NPCs (`Server/Content/TrainingDummies`): pasivo, atacante y en guardia. Usan **el mismo** `Character`, `CombatService` y habilidades que un jugador (sin atajos), llevan la etiqueta `CombatNPC` y el atributo `DisplayName`, y reaparecen al morir. El atacante avisa con el atributo `Telegraph` (contorno rojo en el cliente) 0,6 s antes de golpear, aplicando la pauta de D-023. La física de los NPCs es del servidor.
+- **Motivo:** §63 pide un dummy de entrenamiento en M2, y permite probar todo el combate (parry, esquiva, guardia rota) sin un segundo jugador. Además, es la primera prueba de que el sistema sirve igual para NPCs, antes de los enemigos de M3.

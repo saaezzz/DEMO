@@ -6,6 +6,9 @@ Las entradas nuevas van en `Unreleased`.
 ## [Unreleased]
 
 ### Added
+- M2 Combat Foundation: framework de habilidades (D-025) con cadena M1 de tres golpes, ataque pesado que rompe guardias, esquiva con i-frames y dash direccional y aéreo; hitstun y empuje; stamina y sprint (D-026); muñecos de entrenamiento pasivo, atacante (con aviso rojo) y en guardia (D-027).
+- Capas de locomoción y forma en `Character` (D-024): `IsInState` responde a los 16 estados de §15 y `MeetsRequirements` comprueba los requisitos de las habilidades.
+- Servicios `AbilityService`, `MovementService`, `ResourceService` y `TrainingService`; módulos `CombatRegistry`, `DamageService`, `DamageResolver`, `HitboxService`, `Cooldowns`, `ComboChain`, `TaskScheduler` y `VelocityImpulse`.
 - UI provisional propia (D-022, `docs/UI.md`): HUD con vida, postura, recursos, nivel/raza y estado; placas sobre los demás jugadores; destello y números de daño; pantalla de muerte con cuenta atrás. Sustituye la barra de vida y el nombre por defecto de Roblox.
 - Animaciones provisionales (D-022): locomoción con el pack Ninja del catálogo de Roblox y animaciones procedurales de tajo, guardia, dash y aturdimiento, sustituibles por assets reales sin tocar código.
 - Estado de los personajes replicado por atributos del modelo (`CharacterReplicator`, `ReplicatedAttributes`, D-021).
@@ -28,6 +31,9 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- `CombatIntent` pasa a `{ Action, Active? }`: el cliente pide acciones y el servidor elige la habilidad (D-025). `Combos`, `CombatActions` y `ComboAnimations` se sustituyen por `Abilities` y `Movesets`.
+- Los golpes solo afectan a enemigos (PvE). Transformar pasa a R2 en mando; Sprint usa Shift/L3 y se desactiva el shift-lock de Roblox.
+- Valores de balance de combate en `Server/Config/CombatConfig` y de movimiento en `Server/Config/MovementConfig`.
 - `CombatController` solo envía intents; las animaciones pasan a `CharacterAnimationController`.
 - `CharacterService` usa `LoadCharacterAsync` (sustituye a la API obsoleta `LoadCharacter`) en una tarea propia con `pcall`.
 - Las animaciones de combo se resuelven por clave vía `AnimationRegistry`; el marker del golpe de `BasicSlash` pasa a `Hit`.

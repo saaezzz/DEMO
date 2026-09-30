@@ -10,16 +10,19 @@ implementado** y los riesgos conocidos pendientes.
 | Payloads malformados o enormes | Esquema estricto: tipos, rangos, longitudes, sin claves desconocidas | `Schema` |
 | Uso de la tabla del cliente | El handler recibe una copia saneada | `Schema.record` |
 | Error en un handler | `pcall` + log; el cliente recibe `nil` | `RemoteGuard` |
-| Daño/cooldown/recurso decidido por el cliente | Todo se resuelve en el servidor; el intent no lleva valores | `CombatService` |
-| Acciones de personajes muertos | Se rechazan | `CombatService.getActiveCharacter` |
+| Daño/cooldown/recurso decidido por el cliente | Todo se resuelve en el servidor; el intent no lleva valores | `AbilityService`, `DamageService` |
+| Cliente que elige una habilidad que no tiene | El cliente pide acciones; la habilidad sale del moveset del servidor | `AbilityService` (D-025) |
+| Acciones de personajes muertos | Se rechazan | `CombatRegistry.GetAlive` |
 | Parry encadenado pulsando bloqueo | Una ventana de parry cada 0,8 s | `CombatService` (D-009) |
-| Reiniciar cooldowns muriendo | Los cooldowns son por jugador, no por modelo | `CombatService` |
+| Reiniciar cooldowns muriendo | Los cooldowns son por jugador, no por modelo | `AbilityService` |
+| Friendly fire | Los golpes solo afectan a personajes hostiles (jugador ↔ NPC) | `CombatRegistry.AreHostile` |
 | Sesiones concurrentes / duplicación de datos | Bloqueo de sesión de ProfileStore; si otro servidor toma la sesión, se expulsa al jugador | `DataService` |
 | Corrupción por migraciones o rollback | Migración sobre copia; versiones futuras no se tocan | `Migrator` (D-018) |
 | Datos de otros jugadores | Cada cliente solo recibe sus propios datos | `DataService` (D-005) |
 | Vida modificada fuera del servidor | Vida autoritativa en `Character`; regeneración de Roblox desactivada | D-010 |
 
 ## Riesgos conocidos (pendientes)
-- **Movimiento:** no hay validación de velocidad/teletransporte. Necesario antes de que Shunpo mueva al personaje (framework de movimiento, M2).
+- **Movimiento (D-026):** la física del personaje es del cliente (así funciona Roblox): un exploit puede cambiar su
+  WalkSpeed local o desplazarse más de lo permitido. El servidor ya decide velocidad, costes y cooldowns, pero **aún no
+  comprueba el desplazamiento real** (anti speed-hack / teletransporte). Pendiente antes de abrir el juego a público.
 - **Hitbox sin orientación:** el bloqueo protege también de golpes por la espalda.
-- **Friendly fire:** los jugadores pueden dañarse entre sí; falta la capa de facciones/objetivos válidos (juego PvE).

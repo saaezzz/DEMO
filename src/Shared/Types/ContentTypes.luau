@@ -37,7 +37,7 @@ export type AssetEntry = {
 	Version: number,
 	-- Nombres de otros assets del manifiesto que necesita.
 	Dependencies: { string },
-	-- Qué lo usa (p. ej. "Combo:BasicSlash"), para saber qué se rompe si cambia.
+	-- Qué lo usa (p. ej. "Ability:Slash1"), para saber qué se rompe si cambia.
 	UsedBy: { string },
 	Notes: string?,
 }
