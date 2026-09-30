@@ -28,6 +28,15 @@ local Items: { [string]: ItemDefinition } = {
 		MaxStack = 10,
 		Use = { Restore = { Resource = "Reiatsu", Amount = 50 }, Cooldown = 5 },
 	},
+	ReishiVial = {
+		Id = "ReishiVial",
+		DisplayName = "Vial de Reishi",
+		Description = "Recupera 50 de Reishi.",
+		Category = "Consumable",
+		Rarity = "Uncommon",
+		MaxStack = 10,
+		Use = { Restore = { Resource = "Reishi", Amount = 50 }, Cooldown = 5 },
+	},
 	MaskFragment = {
 		Id = "MaskFragment",
 		DisplayName = "Fragmento de máscara",

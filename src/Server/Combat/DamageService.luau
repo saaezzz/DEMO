@@ -2,7 +2,7 @@
 
 -- Aplica los golpes (§17 DamageService): resuelve el resultado con
 -- DamageResolver y lo aplica al defensor (daño, postura, aturdimiento,
--- empuje) o al atacante (parry).
+-- empuje) o al atacante (parry, robo de vida).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -11,6 +11,7 @@ local VelocityImpulse = require(ReplicatedStorage.Shared.Modules.VelocityImpulse
 local CombatConfig = require(script.Parent.Parent.Config.CombatConfig)
 local CombatRegistry = require(script.Parent.CombatRegistry)
 local DamageResolver = require(script.Parent.DamageResolver)
+local Modifiers = require(script.Parent.Modifiers)
 local Signal = require(ReplicatedStorage.Shared.Utils.Signal)
 
 type AbilityHit = AbilityTypes.AbilityHit
@@ -24,6 +25,8 @@ local DamageService = {
 	-- aplicar el daño: quien da el golpe final ya consta cuando el defensor muere.
 	-- Síncrona: los handlers no deben ceder (D-013).
 	HitLanded = Signal.new() :: Signal.Signal<CombatEntity, CombatEntity, HitOutcome>,
+	-- (atacante, defensor, golpe) cuando un golpe derrota al defensor. Síncrona.
+	Killed = Signal.new() :: Signal.Signal<CombatEntity, CombatEntity, AbilityHit>,
 }
 
 -- Si ya está aturdido, solo se alarga: un aturdimiento corto (hitstun) no
@@ -78,6 +81,8 @@ function DamageService.ApplyHit(attacker: CombatEntity, defender: CombatEntity, 
 	local character = defender.Character
 	local state = character:GetState()
 
+	local multiplier = Modifiers.Multiplier(attacker.Modifiers, "DamageDealt", now)
+		* Modifiers.Multiplier(defender.Modifiers, "DamageTaken", now)
 	local outcome = DamageResolver.Resolve({
 		Damage = hit.Damage,
 		PostureDamage = hit.PostureDamage,
@@ -88,6 +93,10 @@ function DamageService.ApplyHit(attacker: CombatEntity, defender: CombatEntity, 
 		DefenderInvulnerable = isInvulnerable(defender, now),
 		DefenderPosture = character:GetPosture(),
 		DefenderMaxPosture = character:GetMaxPosture(),
+		DefenderHealth = character:GetHealth(),
+		DefenderMaxHealth = character:GetMaxHealth(),
+		DamageMultiplier = multiplier,
+		Execute = hit.Execute,
 	}, CombatConfig)
 
 	if outcome.Kind == "Evaded" then
@@ -101,11 +110,19 @@ function DamageService.ApplyHit(attacker: CombatEntity, defender: CombatEntity, 
 		return outcome
 	end
 
-	character:TakeDamage(outcome.Damage)
-	character:ApplyPostureDamage(outcome.PostureDamage)
+	local healthBefore = character:GetHealth()
+	local dealt = healthBefore - character:TakeDamage(outcome.Damage)
+	local drain = hit.Drain
+	if drain ~= nil and dealt > 0 and attacker.Character:IsAlive() then
+		attacker.Character:Heal(dealt * drain)
+	end
 	if not character:IsAlive() then
+		if healthBefore > 0 then
+			DamageService.Killed:Fire(attacker, defender, hit)
+		end
 		return outcome
 	end
+	character:ApplyPostureDamage(outcome.PostureDamage)
 
 	if outcome.PostureBreak then
 		character:ResetPosture()

@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AbilityTypes = require(ReplicatedStorage.Shared.Types.AbilityTypes)
 local CharacterModule = require(ReplicatedStorage.Shared.Modules.Character)
+local Modifiers = require(script.Parent.Modifiers)
 local TaskScheduler = require(script.Parent.TaskScheduler)
 
 type AbilityDefinition = AbilityTypes.AbilityDefinition
@@ -41,6 +42,8 @@ export type CombatEntity = {
 	-- Último gasto de cada recurso, para el retardo de regeneración.
 	LastSpent: { [string]: number },
 	SprintRequested: boolean,
+	-- Potenciadores activos (D-040).
+	Modifiers: Modifiers.ModifierSet,
 }
 
 local entities: { [Model]: CombatEntity } = {}
@@ -68,6 +71,7 @@ function CombatRegistry.Create(model: Model, character: Character, player: Playe
 		StunEndsAt = nil,
 		LastSpent = {},
 		SprintRequested = false,
+		Modifiers = {},
 	}
 end
 

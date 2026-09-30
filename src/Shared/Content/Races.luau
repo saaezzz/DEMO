@@ -1,8 +1,9 @@
 --!strict
 
 -- Contenido: razas (capa IP, §4, §21). Cada raza define su kit inicial
--- (D-034): moveset, arma y objetos. Para abrir una raza basta con completar
--- su kit y poner Playable = true.
+-- (D-034): moveset, arma y objetos; y sus hitos de progresión (D-039), que
+-- desbloquean técnicas. Para abrir una raza basta con completar su kit y
+-- poner Playable = true.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -19,6 +20,7 @@ local Definitions: { [string]: RaceDefinition } = {
 		Playable = false,
 		Resources = { "Reiatsu", "Stamina" },
 		Kit = { Moveset = "Default", StartingItems = {} },
+		Milestones = {},
 	},
 	Shinigami = {
 		Id = "Shinigami",
@@ -34,24 +36,68 @@ local Definitions: { [string]: RaceDefinition } = {
 				{ Item = "ReiatsuTonic", Quantity = 2 },
 			},
 		},
+		-- El descubrimiento de la Zanpakuto (M6) usará estos hitos.
+		Milestones = {},
 	},
-	-- M5 (vertical slice 0.2).
+	-- §29: la evolución no es "mata X y evoluciona": pide nivel y devorar.
 	Hollow = {
 		Id = "Hollow",
 		DisplayName = "Hollow",
-		Description = "Almas devoradas por el hambre. Garras, devorar y Cero.",
-		Playable = false,
+		Description = "Almas devoradas por el hambre. Luchan con garras, devoran a sus presas para curarse y evolucionar, y disparan Cero.",
+		Playable = true,
 		Resources = { "Reiatsu", "Stamina" },
-		Kit = { Moveset = "Default", StartingItems = {} },
+		Kit = {
+			Moveset = "Hollow",
+			Weapon = "HollowMask",
+			StartingItems = {
+				{ Item = "HealingBalm", Quantity = 2 },
+				{ Item = "ReiatsuTonic", Quantity = 2 },
+			},
+		},
+		Milestones = {
+			{
+				Id = "Hunger",
+				DisplayName = "Hambre insaciable",
+				Description = "Tu hambre crece con cada alma devorada.",
+				RequiredLevel = 2,
+				RequiredStats = { Devoured = 3 },
+				UnlockSkills = { "Bala" },
+			},
+			-- Prototipo del primer paso de la evolución (§29).
+			{
+				Id = "Gillian",
+				DisplayName = "Gillian",
+				Description = "Has devorado suficientes almas para empezar a evolucionar.",
+				RequiredLevel = 5,
+				RequiredStats = { Devoured = 12 },
+				UnlockSkills = { "Hierro" },
+			},
+		},
 	},
-	-- M5. El Reishi ambiental (§32) se añadirá como recurso propio de la raza.
 	Quincy = {
 		Id = "Quincy",
 		DisplayName = "Quincy",
-		Description = "Arqueros que absorben el Reishi del entorno.",
-		Playable = false,
-		Resources = { "Reiatsu", "Stamina" },
-		Kit = { Moveset = "Default", StartingItems = {} },
+		Description = "Arqueros que absorben el Reishi del entorno. Disparan Heilig Pfeil a distancia y endurecen su cuerpo con Blut.",
+		Playable = true,
+		Resources = { "Reishi", "Stamina" },
+		Kit = {
+			Moveset = "Quincy",
+			Weapon = "SpiritBow",
+			StartingItems = {
+				{ Item = "HealingBalm", Quantity = 3 },
+				{ Item = "ReishiVial", Quantity = 2 },
+			},
+		},
+		Milestones = {
+			{
+				Id = "BlutArterie",
+				DisplayName = "Blut Arterie",
+				Description = "Tu Reishi fluye por tu sangre y refuerza tus ataques.",
+				RequiredLevel = 3,
+				RequiredStats = { ArrowKills = 15 },
+				UnlockSkills = { "BlutArterie" },
+			},
+		},
 	},
 }
 

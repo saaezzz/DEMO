@@ -79,6 +79,62 @@ local BOSS_CHARGE_HITBOX: HitboxDefinition = {
 	MaxTargets = 0,
 }
 
+-- Garras de un jugador Hollow: algo más cortas que una espada.
+local PLAYER_CLAW_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(6, 5, 5.5),
+	Offset = CFrame.new(0, 0, -3.5),
+	MaxTargets = 4,
+}
+
+-- Mordisco a un único objetivo pegado al Hollow.
+local DEVOUR_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(5, 6, 7),
+	Offset = CFrame.new(0, 0, -4),
+	MaxTargets = 1,
+}
+
+-- Cero: rayo ancho y muy largo que atraviesa a varios enemigos.
+local CERO_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(5, 5, 50),
+	Offset = CFrame.new(0, 0.5, -26),
+	MaxTargets = 5,
+}
+
+-- Bala: proyectil rápido y fino a un único objetivo.
+local BALA_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(2.5, 2.5, 35),
+	Offset = CFrame.new(0, 0.5, -18.5),
+	MaxTargets = 1,
+}
+
+-- Flecha: línea fina de largo alcance, a un único objetivo.
+local ARROW_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(2.5, 3, 36),
+	Offset = CFrame.new(0, 0.5, -19),
+	MaxTargets = 1,
+}
+
+-- Flecha cargada: más gruesa y larga, atraviesa hasta tres enemigos.
+local CHARGED_ARROW_HITBOX: HitboxDefinition = {
+	Shape = "Box",
+	Size = Vector3.new(3.5, 3.5, 45),
+	Offset = CFrame.new(0, 0.5, -23.5),
+	MaxTargets = 3,
+}
+
+-- Lluvia de flechas: círculo de radio 9 a 18 studs por delante.
+local ARROW_RAIN_HITBOX: HitboxDefinition = {
+	Shape = "Sphere",
+	Size = Vector3.new(18, 18, 18),
+	Offset = CFrame.new(0, 0, -18),
+	MaxTargets = 0,
+}
+
 local Abilities: { AbilityDefinition } = {
 	-- Cadena M1 (Moveset.LightAttack): dos tajos y un remate que empuja.
 	{
@@ -342,6 +398,284 @@ local Abilities: { AbilityDefinition } = {
 			},
 		},
 		Animation = "Cast.Bind",
+	},
+
+	-- Hollow (§29) --------------------------------------------------------------
+
+	-- Cadena M1 con garras: rápida, algo menos de alcance que la espada.
+	{
+		Id = "ClawSlash1",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.4,
+		Cooldown = 0,
+		Hits = {
+			{ MarkerName = "Hit", StartTime = 0.18, Damage = 9, PostureDamage = 8, Hitbox = PLAYER_CLAW_HITBOX },
+		},
+		Animation = "Claw.Slash1",
+	},
+	{
+		Id = "ClawSlash2",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.4,
+		Cooldown = 0,
+		Hits = {
+			{ MarkerName = "Hit", StartTime = 0.18, Damage = 9, PostureDamage = 8, Hitbox = PLAYER_CLAW_HITBOX },
+		},
+		Animation = "Claw.Slash2",
+	},
+	{
+		Id = "ClawSlash3",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.6,
+		Cooldown = 0,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.28,
+				Damage = 15,
+				PostureDamage = 14,
+				Hitbox = PLAYER_CLAW_HITBOX,
+				Knockback = 50,
+			},
+		},
+		Animation = "Claw.Slash3",
+	},
+	-- Desgarro con las dos garras: el pesado del Hollow.
+	{
+		Id = "ClawRend",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.85,
+		Cooldown = 3,
+		Cost = { Resource = "Stamina", Amount = 20 },
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.45,
+				Damage = 22,
+				PostureDamage = 30,
+				Hitbox = HEAVY_HITBOX,
+				GuardBreak = true,
+				Knockback = 40,
+			},
+		},
+		Animation = "Claw.Heavy",
+	},
+	-- Devorar: mordisco que cura lo que hace y remata a un enemigo debilitado
+	-- (no a un jefe). Cada remate cuenta para la evolución (Content/Races).
+	{
+		Id = "Devour",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.9,
+		Cooldown = 8,
+		Cost = { Resource = "Reiatsu", Amount = 10 },
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.45,
+				Damage = 12,
+				PostureDamage = 0,
+				Hitbox = DEVOUR_HITBOX,
+				Unblockable = true,
+				Drain = 1,
+				Execute = { HealthFraction = 0.3, MaxDamage = 150 },
+				KillStat = "Devoured",
+			},
+		},
+		Animation = "Claw.Bite",
+	},
+	-- Cero: carga larga y rayo devastador.
+	{
+		Id = "Cero",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 1.2,
+		Cooldown = 9,
+		Cost = { Resource = "Reiatsu", Amount = 35 },
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.8,
+				Damage = 30,
+				PostureDamage = 25,
+				Hitbox = CERO_HITBOX,
+				Knockback = 45,
+			},
+		},
+		Animation = "Cast.ChargedBeam",
+	},
+	-- Bala: disparo rápido y barato (se desbloquea con un hito).
+	{
+		Id = "Bala",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.6,
+		Cooldown = 2,
+		Cost = { Resource = "Reiatsu", Amount = 8 },
+		Hits = {
+			{ MarkerName = "Hit", StartTime = 0.35, Damage = 10, PostureDamage = 15, Hitbox = BALA_HITBOX },
+		},
+		Animation = "Cast.Point",
+	},
+	-- Hierro: piel endurecida, recibe un 30 % menos de daño durante 10 s.
+	{
+		Id = "Hierro",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.5,
+		Cooldown = 18,
+		Cost = { Resource = "Reiatsu", Amount = 25 },
+		SelfModifier = { Id = "Hierro", Duration = 10, DamageTaken = 0.7 },
+		Animation = "Cast.Focus",
+	},
+	-- Sonido: desplazamiento rápido del Hollow, también en el aire.
+	{
+		Id = "Sonido",
+		State = "Dashing",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.3,
+		Cooldown = 0.8,
+		Cost = { Resource = "Reiatsu", Amount = 12 },
+		Movement = { Distance = 26, Duration = 0.2, Direction = "InputOrForward", AllowAir = true },
+		Animation = "Combat.Dash",
+	},
+
+	-- Quincy (§31) ---------------------------------------------------------------
+
+	-- Cadena M1: tres flechas de Heilig Pfeil. Cada baja cuenta para sus hitos.
+	{
+		Id = "Pfeil1",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.45,
+		Cooldown = 0,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.25,
+				Damage = 7,
+				PostureDamage = 5,
+				Hitbox = ARROW_HITBOX,
+				KillStat = "ArrowKills",
+			},
+		},
+		Animation = "Bow.Shot",
+	},
+	{
+		Id = "Pfeil2",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.45,
+		Cooldown = 0,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.25,
+				Damage = 7,
+				PostureDamage = 5,
+				Hitbox = ARROW_HITBOX,
+				KillStat = "ArrowKills",
+			},
+		},
+		Animation = "Bow.Shot",
+	},
+	{
+		Id = "Pfeil3",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.55,
+		Cooldown = 0,
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.25,
+				Damage = 11,
+				PostureDamage = 8,
+				Hitbox = ARROW_HITBOX,
+				Knockback = 30,
+				KillStat = "ArrowKills",
+			},
+		},
+		Animation = "Bow.Shot",
+	},
+	-- Flecha cargada: el pesado del Quincy. Rompe la guardia a distancia.
+	{
+		Id = "ChargedPfeil",
+		State = "Attacking",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.95,
+		Cooldown = 3,
+		Cost = { Resource = "Stamina", Amount = 20 },
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.6,
+				Damage = 22,
+				PostureDamage = 25,
+				Hitbox = CHARGED_ARROW_HITBOX,
+				GuardBreak = true,
+				Knockback = 40,
+				KillStat = "ArrowKills",
+			},
+		},
+		Animation = "Bow.Charged",
+	},
+	-- Licht Regen: lluvia de flechas sobre una zona por delante.
+	{
+		Id = "LichtRegen",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 1.1,
+		Cooldown = 10,
+		Cost = { Resource = "Reishi", Amount = 35 },
+		Hits = {
+			{
+				MarkerName = "Hit",
+				StartTime = 0.7,
+				Damage = 18,
+				PostureDamage = 15,
+				Hitbox = ARROW_RAIN_HITBOX,
+				KillStat = "ArrowKills",
+			},
+		},
+		Animation = "Bow.Rain",
+	},
+	-- Blut Vene: sangre endurecida, recibe un 40 % menos de daño durante 8 s.
+	{
+		Id = "BlutVene",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.5,
+		Cooldown = 20,
+		Cost = { Resource = "Reishi", Amount = 30 },
+		SelfModifier = { Id = "BlutVene", Duration = 8, DamageTaken = 0.6 },
+		Animation = "Cast.Focus",
+	},
+	-- Blut Arterie: hace un 35 % más de daño durante 8 s (se desbloquea con un hito).
+	{
+		Id = "BlutArterie",
+		State = "Casting",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.5,
+		Cooldown = 20,
+		Cost = { Resource = "Reishi", Amount = 30 },
+		SelfModifier = { Id = "BlutArterie", Duration = 8, DamageDealt = 1.35 },
+		Animation = "Cast.Focus",
+	},
+	-- Hirenkyaku: paso sobre Reishi, el más largo, también en el aire.
+	{
+		Id = "Hirenkyaku",
+		State = "Dashing",
+		Requirements = { StartStates = { "Idle" } },
+		Duration = 0.3,
+		Cooldown = 0.9,
+		Cost = { Resource = "Reishi", Amount = 12 },
+		Movement = { Distance = 32, Duration = 0.22, Direction = "InputOrForward", AllowAir = true },
+		Animation = "Combat.Dash",
 	},
 }
 

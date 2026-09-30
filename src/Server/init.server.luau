@@ -18,6 +18,7 @@ local InventoryService = require(script.Services.InventoryService)
 local RaceService = require(script.Services.RaceService)
 local ProgressionService = require(script.Services.ProgressionService)
 local QuestService = require(script.Services.QuestService)
+local MilestoneService = require(script.Services.MilestoneService)
 local TrainingService = require(script.Services.TrainingService)
 local EnemyService = require(script.Services.EnemyService)
 local AssetAuditService = require(script.Services.AssetAuditService)
@@ -40,6 +41,7 @@ ServiceLoader.Run({
 	QuestService,
 	TrainingService,
 	EnemyService,
+	MilestoneService,
 	AssetAuditService,
 })
 

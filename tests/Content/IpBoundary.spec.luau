@@ -33,6 +33,9 @@ local IP_TERMS = {
 	"vollst",
 	"blut",
 	"schrift",
+	"pfeil",
+	"gillian",
+	"adjuchas",
 }
 
 -- Términos que también son palabras comunes en español (arrancar, cero,
@@ -44,6 +47,7 @@ local CASE_SENSITIVE_IP_TERMS = {
 	"Hierro",
 	"Hado",
 	"Resurrecci",
+	"Licht",
 }
 
 local function isContentPath(path)

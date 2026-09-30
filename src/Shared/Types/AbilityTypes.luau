@@ -14,6 +14,24 @@ type ResourceCost = GameTypes.ResourceCost
 type HitboxDefinition = GameTypes.HitboxDefinition
 type MovementSpec = GameTypes.MovementSpec
 
+-- Remate (D-038): si al objetivo le queda como mucho HealthFraction de su vida
+-- máxima y no más de MaxDamage de vida, el golpe lo derrota. MaxDamage impide
+-- rematar de un golpe a enemigos con mucha vida (jefes).
+export type ExecuteSpec = {
+	HealthFraction: number,
+	MaxDamage: number,
+}
+
+-- Modificador temporal sobre el propio personaje (D-040). Los multiplicadores
+-- se aplican al daño (0,6 = recibe un 40 % menos; 1,3 = hace un 30 % más).
+-- Dos modificadores con el mismo Id no se acumulan: el nuevo sustituye al viejo.
+export type ModifierSpec = {
+	Id: string,
+	Duration: number,
+	DamageTaken: number?,
+	DamageDealt: number?,
+}
+
 -- Un golpe dentro de una habilidad. Se comprueba la hitbox en StartTime.
 export type AbilityHit = {
 	-- Keyframe Marker de la animación que corresponde a este golpe (§53).
@@ -30,6 +48,12 @@ export type AbilityHit = {
 	Stun: number?,
 	-- Ignora el bloqueo y el parry.
 	Unblockable: boolean?,
+	-- Fracción del daño hecho que recupera el atacante como vida (D-038).
+	Drain: number?,
+	Execute: ExecuteSpec?,
+	-- Estadística del perfil (Content/Stats) que suma 1 si este golpe derrota
+	-- al objetivo. La usan los hitos de raza (D-039).
+	KillStat: string?,
 }
 
 -- Invulnerabilidad desde el inicio de la habilidad (segundos).
@@ -51,6 +75,8 @@ export type AbilityDefinition = {
 	Hits: { AbilityHit }?,
 	Movement: MovementSpec?,
 	IFrames: IFrameWindow?,
+	-- Se aplica al propio personaje al empezar la habilidad (D-040).
+	SelfModifier: ModifierSpec?,
 	-- Clave de Content/Animations.
 	Animation: string?,
 }

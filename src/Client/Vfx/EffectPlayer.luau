@@ -8,6 +8,8 @@
 -- cada emisor lanza `EmitCount` partículas (atributo del emisor, 20 por
 -- defecto) y el objeto se borra tras `Lifetime` segundos (atributo del objeto;
 -- por defecto, la duración del efecto + 2 s para que acaben las partículas).
+-- Un aura de Arte (Kind "Aura") se suelda al personaje y sus emisores siguen
+-- emitiendo de forma continua hasta que acaba su duración.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -27,6 +29,8 @@ export type PlayOptions = {
 	-- Instancias que el rayo al suelo debe atravesar (p. ej. el propio atacante,
 	-- para que un círculo no se quede a media altura sobre su cuerpo).
 	Ignore: { Instance }?,
+	-- Personaje al que se pega un aura (Kind "Aura"). Sin él, el aura no se muestra.
+	Attach: Model?,
 }
 
 local folder: Folder? = nil
@@ -78,18 +82,34 @@ local function groundBelow(position: Vector3, ignore: { Instance }?): Vector3
 	return if result ~= nil then result.Position else position
 end
 
-local function playAsset(instance: Instance, origin: CFrame, duration: number): ()
+-- Piezas de un efecto de Arte (el propio objeto incluido, si es una Part).
+local function effectParts(instance: Instance): { BasePart }
+	local parts: { BasePart } = {}
+	if instance:IsA("BasePart") then
+		table.insert(parts, instance)
+	end
+	for _, descendant in instance:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			table.insert(parts, descendant)
+		end
+	end
+	return parts
+end
+
+local function placeAt(instance: Instance, origin: CFrame): ()
 	if instance:IsA("Model") then
 		instance:PivotTo(origin)
 	elseif instance:IsA("BasePart") then
 		instance.CFrame = origin
 	end
-	for _, descendant in instance:GetDescendants() do
-		if descendant:IsA("BasePart") then
-			descendant.Anchored = true
-			descendant.CanCollide = false
-			descendant.CanQuery = false
-		end
+end
+
+local function playAsset(instance: Instance, origin: CFrame, duration: number): ()
+	placeAt(instance, origin)
+	for _, part in effectParts(instance) do
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
 	end
 	instance.Parent = getFolder()
 	for _, descendant in instance:GetDescendants() do
@@ -104,6 +124,49 @@ local function playAsset(instance: Instance, origin: CFrame, duration: number): 
 	end)
 end
 
+-- Aura de Arte: soldada al HumanoidRootPart, se borra al acabar la duración.
+local function attachAsset(instance: Instance, root: BasePart, duration: number): ()
+	placeAt(instance, root.CFrame)
+	for _, part in effectParts(instance) do
+		part.Anchored = false
+		part.CanCollide = false
+		part.CanQuery = false
+		part.Massless = true
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = root
+		weld.Part1 = part
+		weld.Parent = part
+	end
+	instance.Parent = getFolder()
+	task.delay(duration, function()
+		instance:Destroy()
+	end)
+end
+
+-- Aura provisional: contorno y relleno de color sobre todo el personaje.
+local function playHighlight(model: Model, color: Color3, duration: number): ()
+	local highlight = Instance.new("Highlight")
+	highlight.FillColor = color
+	highlight.OutlineColor = color
+	highlight.FillTransparency = 0.8
+	highlight.OutlineTransparency = 0.2
+	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+	highlight.Parent = model
+	-- Se desvanece en el último cuarto para avisar de que se acaba.
+	local fadeSeconds = duration * 0.25
+	task.delay(duration - fadeSeconds, function()
+		if highlight.Parent ~= nil then
+			TweenService:Create(highlight, TweenInfo.new(fadeSeconds), {
+				FillTransparency = 1,
+				OutlineTransparency = 1,
+			}):Play()
+		end
+	end)
+	task.delay(duration, function()
+		highlight:Destroy()
+	end)
+end
+
 local EffectPlayer = {}
 
 -- Reproduce el efecto `effectId` en `origin` (normalmente el HumanoidRootPart).
@@ -115,6 +178,21 @@ function EffectPlayer.Play(effectId: string, origin: CFrame, options: PlayOption
 	local cframe = origin * (definition.Offset or CFrame.identity)
 	local duration = if options ~= nil and options.Duration ~= nil then options.Duration else definition.Duration
 	local radius = if options ~= nil and options.Radius ~= nil then options.Radius else definition.Radius or 3
+
+	if definition.Kind == "Aura" then
+		local model = if options ~= nil then options.Attach else nil
+		local root = if model ~= nil then model:FindFirstChild("HumanoidRootPart") else nil
+		if model == nil or root == nil or not root:IsA("BasePart") then
+			return
+		end
+		local auraAsset = if definition.Asset ~= nil then AssetLibrary.Clone(definition.Asset) else nil
+		if auraAsset ~= nil then
+			attachAsset(auraAsset, root, duration)
+		else
+			playHighlight(model, Color3.fromHex(definition.Color), duration)
+		end
+		return
+	end
 
 	if definition.Kind == "Ring" then
 		-- Los avisos de área van en el suelo, también el asset de Arte.

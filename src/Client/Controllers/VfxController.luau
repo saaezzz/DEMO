@@ -31,7 +31,7 @@ local function onAbilityStarted(model: Model): ()
 			-- Desde donde esté y hacia donde mire en ese momento.
 			local root = getRoot(model)
 			if root ~= nil then
-				EffectPlayer.Play(effect.Effect, root.CFrame)
+				EffectPlayer.Play(effect.Effect, root.CFrame, { Attach = model })
 			end
 		end)
 	end

@@ -36,6 +36,22 @@ local Animations: { [string]: AnimationDefinition } = {
 	["Combat.Dash"] = action("ANIM_Combat_Dash", {}),
 	["Cast.Point"] = action("ANIM_Cast_Point", { "Hit" }),
 	["Cast.Bind"] = action("ANIM_Cast_Bind", { "Hit" }),
+	-- Concentrarse para un potenciador (sin golpe).
+	["Cast.Focus"] = action("ANIM_Cast_Focus", {}),
+
+	-- Hollow
+	["Claw.Slash1"] = action("ANIM_Claw_Slash1", { "Hit" }),
+	["Claw.Slash2"] = action("ANIM_Claw_Slash2", { "Hit" }),
+	["Claw.Slash3"] = action("ANIM_Claw_Slash3", { "Hit" }),
+	["Claw.Heavy"] = action("ANIM_Claw_Heavy", { "Hit" }),
+	["Claw.Bite"] = action("ANIM_Claw_Bite", { "Hit" }),
+	["Cast.ChargedBeam"] = action("ANIM_Cast_ChargedBeam", { "Hit" }),
+
+	-- Quincy
+	["Bow.Shot"] = action("ANIM_Bow_Shot", { "Hit" }),
+	["Bow.Charged"] = action("ANIM_Bow_Charged", { "Hit" }),
+	["Bow.Rain"] = action("ANIM_Bow_Rain", { "Hit" }),
+
 	["Reaction.Stun"] = {
 		Asset = "ANIM_Reaction_Stun",
 		Priority = "Action",

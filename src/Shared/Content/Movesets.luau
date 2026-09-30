@@ -27,6 +27,24 @@ local Movesets: { [string]: Moveset } = {
 		Dash = "Shunpo",
 		Skills = { "Byakurai", "Sai" },
 	},
+	-- Hollow (§29): garras, devorar, Cero y Sonido. Bala e Hierro llegan con
+	-- los hitos de evolución (Content/Races).
+	Hollow = {
+		LightAttack = { "ClawSlash1", "ClawSlash2", "ClawSlash3" },
+		HeavyAttack = "ClawRend",
+		Dodge = "Dodge",
+		Dash = "Sonido",
+		Skills = { "Devour", "Cero" },
+	},
+	-- Quincy (§31): arco de Heilig Pfeil, Hirenkyaku y Blut. Blut Arterie
+	-- llega con un hito.
+	Quincy = {
+		LightAttack = { "Pfeil1", "Pfeil2", "Pfeil3" },
+		HeavyAttack = "ChargedPfeil",
+		Dodge = "Dodge",
+		Dash = "Hirenkyaku",
+		Skills = { "LichtRegen", "BlutVene" },
+	},
 }
 
 return Movesets

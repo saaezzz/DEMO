@@ -18,6 +18,9 @@ local Quests = require(ReplicatedStorage.Shared.Content.Quests)
 local Weapons = require(ReplicatedStorage.Shared.Content.Weapons)
 local Items = require(ReplicatedStorage.Shared.Content.Items)
 local Effects = require(ReplicatedStorage.Shared.Content.Effects)
+local Stats = require(ReplicatedStorage.Shared.Content.Stats)
+local AmbientZones = require(ServerScriptService.Server.Content.AmbientZones)
+local KitLogic = require(ReplicatedStorage.Shared.Modules.KitLogic)
 local AbilityInfo = require(ReplicatedStorage.Shared.Content.AbilityInfo)
 local ItemConfig = require(ReplicatedStorage.Shared.Config.ItemConfig)
 local Character = require(ReplicatedStorage.Shared.Modules.Character)
@@ -482,6 +485,111 @@ return {
 			if AnimationRegistry.GetContentId(key) == nil and PlaceholderAnimations[key] == nil then
 				error(`{key} no tiene asset ni placeholder: no se vería nada`)
 			end
+		end
+	end,
+
+	["los hitos de raza piden estadísticas existentes y desbloquean técnicas con nombre"] = function()
+		local ids = {}
+		for _, ability in Abilities do
+			ids[ability.Id] = true
+		end
+		for key, race in Races.Definitions do
+			local seen = {}
+			for _, milestone in race.Milestones do
+				if seen[milestone.Id] then
+					error(`raza {key}: hito duplicado "{milestone.Id}"`)
+				end
+				seen[milestone.Id] = true
+				expect(milestone.RequiredLevel >= 1).toBe(true)
+				for stat, required in milestone.RequiredStats do
+					if Stats[stat] == nil then
+						error(`raza {key}, hito {milestone.Id}: estadística desconocida "{stat}"`)
+					end
+					expect(required > 0).toBe(true)
+				end
+				for _, skill in milestone.UnlockSkills do
+					if not ids[skill] or AbilityInfo[skill] == nil then
+						error(`raza {key}, hito {milestone.Id}: técnica "{skill}" sin habilidad o sin AbilityInfo`)
+					end
+				end
+			end
+		end
+	end,
+
+	["con todos los hitos, las técnicas de una raza caben en la barra"] = function()
+		for key, race in Races.Definitions do
+			local reached = {}
+			local unlocks = 0
+			for _, milestone in race.Milestones do
+				table.insert(reached, milestone.Id)
+				unlocks += #milestone.UnlockSkills
+			end
+			local moveset = Movesets[race.Kit.Moveset]
+			local skills = KitLogic.GetSkills(race, moveset, reached)
+			if #moveset.Skills + unlocks > KitLogic.MAX_SKILLS or #skills ~= #moveset.Skills + unlocks then
+				error(`raza {key}: sus técnicas no caben en {KitLogic.MAX_SKILLS} casillas`)
+			end
+		end
+	end,
+
+	["los golpes que cuentan bajas usan estadísticas existentes y los remates son sensatos"] = function()
+		for _, ability in Abilities do
+			for _, hit in ability.Hits or {} do
+				if hit.KillStat ~= nil and Stats[hit.KillStat] == nil then
+					error(`habilidad {ability.Id}: estadística desconocida "{hit.KillStat}"`)
+				end
+				local execute = hit.Execute
+				if
+					execute ~= nil
+					and not (execute.HealthFraction > 0 and execute.HealthFraction < 1 and execute.MaxDamage > 0)
+				then
+					error(`habilidad {ability.Id}: remate inválido`)
+				end
+				if hit.Drain ~= nil and not (hit.Drain > 0 and hit.Drain <= 1) then
+					error(`habilidad {ability.Id}: Drain debe estar entre 0 y 1`)
+				end
+			end
+		end
+	end,
+
+	["los modificadores son válidos y su aura dura lo mismo que ellos"] = function()
+		for _, ability in Abilities do
+			local modifier = ability.SelfModifier
+			if modifier ~= nil then
+				expect(modifier.Duration > 0).toBe(true)
+				if modifier.DamageTaken == nil and modifier.DamageDealt == nil then
+					error(`habilidad {ability.Id}: el modificador no cambia nada`)
+				end
+				expect((modifier.DamageTaken or 1) > 0 and (modifier.DamageDealt or 1) > 0).toBe(true)
+				local info = AbilityInfo[ability.Id]
+				for _, effect in if info ~= nil then info.Effects or {} else {} do
+					local definition = Effects[effect.Effect]
+					if definition.Kind == "Aura" and definition.Duration ~= modifier.Duration then
+						error(`habilidad {ability.Id}: el aura {effect.Effect} no dura lo mismo que el modificador`)
+					end
+				end
+			end
+		end
+	end,
+
+	["las armas se sujetan a partes del cuerpo R15"] = function()
+		local parts = { RightHand = true, LeftHand = true, Head = true, UpperTorso = true, LowerTorso = true }
+		for key, weapon in Weapons do
+			if weapon.AttachTo ~= nil and not parts[weapon.AttachTo] then
+				error(`arma {key}: AttachTo "{weapon.AttachTo}" no es una parte admitida`)
+			end
+		end
+	end,
+
+	["las zonas ambientales tienen Id único, radio y densidad positivos"] = function()
+		expect(AmbientZones.DefaultDensity > 0).toBe(true)
+		local seen = {}
+		for _, zone in AmbientZones.Zones do
+			if seen[zone.Id] then
+				error(`zona ambiental duplicada: {zone.Id}`)
+			end
+			seen[zone.Id] = true
+			expect(zone.Radius > 0 and zone.Density > 0).toBe(true)
 		end
 	end,
 }

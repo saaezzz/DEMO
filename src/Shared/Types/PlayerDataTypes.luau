@@ -40,10 +40,23 @@ export type PlayerData = {
 	Inventory: { InventoryItem },
 	Settings: PlayerSettings,
 	Quests: QuestData,
+	-- Estadística (Content/Stats) → valor (D-039).
+	Stats: { [string]: number },
+	-- Hitos de raza alcanzados, en el orden en que se alcanzaron.
+	Milestones: { string },
 }
 
 -- Claves de primer nivel que se pueden modificar y replicar individualmente.
-export type PlayerDataKey = "Race" | "Level" | "Experience" | "Currency" | "Inventory" | "Settings" | "Quests"
+export type PlayerDataKey =
+	"Race"
+	| "Level"
+	| "Experience"
+	| "Currency"
+	| "Inventory"
+	| "Settings"
+	| "Quests"
+	| "Stats"
+	| "Milestones"
 
 -- Mensajes del remote PlayerData (servidor → propio cliente).
 export type PlayerDataMessage = {

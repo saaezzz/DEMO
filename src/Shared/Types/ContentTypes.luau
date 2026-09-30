@@ -18,6 +18,15 @@ export type ResourceDefinition = {
 	RegenDelaySeconds: number?,
 	-- Color de su barra en la UI, en hexadecimal ("#RRGGBB").
 	Color: string,
+	-- La regeneración se multiplica por la densidad ambiental de la zona en la
+	-- que está el personaje (Server/Content/AmbientZones, D-041).
+	AmbientScaling: boolean?,
+}
+
+-- Estadísticas que se cuentan en el perfil (D-039), p. ej. enemigos
+-- derrotados con cierto golpe. Solo el nombre visible; el Id es su clave.
+export type StatDefinition = {
+	DisplayName: string,
 }
 
 -- Manifiesto de assets (§54, D-020) ------------------------------------------
@@ -72,6 +81,20 @@ export type RaceKit = {
 	StartingItems: { StartingItem },
 }
 
+-- Hito de progresión de una raza (D-039): al cumplir sus requisitos se
+-- alcanza para siempre y desbloquea técnicas. No basta con matar: se pide
+-- nivel y además estadísticas concretas (constitución §29).
+export type RaceMilestone = {
+	Id: string,
+	DisplayName: string,
+	Description: string,
+	RequiredLevel: number,
+	-- Estadística (Content/Stats) → mínimo necesario.
+	RequiredStats: { [string]: number },
+	-- Técnicas que se añaden a la barra, detrás de las del moveset.
+	UnlockSkills: { string },
+}
+
 export type RaceDefinition = {
 	Id: RaceId,
 	DisplayName: string,
@@ -83,6 +106,8 @@ export type RaceDefinition = {
 	-- Recursos con los que empieza un personaje de esta raza.
 	Resources: { ResourceId },
 	Kit: RaceKit,
+	-- Hitos en orden de progresión (vacío = sin hitos todavía).
+	Milestones: { RaceMilestone },
 }
 
 -- Armas (D-034) ----------------------------------------------------------------
@@ -92,10 +117,14 @@ export type WeaponDefinition = {
 	DisplayName: string,
 	-- Modelo del manifiesto (MDL_...). Si no está colocado en Studio, se usa Placeholder.
 	Model: string,
-	-- Posición del mango respecto a la mano derecha (RightHand).
+	-- Parte del cuerpo a la que se suelda (por defecto "RightHand"). Sirve
+	-- también para piezas que no son armas, como una máscara ("Head").
+	AttachTo: string?,
+	-- Posición del mango respecto a esa parte del cuerpo.
 	Grip: CFrame,
-	-- Hoja provisional: tamaño (el eje largo es Z) y color hexadecimal.
-	Placeholder: { Size: Vector3, Color: string },
+	-- Pieza provisional: tamaño (el eje largo es Z), color hexadecimal, si
+	-- brilla (Neon) y si lleva guarda de espada.
+	Placeholder: { Size: Vector3, Color: string, Glow: boolean?, Guard: boolean? },
 }
 
 -- Efectos visuales (D-035) -----------------------------------------------------
@@ -105,6 +134,7 @@ export type EffectKind =
 	"Beam" -- rayo recto hacia delante (Length × Width)
 	| "Burst" -- esfera que crece y se desvanece (Radius)
 	| "Ring" -- círculo en el suelo (Radius), p. ej. aviso de área
+	| "Aura" -- contorno de color sobre el personaje durante Duration (potenciadores)
 
 export type EffectDefinition = {
 	Kind: EffectKind,

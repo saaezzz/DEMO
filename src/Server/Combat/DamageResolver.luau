@@ -14,6 +14,14 @@ export type HitOutcome = {
 	PostureBreak: boolean,
 	-- Velocidad de empuje sobre el defensor (0 = sin empuje).
 	Knockback: number,
+	-- El golpe remata al defensor (Damage ya es toda su vida restante).
+	Executed: boolean,
+}
+
+-- Remate (AbilityTypes.ExecuteSpec, D-038).
+export type ExecuteInput = {
+	HealthFraction: number,
+	MaxDamage: number,
 }
 
 export type HitInput = {
@@ -26,6 +34,12 @@ export type HitInput = {
 	DefenderInvulnerable: boolean,
 	DefenderPosture: number,
 	DefenderMaxPosture: number,
+	DefenderHealth: number,
+	DefenderMaxHealth: number,
+	-- Producto de los modificadores (D-040): daño hecho del atacante × daño
+	-- recibido del defensor. 1 = sin cambios.
+	DamageMultiplier: number,
+	Execute: ExecuteInput?,
 }
 
 export type ResolverConfig = {
@@ -47,7 +61,17 @@ local function outcome(
 		PostureDamage = posture,
 		PostureBreak = postureBreak,
 		Knockback = knockback,
+		Executed = false,
 	}
+end
+
+local function canExecute(input: HitInput): boolean
+	local execute = input.Execute
+	if execute == nil or input.DefenderMaxHealth <= 0 then
+		return false
+	end
+	local health = input.DefenderHealth
+	return health <= execute.MaxDamage and health / input.DefenderMaxHealth <= execute.HealthFraction
 end
 
 local DamageResolver = {}
@@ -56,6 +80,7 @@ function DamageResolver.Resolve(input: HitInput, config: ResolverConfig): HitOut
 	if input.DefenderInvulnerable then
 		return outcome("Evaded", 0, 0, false, 0)
 	end
+	local damage = input.Damage * input.DamageMultiplier
 
 	if input.DefenderBlocking then
 		-- El parry gana incluso a un ataque que rompe guardias: premia el timing.
@@ -63,15 +88,21 @@ function DamageResolver.Resolve(input: HitInput, config: ResolverConfig): HitOut
 			return outcome("Parried", 0, 0, false, 0)
 		end
 		if input.GuardBreak then
-			return outcome("GuardBroken", input.Damage * config.GuardBreakDamageMultiplier, 0, true, input.Knockback)
+			return outcome("GuardBroken", damage * config.GuardBreakDamageMultiplier, 0, true, input.Knockback)
 		end
 		local posture = input.PostureDamage * config.BlockPostureMultiplier
 		local breaks = input.DefenderPosture + posture >= input.DefenderMaxPosture
-		return outcome("Blocked", input.Damage * config.BlockDamageMultiplier, posture, breaks, 0)
+		return outcome("Blocked", damage * config.BlockDamageMultiplier, posture, breaks, 0)
 	end
 
 	local breaks = input.DefenderPosture + input.PostureDamage >= input.DefenderMaxPosture
-	return outcome("Hit", input.Damage, input.PostureDamage, breaks, input.Knockback)
+	local result = outcome("Hit", damage, input.PostureDamage, breaks, input.Knockback)
+	-- El remate solo entra con un golpe limpio: bloquearlo o esquivarlo lo evita.
+	if canExecute(input) then
+		result.Damage = math.max(damage, input.DefenderHealth)
+		result.Executed = true
+	end
+	return result
 end
 
 return DamageResolver

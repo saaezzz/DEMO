@@ -14,6 +14,7 @@ local Resources = require(ReplicatedStorage.Shared.Content.Resources)
 local ReplicatedAttributes = require(ReplicatedStorage.Shared.Network.ReplicatedAttributes)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
 local VelocityImpulse = require(ReplicatedStorage.Shared.Modules.VelocityImpulse)
+local KitLogic = require(ReplicatedStorage.Shared.Modules.KitLogic)
 
 local Abilities = require(script.Parent.Parent.Content.Abilities)
 local Movesets = require(ReplicatedStorage.Shared.Content.Movesets)
@@ -24,6 +25,8 @@ local ComboChain = require(script.Parent.Parent.Combat.ComboChain)
 local Cooldowns = require(script.Parent.Parent.Combat.Cooldowns)
 local DamageService = require(script.Parent.Parent.Combat.DamageService)
 local HitboxService = require(script.Parent.Parent.Combat.HitboxService)
+local Modifiers = require(script.Parent.Parent.Combat.Modifiers)
+local DataService = require(script.Parent.DataService)
 
 type AbilityDefinition = AbilityTypes.AbilityDefinition
 type AbilityHit = AbilityTypes.AbilityHit
@@ -66,6 +69,14 @@ local function getMoveset(entity: CombatEntity): Moveset
 	local race = Races.Definitions[entity.Character.Race]
 	local movesetId = if race ~= nil then race.Kit.Moveset else DEFAULT_MOVESET
 	return Movesets[movesetId] or Movesets[DEFAULT_MOVESET]
+end
+
+-- Técnicas del moveset más las desbloqueadas por hitos del jugador (D-039).
+local function getSkills(entity: CombatEntity, moveset: Moveset): { string }
+	local player = entity.Player
+	local data = if player ~= nil then DataService:GetData(player) else nil
+	local race = Races.Definitions[entity.Character.Race]
+	return KitLogic.GetSkills(race, moveset, if data ~= nil then data.Milestones else {})
 end
 
 -- Cobra el coste completo o nada. Sin coste, siempre tiene éxito.
@@ -202,6 +213,10 @@ function AbilityService:Activate(entity: CombatEntity, abilityId: string): Serve
 	entity.Action = action
 	markAction(entity, ability)
 	character:TransitionTo(ability.State)
+	local modifier = ability.SelfModifier
+	if modifier ~= nil then
+		Modifiers.Apply(entity.Modifiers, modifier, action.StartedAt)
+	end
 	scheduleAction(entity, action)
 	-- La física de un NPC es del servidor: su desplazamiento se aplica aquí (D-026).
 	if movement ~= nil and entity.Player == nil then
@@ -233,7 +248,7 @@ function AbilityService:ActivateAction(entity: CombatEntity, action: CombatActio
 		then moveset.HeavyAttack
 		elseif action == "Dodge" then moveset.Dodge
 		elseif action == "Dash" then moveset.Dash
-		elseif skillSlot ~= nil then moveset.Skills[skillSlot]
+		elseif skillSlot ~= nil then getSkills(entity, moveset)[skillSlot]
 		else nil
 	if abilityId == nil then
 		return respond("Rejected", "Acción sin habilidad asignada")

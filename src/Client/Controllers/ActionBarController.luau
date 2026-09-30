@@ -12,6 +12,7 @@ local RunService = game:GetService("RunService")
 local GameTypes = require(ReplicatedStorage.Shared.Types.GameTypes)
 local AbilityInfo = require(ReplicatedStorage.Shared.Content.AbilityInfo)
 local Movesets = require(ReplicatedStorage.Shared.Content.Movesets)
+local KitLogic = require(ReplicatedStorage.Shared.Modules.KitLogic)
 local Races = require(ReplicatedStorage.Shared.Content.Races)
 
 local CombatController = require(script.Parent.CombatController)
@@ -166,7 +167,8 @@ local function update(): ()
 end
 
 -- Casillas según el moveset de la raza del jugador: pesado, esquiva, movimiento
--- y sus técnicas (D-034). El nombre sale de Content/AbilityInfo.
+-- y sus técnicas, incluidas las de sus hitos (D-034, D-039). El nombre sale de
+-- Content/AbilityInfo.
 local function currentSlots(): { SlotDefinition }
 	local data = PlayerDataController:GetData()
 	local race = if data ~= nil then Races.Definitions[data.Race] else nil
@@ -186,7 +188,7 @@ local function currentSlots(): { SlotDefinition }
 	add("HeavyAttack", moveset.HeavyAttack)
 	add("Dodge", moveset.Dodge)
 	add("Dash", moveset.Dash)
-	for index, skill in moveset.Skills do
+	for index, skill in KitLogic.GetSkills(race, moveset, if data ~= nil then data.Milestones else {}) do
 		local action: ActionName? = SKILL_ACTIONS[index]
 		if action ~= nil then
 			add(action, skill)
@@ -234,7 +236,7 @@ function ActionBarController:Start(): ()
 	rebuildSlots()
 	PlayerDataController.Loaded:Connect(rebuildSlots)
 	PlayerDataController.Changed:Connect(function(key)
-		if key == "Race" then
+		if key == "Race" or key == "Milestones" then
 			rebuildSlots()
 		end
 	end)

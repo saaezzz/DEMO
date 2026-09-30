@@ -192,6 +192,226 @@ local PlaceholderAnimations: { [string]: Clip } = {
 		EndTime = 0.62,
 	}),
 
+	-- Potenciadores: puños cerrados junto al cuerpo, torso tenso.
+	["Cast.Focus"] = strike({
+		WindupTime = 0.12,
+		Windup = {
+			RightShoulder = { 20, 0, 25 },
+			LeftShoulder = { 20, 0, -25 },
+			RightElbow = { 90, 0, 0 },
+			LeftElbow = { 90, 0, 0 },
+			Waist = { 10, 0, 0 },
+			Neck = { -10, 0, 0 },
+		},
+		StrikeTime = 0.22,
+		Strike = {
+			RightShoulder = { 10, 0, 35 },
+			LeftShoulder = { 10, 0, -35 },
+			RightElbow = { 110, 0, 0 },
+			LeftElbow = { 110, 0, 0 },
+			Waist = { -5, 0, 0 },
+			Neck = { 10, 0, 0 },
+		},
+		HoldUntil = 0.36,
+		EndTime = 0.5,
+	}),
+
+	-- Garras ----------------------------------------------------------------
+
+	-- Zarpazo con la derecha, cuerpo agachado.
+	["Claw.Slash1"] = strike({
+		WindupTime = 0.1,
+		Windup = {
+			RightShoulder = { 120, 0, 60 },
+			RightElbow = { 50, 0, 0 },
+			Waist = { -10, -30, 0 },
+		},
+		StrikeTime = 0.18,
+		Strike = {
+			RightShoulder = { 70, 0, -45 },
+			RightElbow = { 10, 0, 0 },
+			Waist = { -18, 30, 0 },
+		},
+		HoldUntil = 0.28,
+		EndTime = 0.42,
+	}),
+
+	-- Zarpazo con la izquierda.
+	["Claw.Slash2"] = strike({
+		WindupTime = 0.1,
+		Windup = {
+			LeftShoulder = { 120, 0, -60 },
+			LeftElbow = { 50, 0, 0 },
+			Waist = { -10, 30, 0 },
+		},
+		StrikeTime = 0.18,
+		Strike = {
+			LeftShoulder = { 70, 0, 45 },
+			LeftElbow = { 10, 0, 0 },
+			Waist = { -18, -30, 0 },
+		},
+		HoldUntil = 0.28,
+		EndTime = 0.42,
+	}),
+
+	-- Doble zarpazo hacia delante.
+	["Claw.Slash3"] = strike({
+		WindupTime = 0.16,
+		Windup = {
+			RightShoulder = { 150, 0, 30 },
+			LeftShoulder = { 150, 0, -30 },
+			RightElbow = { 40, 0, 0 },
+			LeftElbow = { 40, 0, 0 },
+			Waist = { 10, 0, 0 },
+		},
+		StrikeTime = 0.28,
+		Strike = {
+			RightShoulder = { 60, 0, -20 },
+			LeftShoulder = { 60, 0, 20 },
+			Waist = { -30, 0, 0 },
+			Neck = { 20, 0, 0 },
+		},
+		HoldUntil = 0.42,
+		EndTime = 0.62,
+	}),
+
+	-- Desgarro: garras muy arriba (se lee bien) y hacia abajo.
+	["Claw.Heavy"] = strike({
+		WindupTime = 0.35,
+		Windup = {
+			RightShoulder = { 170, 0, 25 },
+			LeftShoulder = { 170, 0, -25 },
+			RightElbow = { 30, 0, 0 },
+			LeftElbow = { 30, 0, 0 },
+			Waist = { 15, 0, 0 },
+			Neck = { -15, 0, 0 },
+		},
+		StrikeTime = 0.45,
+		Strike = {
+			RightShoulder = { 30, 0, 10 },
+			LeftShoulder = { 30, 0, -10 },
+			Waist = { -35, 0, 0 },
+			Neck = { 25, 0, 0 },
+			RightHip = { 25, 0, 0 },
+		},
+		HoldUntil = 0.62,
+		EndTime = 0.86,
+	}),
+
+	-- Abalanzarse con la cabeza por delante y morder.
+	["Claw.Bite"] = strike({
+		WindupTime = 0.3,
+		Windup = {
+			Waist = { 15, 0, 0 },
+			Neck = { -20, 0, 0 },
+			RightShoulder = { 60, 0, 40 },
+			LeftShoulder = { 60, 0, -40 },
+			RightHip = { 25, 0, 0 },
+			LeftHip = { 25, 0, 0 },
+		},
+		StrikeTime = 0.45,
+		Strike = {
+			Waist = { -40, 0, 0 },
+			Neck = { 35, 0, 0 },
+			RightShoulder = { 110, 0, -15 },
+			LeftShoulder = { 110, 0, 15 },
+		},
+		HoldUntil = 0.65,
+		EndTime = 0.9,
+	}),
+
+	-- Rayo cargado: cabeza atrás mientras carga y disparo con retroceso.
+	["Cast.ChargedBeam"] = strike({
+		WindupTime = 0.7,
+		Windup = {
+			Waist = { 12, 0, 0 },
+			Neck = { -25, 0, 0 },
+			RightShoulder = { 40, 0, 50 },
+			LeftShoulder = { 40, 0, -50 },
+			RightElbow = { 60, 0, 0 },
+			LeftElbow = { 60, 0, 0 },
+		},
+		StrikeTime = 0.8,
+		Strike = {
+			Waist = { -15, 0, 0 },
+			Neck = { 15, 0, 0 },
+			RightShoulder = { 20, 0, 60 },
+			LeftShoulder = { 20, 0, -60 },
+			RightHip = { -15, 0, 0 },
+		},
+		HoldUntil = 1,
+		EndTime = 1.2,
+	}),
+
+	-- Arco: el arco está en la mano izquierda ---------------------------------
+
+	-- Tensar (mano derecha a la mejilla) y soltar.
+	["Bow.Shot"] = strike({
+		WindupTime = 0.18,
+		Windup = {
+			LeftShoulder = { 90, 0, 0 },
+			RightShoulder = { 90, 0, -20 },
+			RightElbow = { 120, 0, 0 },
+			Waist = { 0, 60, 0 },
+			Neck = { 0, -50, 0 },
+		},
+		StrikeTime = 0.25,
+		Strike = {
+			LeftShoulder = { 90, 0, 0 },
+			RightShoulder = { 80, 0, 30 },
+			RightElbow = { 60, 0, 0 },
+			Waist = { 0, 60, 0 },
+			Neck = { 0, -50, 0 },
+		},
+		HoldUntil = 0.33,
+		EndTime = 0.46,
+	}),
+
+	-- Tensado largo con el cuerpo echado atrás.
+	["Bow.Charged"] = strike({
+		WindupTime = 0.5,
+		Windup = {
+			LeftShoulder = { 95, 0, 0 },
+			RightShoulder = { 95, 0, -25 },
+			RightElbow = { 140, 0, 0 },
+			Waist = { 8, 65, 0 },
+			Neck = { 0, -55, 0 },
+			LeftHip = { 20, 0, 0 },
+		},
+		StrikeTime = 0.6,
+		Strike = {
+			LeftShoulder = { 90, 0, 0 },
+			RightShoulder = { 70, 0, 45 },
+			RightElbow = { 40, 0, 0 },
+			Waist = { -5, 60, 0 },
+			Neck = { 0, -50, 0 },
+		},
+		HoldUntil = 0.75,
+		EndTime = 0.95,
+	}),
+
+	-- Apuntar al cielo y soltar.
+	["Bow.Rain"] = strike({
+		WindupTime = 0.55,
+		Windup = {
+			LeftShoulder = { 160, 0, 0 },
+			RightShoulder = { 150, 0, -20 },
+			RightElbow = { 110, 0, 0 },
+			Waist = { 15, 50, 0 },
+			Neck = { -35, -40, 0 },
+		},
+		StrikeTime = 0.7,
+		Strike = {
+			LeftShoulder = { 160, 0, 0 },
+			RightShoulder = { 130, 0, 40 },
+			RightElbow = { 30, 0, 0 },
+			Waist = { 18, 50, 0 },
+			Neck = { -35, -40, 0 },
+		},
+		HoldUntil = 0.85,
+		EndTime = 1.1,
+	}),
+
 	-- Enemigos -------------------------------------------------------------
 
 	-- Zarpazo con una mano.

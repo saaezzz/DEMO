@@ -19,7 +19,7 @@ type PlayerData = PlayerDataTypes.PlayerData
 
 local DataSchema = {}
 
-DataSchema.VERSION = 2
+DataSchema.VERSION = 3
 
 -- Perfil de un jugador nuevo. ProfileStore también la usa para rellenar las
 -- claves que falten (Reconcile) después de migrar.
@@ -40,6 +40,8 @@ function DataSchema.createTemplate(): PlayerData
 			Active = {},
 			Completed = {},
 		},
+		Stats = {},
+		Milestones = {},
 	}
 end
 
@@ -51,6 +53,15 @@ DataSchema.MIGRATIONS = {
 	[1] = function(data)
 		if data.Quests == nil then
 			data.Quests = { Active = {}, Completed = {} }
+		end
+	end,
+	-- 2 -> 3: estadísticas e hitos de raza (M5, D-039).
+	[2] = function(data)
+		if data.Stats == nil then
+			data.Stats = {}
+		end
+		if data.Milestones == nil then
+			data.Milestones = {}
 		end
 	end,
 } :: Migrator.MigrationTable

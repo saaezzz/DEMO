@@ -69,4 +69,13 @@ return {
 		local result = Migrator.Migrate({ DataVersion = 1, Quests = quests }, 2, DataSchema.MIGRATIONS)
 		expect(result.Data.Quests).toEqual(quests)
 	end,
+
+	["v2 -> v3 añade estadísticas e hitos vacíos sin tocar el resto"] = function()
+		local v2 = { DataVersion = 2, Race = "Human", Level = 4, Quests = { Active = {}, Completed = {} } }
+		local result = Migrator.Migrate(v2, 3, DataSchema.MIGRATIONS)
+		expect(result.Ok).toBe(true)
+		expect(result.Data.Level).toBe(4)
+		expect(result.Data.Stats).toEqual({})
+		expect(result.Data.Milestones).toEqual({})
+	end,
 }

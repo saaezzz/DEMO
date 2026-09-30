@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Progression = require(ReplicatedStorage.Shared.Modules.Progression)
 local Logger = require(ReplicatedStorage.Shared.Utils.Logger)
+local Signal = require(ReplicatedStorage.Shared.Utils.Signal)
 
 local CombatRegistry = require(script.Parent.Parent.Combat.CombatRegistry)
 local DataService = require(script.Parent.DataService)
@@ -16,6 +17,8 @@ local log = Logger.new("ProgressionService")
 
 local ProgressionService = {
 	Name = "ProgressionService",
+	-- (jugador, nuevo nivel) al subir de nivel. Síncrona (D-013).
+	LeveledUp = Signal.new() :: Signal.Signal<Player, number>,
 }
 
 function ProgressionService:AwardExperience(player: Player, amount: number): ()
@@ -38,6 +41,7 @@ function ProgressionService:AwardExperience(player: Player, amount: number): ()
 		entity.Character:SetLevel(result.Level)
 		entity.Character:SetMaxHealth(Progression.MaxHealthForLevel(result.Level), true)
 	end
+	ProgressionService.LeveledUp:Fire(player, result.Level)
 end
 
 return ProgressionService

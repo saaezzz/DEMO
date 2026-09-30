@@ -34,6 +34,10 @@ local ReplicatedAttributes = {
 	IS_BOSS = "IsBoss",
 	ENEMY_PHASE = "EnemyPhase",
 	ANNOUNCEMENT = "Announcement",
+	-- Jugadores (D-041): zona ambiental en la que están (nombre visible, "" fuera
+	-- de toda zona) y su densidad ambiental.
+	AMBIENT_ZONE = "AmbientZone",
+	AMBIENT_DENSITY = "AmbientDensity",
 	-- Etiqueta (CollectionService) de los modelos de NPC que combaten.
 	NPC_TAG = "CombatNPC",
 }

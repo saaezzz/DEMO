@@ -2,6 +2,8 @@ local Combat = game:GetService("ServerScriptService").Server.Combat
 local Cooldowns = require(Combat.Cooldowns)
 local ComboChain = require(Combat.ComboChain)
 local DamageResolver = require(Combat.DamageResolver)
+local Modifiers = require(Combat.Modifiers)
+local AmbientDensity = require(game:GetService("ServerScriptService").Server.Modules.AmbientDensity)
 local TaskScheduler = require(Combat.TaskScheduler)
 
 local CONFIG = {
@@ -21,6 +23,10 @@ local function hit(overrides)
 		DefenderInvulnerable = false,
 		DefenderPosture = 0,
 		DefenderMaxPosture = 100,
+		DefenderHealth = 100,
+		DefenderMaxHealth = 100,
+		DamageMultiplier = 1,
+		Execute = nil,
 	}
 	for key, value in overrides or {} do
 		input[key] = value
@@ -110,6 +116,69 @@ return {
 		expect(outcome.Damage).toBe(5)
 		expect(outcome.PostureBreak).toBe(true)
 		expect(outcome.Knockback).toBe(20)
+	end,
+
+	["DamageResolver: el multiplicador de modificadores escala el daño, también bloqueando"] = function()
+		expect(hit({ DamageMultiplier = 0.5 }).Damage).toBe(5)
+		expect(hit({ DamageMultiplier = 2, DefenderBlocking = true }).Damage).toBe(5)
+	end,
+
+	["DamageResolver: el remate derrota a un objetivo debilitado con un golpe limpio"] = function()
+		local execute = { HealthFraction = 0.3, MaxDamage = 150 }
+		local result = hit({ DefenderHealth = 25, Execute = execute })
+		expect(result.Executed).toBe(true)
+		expect(result.Damage).toBe(25)
+		-- Por encima del umbral, golpe normal.
+		local healthy = hit({ DefenderHealth = 40, Execute = execute })
+		expect(healthy.Executed).toBe(false)
+		expect(healthy.Damage).toBe(10)
+	end,
+
+	["DamageResolver: el remate no entra si se bloquea ni contra mucha vida (jefes)"] = function()
+		local execute = { HealthFraction = 0.3, MaxDamage = 150 }
+		expect(hit({ DefenderHealth = 20, Execute = execute, DefenderBlocking = true }).Executed).toBe(false)
+		local boss = hit({ DefenderHealth = 400, DefenderMaxHealth = 1600, Execute = execute })
+		expect(boss.Executed).toBe(false)
+		expect(boss.Damage).toBe(10)
+	end,
+
+	-- Modifiers ----------------------------------------------------------------
+	["Modifiers: sin modificadores el multiplicador es 1; se multiplican entre sí"] = function()
+		local set = {}
+		expect(Modifiers.Multiplier(set, "DamageTaken", 0)).toBe(1)
+		Modifiers.Apply(set, { Id = "A", Duration = 5, DamageTaken = 0.5 }, 0)
+		Modifiers.Apply(set, { Id = "B", Duration = 5, DamageTaken = 0.8, DamageDealt = 1.5 }, 0)
+		expect(math.abs(Modifiers.Multiplier(set, "DamageTaken", 1) - 0.4) < 1e-9).toBe(true)
+		expect(Modifiers.Multiplier(set, "DamageDealt", 1)).toBe(1.5)
+	end,
+
+	["Modifiers: caducan y el mismo Id se renueva sin acumularse"] = function()
+		local set = {}
+		Modifiers.Apply(set, { Id = "A", Duration = 5, DamageTaken = 0.5 }, 0)
+		Modifiers.Apply(set, { Id = "A", Duration = 5, DamageTaken = 0.5 }, 3)
+		expect(Modifiers.Multiplier(set, "DamageTaken", 6)).toBe(0.5)
+		expect(Modifiers.Multiplier(set, "DamageTaken", 8)).toBe(1)
+		expect(set.A).toBeNil()
+	end,
+
+	-- AmbientDensity -------------------------------------------------------------
+	["AmbientDensity: fuera de toda zona da la densidad por defecto"] = function()
+		local zones = { { Id = "Z", DisplayName = "Z", Center = Vector3.new(0, 0, 0), Radius = 10, Density = 2 } }
+		local density, zone = AmbientDensity.At(Vector3.new(50, 0, 0), zones, 1)
+		expect(density).toBe(1)
+		expect(zone).toBeNil()
+	end,
+
+	["AmbientDensity: dentro gana la zona más densa; la altura no cuenta"] = function()
+		local zones = {
+			{ Id = "A", DisplayName = "A", Center = Vector3.new(0, 0, 0), Radius = 20, Density = 1.5 },
+			{ Id = "B", DisplayName = "B", Center = Vector3.new(5, 0, 0), Radius = 10, Density = 2 },
+		}
+		local density, zone = AmbientDensity.At(Vector3.new(6, 40, 0), zones, 1)
+		expect(density).toBe(2)
+		expect(zone.Id).toBe("B")
+		local onlyA = AmbientDensity.At(Vector3.new(-15, 0, 0), zones, 1)
+		expect(onlyA).toBe(1.5)
 	end,
 
 	["DamageResolver: llenar la postura la rompe, bloqueando o no"] = function()

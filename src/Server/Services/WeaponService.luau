@@ -1,11 +1,13 @@
 --!strict
 
--- Arma en la mano del personaje (D-034). Usa el modelo de Arte si está en
--- Studio (Assets/Models/<Weapon.Model>) y, si no, una hoja provisional. Se
--- crea en el servidor, así que todos los jugadores la ven.
+-- Arma (o pieza visible del kit, como una máscara) del personaje (D-034).
+-- Usa el modelo de Arte si está en Studio (Assets/Models/<Weapon.Model>) y,
+-- si no, una pieza provisional. Se crea en el servidor, así que todos los
+-- jugadores la ven.
 --
 -- Modelo de Arte: un Model con una pieza llamada "Handle" (el mango). Todas
--- sus piezas se sueldan al Handle y el Handle a la mano según Weapon.Grip.
+-- sus piezas se sueldan al Handle y el Handle a la parte del cuerpo
+-- Weapon.AttachTo (la mano derecha por defecto) según Weapon.Grip.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -18,6 +20,7 @@ type WeaponDefinition = ContentTypes.WeaponDefinition
 
 local WEAPON_NAME = "Weapon"
 local HANDLE_NAME = "Handle"
+local DEFAULT_ATTACH_TO = "RightHand"
 
 local log = Logger.new("WeaponService")
 
@@ -27,16 +30,18 @@ local function buildPlaceholder(definition: WeaponDefinition): Model
 	blade.Name = HANDLE_NAME
 	blade.Size = definition.Placeholder.Size
 	blade.Color = Color3.fromHex(definition.Placeholder.Color)
-	blade.Material = Enum.Material.Metal
+	blade.Material = if definition.Placeholder.Glow then Enum.Material.Neon else Enum.Material.Metal
 	blade.Parent = weapon
 
-	-- Guarda (tsuba) cerca del mango.
-	local guard = Instance.new("Part")
-	guard.Name = "Guard"
-	guard.Size = Vector3.new(0.6, 0.6, 0.1)
-	guard.Color = Color3.fromRGB(40, 36, 30)
-	guard.CFrame = blade.CFrame * CFrame.new(0, 0, blade.Size.Z * 0.3)
-	guard.Parent = weapon
+	-- Guarda (tsuba) cerca del mango, solo en espadas.
+	if definition.Placeholder.Guard then
+		local guard = Instance.new("Part")
+		guard.Name = "Guard"
+		guard.Size = Vector3.new(0.6, 0.6, 0.1)
+		guard.Color = Color3.fromRGB(40, 36, 30)
+		guard.CFrame = blade.CFrame * CFrame.new(0, 0, blade.Size.Z * 0.3)
+		guard.Parent = weapon
+	end
 
 	weapon.PrimaryPart = blade
 	return weapon
@@ -81,14 +86,14 @@ local WeaponService = {
 	Name = "WeaponService",
 }
 
--- Pone el arma `weaponId` en la mano de `model` (nil = quitar el arma).
+-- Pone el arma `weaponId` en `model` (nil = quitar el arma).
 function WeaponService:Equip(model: Model, weaponId: string?): ()
 	local previous = model:FindFirstChild(WEAPON_NAME)
 	if previous ~= nil then
 		previous:Destroy()
 	end
 	local definition = if weaponId ~= nil then Weapons[weaponId] else nil
-	local hand = model:FindFirstChild("RightHand")
+	local hand = if definition ~= nil then model:FindFirstChild(definition.AttachTo or DEFAULT_ATTACH_TO) else nil
 	if definition == nil or hand == nil or not hand:IsA("BasePart") then
 		return
 	end

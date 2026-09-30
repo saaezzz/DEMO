@@ -308,6 +308,11 @@ function EnemyService:Init(): ()
 	end
 end
 
+-- true si `model` es un enemigo de verdad (no un muñeco de entrenamiento).
+function EnemyService:IsEnemy(model: Model): boolean
+	return enemies[model] ~= nil
+end
+
 function EnemyService:Start(): ()
 	folder = Instance.new("Folder")
 	folder.Name = FOLDER_NAME

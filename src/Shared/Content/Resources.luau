@@ -27,6 +27,16 @@ local Resources: { [string]: ResourceDefinition } = {
 		RegenDelaySeconds = 1,
 		Color = "#57D163",
 	},
+	-- Quincy (§31, §32): partículas espirituales que absorbe del entorno. Se
+	-- regenera más rápido donde el Reishi ambiental es denso (AmbientZones).
+	Reishi = {
+		Id = "Reishi",
+		DisplayName = "Reishi",
+		DefaultMax = 100,
+		RegenPerSecond = 7,
+		Color = "#9FE8FF",
+		AmbientScaling = true,
+	},
 }
 
 return Resources
