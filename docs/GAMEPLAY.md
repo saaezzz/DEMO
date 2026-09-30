@@ -19,8 +19,8 @@ En uso actualmente: `Idle`, `Attacking`, `Blocking`, `Dodging`, `Dashing`, `Stun
 
 | Habilidad | Acción | Qué hace | Coste | Cooldown |
 |---|---|---|---|---|
-| `Slash1` → `Slash2` → `Slash3` | Ataque ligero | Cadena de 3 golpes (10 / 10 / 16 de daño). Pulsar dentro de 0,8 s tras un golpe encadena el siguiente; el remate empuja | — | — |
-| `HeavySlash` | Ataque pesado | Carga de 0,5 s, 24 de daño, 30 de postura. **Rompe la guardia** y empuja | 20 stamina | 3 s |
+| `Slash1` → `Slash2` → `Slash3` | Ataque ligero | Cadena de 3 golpes (10 / 10 / 16 de daño). Pulsar dentro de 0,8 s tras un golpe encadena el siguiente; el remate empuja unos 11 studs | — | — |
+| `HeavySlash` | Ataque pesado | Carga de 0,5 s, 24 de daño, 30 de postura. **Rompe la guardia** y empuja unos 9 studs | 20 stamina | 3 s |
 | `Dodge` | Esquiva | Paso de 14 studs en la dirección de movimiento (atrás si no te mueves). **Invulnerable 0,28 s**. Cancela un ataque o un bloqueo | 20 stamina | 0,6 s |
 | `Dash` | Dash | 28 studs en la dirección de movimiento (delante si no te mueves), también en el aire | 15 Reiatsu | 1 s |
 
@@ -28,6 +28,8 @@ En uso actualmente: `Idle`, `Attacking`, `Blocking`, `Dodging`, `Dashing`, `Stun
 - **Bloqueo:** mientras se mantiene pulsado (D-019). Reduce el daño al 25 % y multiplica ×1,5 el daño a la postura.
 - **Parry:** los primeros 0,3 s de un bloqueo anulan el golpe (también el pesado) y aturden al atacante 0,8 s.
   Solo se concede una ventana de parry cada 0,8 s; bloquear antes sigue bloqueando, pero sin parry.
+- **Sin espamear la guardia:** tras soltarla (o perderla), hay que esperar 0,5 s para volver a bloquear. Si se mantiene
+  la tecla, la guardia entra sola en cuanto se puede.
 - **Guardia rota:** un ataque que rompe guardias contra alguien que bloquea (sin parry) hace el 50 % del daño,
   vacía su postura y lo aturde 1,5 s.
 - **Postura:** al llenarse se vacía y aturde 1,5 s. Se recupera 10/s fuera de `Blocking`, `Parrying` y `Stunned`.

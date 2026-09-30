@@ -19,6 +19,10 @@ type CombatIntent = GameTypes.CombatIntent
 type ServerCombatResponse = GameTypes.ServerCombatResponse
 type ActionName = InputBindings.ActionName
 
+-- Reintentos de una acción mantenida en cooldown (cubren BlockCooldownSeconds).
+local HOLD_RETRY_SECONDS = 0.15
+local HOLD_RETRY_ATTEMPTS = 5
+
 -- Acciones que se envían al pulsar.
 local PRESS_ACTIONS: { [ActionName]: CombatAction } = {
 	LightAttack = "LightAttack",
@@ -35,12 +39,29 @@ local HOLD_ACTIONS: { [ActionName]: CombatAction } = {
 
 -- Cede el hilo mientras espera al servidor: no llamar directamente desde un
 -- handler de Signal (D-013), usar task.spawn.
-local function sendIntent(action: CombatAction, active: boolean?): ()
+local function sendIntent(action: CombatAction, active: boolean?): ServerCombatResponse?
 	local intent: CombatIntent = { Action = action, Active = active }
 	-- nil = rechazado por la capa de red (rate limit, payload inválido) o fallo de comunicación.
 	local response: ServerCombatResponse? = ClientNetwork.Invoke("CombatIntent", intent)
 	if response ~= nil and response.Status == "Accepted" and response.Movement ~= nil then
 		MovementController:Apply(response.Movement)
+	end
+	return response
+end
+
+-- Pulsar una acción mantenida (guardia, sprint). Si el servidor aún no la
+-- permite (la guardia tiene cooldown tras soltarla) y se sigue manteniendo,
+-- se reintenta para que entre en cuanto se pueda sin volver a pulsar.
+local function beginHold(inputAction: ActionName, action: CombatAction): ()
+	for _ = 1, HOLD_RETRY_ATTEMPTS do
+		local response = sendIntent(action, true)
+		if response == nil or response.Status ~= "OnCooldown" then
+			return
+		end
+		task.wait(HOLD_RETRY_SECONDS)
+		if not InputController:IsDown(inputAction) then
+			return
+		end
 	end
 end
 
@@ -56,7 +77,7 @@ local function onActionBegan(action: ActionName): ()
 	elseif holdAction ~= nil then
 		local held: CombatAction = holdAction
 		task.spawn(function()
-			sendIntent(held, true)
+			beginHold(action, held)
 		end)
 	end
 end

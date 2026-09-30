@@ -32,6 +32,8 @@ export type CombatEntity = {
 	-- Inicio de la ventana de parry del bloqueo actual (nil si no la concede).
 	ParryWindowStart: number?,
 	LastParryAttempt: number?,
+	-- Fin del último bloqueo (para BlockCooldownSeconds).
+	LastBlockEndedAt: number?,
 	-- Habilidad en curso.
 	Action: ActiveAction?,
 	-- Fin del aturdimiento actual.
@@ -61,6 +63,7 @@ function CombatRegistry.Create(model: Model, character: Character, player: Playe
 		Scheduler = TaskScheduler.new(),
 		ParryWindowStart = nil,
 		LastParryAttempt = nil,
+		LastBlockEndedAt = nil,
 		Action = nil,
 		StunEndsAt = nil,
 		LastSpent = {},

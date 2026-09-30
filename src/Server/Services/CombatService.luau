@@ -46,12 +46,17 @@ local function processBlock(entity: CombatEntity, active: boolean): ServerCombat
 		return respond("Accepted", nil)
 	end
 
+	local now = os.clock()
+	local lastEnded = entity.LastBlockEndedAt
+	if lastEnded ~= nil and now - lastEnded < CombatConfig.BlockCooldownSeconds then
+		return respond("OnCooldown", nil)
+	end
+
 	if not character:TransitionTo("Blocking") then
 		return respond("InvalidState", `No se puede bloquear desde {character:GetState()}`)
 	end
 
 	-- Solo se concede ventana de parry cada ParryRetrySeconds (D-009).
-	local now = os.clock()
 	local lastAttempt = entity.LastParryAttempt
 	if lastAttempt == nil or now - lastAttempt >= CombatConfig.ParryRetrySeconds then
 		entity.ParryWindowStart = now
@@ -83,6 +88,7 @@ local function watchCharacter(entity: CombatEntity): ()
 	character:OnStateChanged(function(oldState, newState)
 		if oldState == "Blocking" or oldState == "Parrying" then
 			entity.ParryWindowStart = nil
+			entity.LastBlockEndedAt = os.clock()
 		end
 		-- Salir del estado de la habilidad (aturdido, muerto...) la cancela.
 		local action = entity.Action

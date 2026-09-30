@@ -31,6 +31,7 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- Guardia con cooldown de 0,5 s tras soltarla (no se puede espamear); el cliente reintenta mientras se mantiene la tecla. Empuje algo mayor (remate 55, pesado 45 studs/s).
 - `CombatIntent` pasa a `{ Action, Active? }`: el cliente pide acciones y el servidor elige la habilidad (D-025). `Combos`, `CombatActions` y `ComboAnimations` se sustituyen por `Abilities` y `Movesets`.
 - Los golpes solo afectan a enemigos (PvE). Transformar pasa a R2 en mando; Sprint usa Shift/L3 y se desactiva el shift-lock de Roblox.
 - Valores de balance de combate en `Server/Config/CombatConfig` y de movimiento en `Server/Config/MovementConfig`.

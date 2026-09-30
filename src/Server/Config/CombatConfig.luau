@@ -10,6 +10,9 @@ local CombatConfig = {
 	ParryRetrySeconds = 0.8,
 	-- Aturdimiento del atacante al recibir un parry.
 	ParryStunSeconds = 0.8,
+	-- Tras soltar (o perder) la guardia, tiempo hasta poder volver a bloquear.
+	-- Evita espamear la guardia.
+	BlockCooldownSeconds = 0.5,
 	-- Aturdimiento al llenarse la postura o al romperse la guardia.
 	PostureBreakStunSeconds = 1.5,
 	-- Bloquear reduce el daño y aumenta el daño a la postura.
@@ -20,7 +23,7 @@ local CombatConfig = {
 	-- Aturdimiento breve al recibir un golpe limpio (hitstun, §16).
 	HitStunSeconds = 0.3,
 	-- Componente vertical del empuje, para despegar ligeramente al objetivo.
-	KnockbackLift = 8,
+	KnockbackLift = 10,
 	-- Duración del empuje de un golpe con Knockback.
 	KnockbackSeconds = 0.2,
 	-- Tras terminar un golpe de la cadena M1, tiempo para pedir el siguiente.
