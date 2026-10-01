@@ -46,8 +46,24 @@ En uso actualmente: `Idle`, `Attacking`, `Blocking`, `Dodging`, `Dashing`, `Stun
 - **Stamina:** máximo 100, se regenera 25/s tras 1 s sin gastarla. Todas las razas la tienen.
 - **Vida:** sin regeneración pasiva (D-010).
 
+## Mapa: Karakura (D-043)
+Apareces en el patio de la **tienda de Urahara** (Mitsumiya, al este). Lugares importantes:
+| Lugar | Qué hay |
+|---|---|
+| Galería subterránea (bajo la tienda de Urahara) | Muñecos de entrenamiento. Se baja por la rampa del patio |
+| Parque Tsubakidai | Hollows débiles |
+| Ruinas del Hospital Matsukura (junto al parque) | Hollows |
+| Restos del edificio de carreras (Kinogaya) | Hollow élite |
+| Orilla del Karasu (sur) | El Gran Hollow |
+| Estación de Karakura Honchō, instituto, clínica Kurosaki, hospital, galería comercial, santuario… | Ambientación |
+
+Hay día y noche (D-044): 18 min de día y 8 de noche.
+- De noche se encienden ventanas, farolas y letreros.
+- El tren pasa de vez en cuando y para en la estación.
+- En los pasos a nivel bajan las barreras cuando pasa el tren.
+
 ## Muñecos de entrenamiento (D-027)
-Enfrente del punto de aparición:
+En la galería subterránea bajo la tienda de Urahara:
 | Muñeco | Comportamiento | Para probar |
 |---|---|---|
 | Muñeco | Quieto | Cadena de golpes, pesado, números de daño |
@@ -55,7 +71,7 @@ Enfrente del punto de aparición:
 | Muñeco en guardia | Siempre bloquea (y vuelve a bloquear tras un aturdimiento) | Ataque pesado y rotura de postura |
 
 ## Enemigos (M3, D-029)
-Zona de caza al norte, pasados los muñecos. Todos avisan en **rojo** antes de atacar.
+Repartidos por Karakura (ver Mapa). Todos avisan en **rojo** antes de atacar.
 | Enemigo | Nivel | Vida | Ataques | EXP | Reaparece |
 |---|---|---|---|---|---|
 | Hollow débil (×4) | 1 | 60 | Zarpazo | 20 | 12 s |
@@ -127,8 +143,10 @@ contorno de color sobre el personaje, que se desvanece al acabar. Usar el mismo 
 | Zona | Densidad |
 |---|---|
 | Fuera de zonas | ×1 |
-| Coto de caza (zona de enemigos) | ×1,5 |
-| Guarida del Gran Hollow | ×2 |
+| Galería subterránea | ×1,3 |
+| Parque Tsubakidai | ×1,5 |
+| Ruinas del Hospital Matsukura / restos del edificio de carreras | ×1,6 |
+| Orilla del Karasu | ×2 |
 
 Multiplica la regeneración de Reishi (7/s base). Un Quincy ve un aviso al entrar y salir.
 
@@ -140,7 +158,7 @@ Raro (azul), Épico (morado), Legendario (naranja).
 - Cada jugador que dañó a un enemigo tira **su propio botín**.
 
 ## Jefe: Gran Hollow (D-037)
-Al fondo de la zona. Nivel 10, 1600 de vida, reaparece a los 90 s.
+En la orilla del río Karasu. Nivel 10, 1600 de vida, reaparece a los 90 s.
 - **Fase 1:** zarpazo amplio y **golpe al suelo en área**: un círculo rojo marca la zona 1,2 s antes. Rompe la guardia, así que sal del círculo o haz parry.
 - **Fase 2** (60 % de vida): se enfurece, más rápido, y añade una **carga** de 30 studs.
 - **Fase 3** (25 %): ataca casi sin pausa.

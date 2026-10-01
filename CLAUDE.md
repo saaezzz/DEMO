@@ -57,6 +57,7 @@ Managed by Rokit (rokit.toml). Run `rokit install` once.
 - Format:  stylua src tests    (check: stylua --check src tests)
 - Tests:   lune run tests/runner   (docs/TESTING.md)
 - Sync:    rojo serve
+- Map:     lune run tools/worldgen   (regenera world/<Mapa>.rbxm desde src/Shared/Content/Maps, D-043)
 - Types:   luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau --ignore="**/Packages/**" src
            (setup in README; must report 0 errors)
 Run selene, stylua --check, luau-lsp analyze and the Lune tests before committing Luau changes.

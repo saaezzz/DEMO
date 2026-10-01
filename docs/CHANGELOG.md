@@ -6,6 +6,14 @@ Las entradas nuevas van en `Unreleased`.
 ## [Unreleased]
 
 ### Added
+- Mapa principal **Karakura** (D-043), generado desde datos con `lune run tools/worldgen`.
+  - Doce distritos con callejuelas, casas, bloques de pisos, tiendas, tiendas 24 h y oficinas.
+  - Los ríos Karasu y Onose con taludes y puentes; el mar al sur.
+  - La vía con estación, pasos a nivel y catenaria.
+  - Lugares: tienda de Urahara con galería subterránea de entrenamiento, clínica Kurosaki, instituto con azotea, hospital con helipuerto, ruinas del Hospital Matsukura, galería comercial, santuario, centro comercial, supermercado y restos del edificio de carreras.
+  - Parques y detalles: postes con cables, máquinas expendedoras, buzones, cerezos con pétalos, huertos.
+  - La ciudad continúa más allá del límite y hay colinas.
+- Día y noche automáticos con iluminación por hora; de noche se encienden ventanas, farolas y letreros. Semáforos, relojes con la hora del juego, tren con horario y barreras de paso a nivel (D-044).
 - M5 Vertical Slice 0.2: **Hollow** (garras, Devorar que cura y remata, Cero, Sonido, máscara) y **Quincy** (arco con flechas de Heilig Pfeil, flecha cargada, Licht Regen, Blut Vene, Hirenkyaku, recurso Reishi) se pueden elegir (D-042). Robo de vida, remate y bajas que cuentan en los golpes (D-038). Hitos de raza que desbloquean técnicas: evolución Hollow (Bala, Hierro) y Blut Arterie para el Quincy, con avisos de progreso (D-039). Potenciadores temporales con aura (D-040). Reishi ambiental por zonas, con aviso al entrar y salir (D-041). Vial de Reishi.
 - M4 Vertical Slice 0.1 (Shinigami): integración de arte desde Studio sin código con informe en Output y `docs/GUIA_EQUIPO.md` (D-033); elección de raza con kit (espada, Shunpo, Byakurai, Sai y objetos iniciales; D-034); efectos visuales por datos (D-035); inventario con rarezas, botín por jugador, consumibles y mochila (D-036); jefe Gran Hollow con 3 fases, golpe en área avisado con círculo y barra de jefe (D-037).
 - M3 Loop PvE mínimo: enemigos con IA (tres tipos, zona de caza, avisos en rojo; D-029), EXP y nivel (D-028), cadena de tres misiones con seguimiento y marcador (D-030), barra de EXP, avisos de progreso, barra de acciones con cooldowns y panel del objetivo (D-031), fijado de objetivo con cámara de combate (D-032).
@@ -35,6 +43,8 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- Enemigos, muñecos, zonas de Reishi y marcadores de misión se colocan con puntos del mapa (`WorldMap`). Los muñecos están en la galería subterránea y se aparece en la tienda de Urahara.
+- `StreamingEnabled` activado e iluminación `Future`; NPCs y personajes son modelos atómicos.
 - Perfil v3: añade `Stats` y `Milestones` con migración desde v2 (D-039).
 - Las armas pueden ir en otra parte del cuerpo (`AttachTo`); la guarda de la hoja provisional es opcional.
 - `Movesets` pasa a `Shared` y el moveset depende de la raza; `Dash` se divide en `Shunpo` (Shinigami) y `Step` (sin raza).
@@ -81,6 +91,7 @@ Las entradas nuevas van en `Unreleased`.
 - Los intents de un personaje muerto se rechazan.
 
 ### Removed
+- `Baseplate` del proyecto (el mapa trae su suelo). Si sigue en el lugar, bórralo en Studio: el servidor avisa en Output.
 - `Shared/Types/DataTypes` (borrador de perfil; se rediseña en la tarea 8).
 - Scripts de prueba `RedCircle.server.luau` y `Hello.luau`.
 - Borrador de `DataService` y `Packages/README.md` (D-012).

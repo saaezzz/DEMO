@@ -20,7 +20,7 @@ rojo serve
 ## Antes de hacer commit
 ```bash
 selene src
-stylua --check src tests
+stylua --check src tests tools
 lune run tests/runner
 ```
 Ver [docs/TESTING.md](docs/TESTING.md). El CI (GitHub Actions) ejecuta estas mismas comprobaciones.
@@ -32,11 +32,20 @@ rojo sourcemap default.project.json --include-non-scripts -o sourcemap.json
 luau-lsp analyze --sourcemap=sourcemap.json --definitions=globalTypes.d.luau --ignore="**/Packages/**" src
 ```
 
+## Mapa
+El mapa (Karakura) se genera a partir de datos (`src/Shared/Content/Maps`). Tras cambiarlos:
+```bash
+lune run tools/worldgen    # regenera world/Karakura.rbxm y world/Karakura_preview.png
+```
+Ver la sección «El mapa» de [docs/GUIA_EQUIPO.md](docs/GUIA_EQUIPO.md) y D-043.
+
 ## Estructura
 ```
 src/Server   -> ServerScriptService.Server
 src/Client   -> StarterPlayerScripts.Client
 src/Shared   -> ReplicatedStorage.Shared
+world/       -> Workspace.Map (generado con tools/worldgen)
+tools/       herramientas de desarrollo (generador del mapa)
 docs/        documentación (fuente de verdad)
 assets/      assets fuente (Blender, texturas, etc.)
 tests/       tests con Lune (ver docs/TESTING.md)

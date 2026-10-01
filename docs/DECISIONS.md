@@ -337,3 +337,38 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Decisión:** ambas razas pasan a `Playable`, sin código específico de raza. **Hollow:** garras (cadena de 3 y desgarro que rompe la guardia), Devorar, Cero (carga de 0,8 s), Sonido, máscara en la cabeza; Reiatsu. **Quincy:** arco en la mano izquierda, cadena de 3 flechas de Heilig Pfeil a distancia, flecha cargada que rompe la guardia, Licht Regen (área por delante), Blut Vene, Hirenkyaku; usa **Reishi** en lugar de Reiatsu. `WeaponDefinition` gana `AttachTo` (parte del cuerpo) para piezas que no van en la mano derecha.
 - **Motivo:** §63 (kits de la vertical slice) reutilizando los frameworks de habilidades, movimiento y efectos (§28, §31).
 - **Pendiente:** las flechas son instantáneas (sin proyectil físico); Pesquisa, Garganta, Gintō y la evolución más allá de Gillian quedan para después.
+
+## D-043 — Mapa principal generado por datos (Karakura)
+- **Fecha:** 2026-10-01
+- **Estado:** ACCEPTED
+- **Decisión:** el mapa se describe con datos puros en `src/Shared/Content/Maps/<Mapa>.luau`.
+  - **Qué contiene:** límite del pueblo, ríos, costa, vía, calles, distritos (estilo y cuadrícula), lugares singulares, parques, colinas, galería subterránea y puntos con nombre (`Anchors`).
+  - **Coordenadas:** se copian en píxeles del mapa de referencia (`docs/references/karakura_map.png`) con `px(x, y)`.
+  - **Generación:** un generador en Lune (`lune run tools/worldgen`) construye el modelo y lo guarda en `world/<Mapa>.rbxm`; Rojo lo sincroniza como `Workspace.Map`. También deja una vista cenital `world/<Mapa>_preview.png`.
+  - **Relleno:** callejuelas, parcelas, casas, pisos, tiendas, tiendas 24 h, oficinas, postes con cables, farolas, semáforos, máquinas, coches y huertos. Se decide con una semilla fija: los mismos datos dan el mismo mapa.
+  - **Uso en el juego:** enemigos, muñecos, zonas y marcadores de misión se colocan con `WorldMap.Anchor(nombre)`, sin copiar coordenadas. El mapa activo se elige en `Content/World`.
+  - **Contrato con el cliente:** las etiquetas y atributos que comparten generador y cliente están en `Shared/Config/WorldTags`.
+- **Arte en Studio:** `Workspace.MapDetails` es una carpeta que ni Rojo ni el generador tocan. El equipo puede añadir ahí detalles a mano, y regenerar el mapa no los borra.
+- **Rendimiento (móvil):**
+  - Las piezas decorativas no chocan, no proyectan sombra y no las encuentran raycasts ni hitboxes.
+  - `StreamingEnabled` activado (radio objetivo 768).
+  - Los NPCs y los personajes son modelos atómicos.
+- **Alternativas:** construirlo a mano en Studio (lento y difícil de cambiar en equipo) o generarlo al arrancar el servidor (no se vería en modo edición y retrasaría el arranque).
+- **Validación:**
+  - `MapIntegrity.spec` comprueba que los puntos del juego caen dentro del pueblo, fuera de ríos y calles, y que los lugares no se pisan.
+  - El generador falla si encuentra avisos.
+  - El test de frontera de IP también revisa `tools/`.
+
+## D-044 — Ciclo de día y noche y ambiente de la ciudad
+- **Fecha:** 2026-10-01
+- **Estado:** ACCEPTED
+- **Decisión:**
+  - **Servidor:** `EnvironmentService` avanza `Lighting.ClockTime` (18 min de día y 8 de noche, `EnvironmentConfig`). Es lo único que se replica.
+  - **Iluminación:** cada cliente (`EnvironmentController`) interpola entre preajustes por hora (ambiente, atmósfera, corrección de color, bloom). Se usa iluminación `Future`.
+  - **Ciudad de noche:** se encienden ventanas con `Lit`, farolas, letreros y luces.
+  - **Animaciones:** semáforos, relojes con la hora del juego, la luz que parpadea en las ruinas y las balizas de las azoteas.
+  - **Tren:** `TrainController` mueve un tren de cuatro vagones por la vía. Su horario sale de la hora del servidor, así que todos lo ven igual sin tráfico de red. Para en la estación, y en los pasos a nivel se encienden las luces y bajan las barreras.
+  - **Agua:** la del generador se cambia por agua de Terrain al arrancar.
+  - **Tests:** `DayCycle` y `PathLogic` son puros y tienen tests.
+- **Motivo:** ambientación pedida para el mapa principal, sin coste de red y escalable: cualquier pieza nueva con la etiqueta correcta se anima sola.
+

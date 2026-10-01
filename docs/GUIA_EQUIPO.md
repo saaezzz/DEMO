@@ -121,7 +121,32 @@ existe, un color mal escrito, un aviso de área que no coincide con el golpe...)
 
 ---
 
-## 6. Lista rápida antes de publicar el lugar
+## 6. El mapa (Karakura)
+
+El mapa lo construye un **generador** a partir de datos: `src/Shared/Content/Maps/Karakura.luau`.
+Las posiciones están en **píxeles del mapa de referencia** (`docs/references/karakura_map.png`), con
+`px(x, y)`: para mover algo, mira dónde está en la imagen.
+
+- **Cambiar el mapa** (Diseño/Programación): edita los datos y ejecuta `lune run tools/worldgen`.
+  Se regenera `world/Karakura.rbxm` (Rojo lo sincroniza) y `world/Karakura_preview.png` (vista desde arriba
+  para revisarlo sin abrir Studio).
+  - Calles, ríos, vía y costa: listas de puntos.
+  - Distritos: polígono, estilo (`Residential`, `Dense`, `Commercial`) y giro de sus callejuelas.
+  - Lugares singulares (`Landmarks`): tipo (tienda, clínica, instituto, estación, ruinas…), posición,
+    tamaño de la parcela, giro y letrero.
+  - Parques y puntos con nombre (`Anchors`) donde el juego coloca enemigos, muñecos y misiones.
+- **Detalles hechos a mano** (Arte/Builder): ponlos en `Workspace.MapDetails`. Ni Rojo ni el generador
+  tocan esa carpeta. No edites `Workspace.Map`: se sobrescribe al regenerar.
+- **Que algo brille de noche**: dale una etiqueta de `src/Shared/Config/WorldTags.luau`.
+  - `MapWindow` (con el atributo `Lit = true`): ventana que se enciende.
+  - `MapNightNeon`: pieza que pasa a Neon de noche.
+  - `MapNightLight`: luz que se enciende.
+  - Funciona también en `MapDetails`.
+- **Luz y duración del día**: `src/Shared/Config/EnvironmentConfig.luau`.
+
+---
+
+## 7. Lista rápida antes de publicar el lugar
 - [ ] El objeto se llama exactamente como en el manifiesto y está en su carpeta.
 - [ ] Output no muestra avisos `[Assets]` de nombres o carpetas.
 - [ ] Los ataques nuevos tienen su marker `Hit`.
