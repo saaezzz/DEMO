@@ -44,7 +44,7 @@ Ver la sección «El mapa» de [docs/GUIA_EQUIPO.md](docs/GUIA_EQUIPO.md) y D-04
 src/Server   -> ServerScriptService.Server
 src/Client   -> StarterPlayerScripts.Client
 src/Shared   -> ReplicatedStorage.Shared
-world/       -> Workspace.Map (generado con tools/worldgen)
+world/       -> mapa generado con tools/worldgen; se importa a mano como Workspace.Map
 tools/       herramientas de desarrollo (generador del mapa)
 docs/        documentación (fuente de verdad)
 assets/      assets fuente (Blender, texturas, etc.)

@@ -53,13 +53,11 @@
       }
     },
     "Workspace": {
+      "$ignoreUnknownInstances": true,
       "$properties": {
         "StreamingEnabled": true,
         "StreamingMinRadius": 128,
         "StreamingTargetRadius": 768
-      },
-      "Map": {
-        "$path": "world/Karakura.rbxm"
       },
       "MapDetails": {
         "$className": "Folder",

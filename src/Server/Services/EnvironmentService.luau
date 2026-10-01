@@ -54,6 +54,11 @@ local EnvironmentService = {
 }
 
 function EnvironmentService:Start(): ()
+	-- El mapa se importa a mano en Studio (D-043): es demasiado grande para
+	-- sincronizarlo en vivo con Rojo.
+	if Workspace:FindFirstChild("Map") == nil then
+		log:Warn("Falta Workspace.Map: arrastra el archivo de world/ a Workspace en Studio (GUIA_EQUIPO §6)")
+	end
 	if Workspace:FindFirstChild("Baseplate") ~= nil then
 		log:Warn("Workspace tiene un Baseplate antiguo que tapa el mapa: bórralo en Studio")
 	end

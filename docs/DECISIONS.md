@@ -344,10 +344,15 @@ Estados: `ACCEPTED`, `SUPERSEDED`, `REJECTED`.
 - **Decisión:** el mapa se describe con datos puros en `src/Shared/Content/Maps/<Mapa>.luau`.
   - **Qué contiene:** límite del pueblo, ríos, costa, vía, calles, distritos (estilo y cuadrícula), lugares singulares, parques, colinas, galería subterránea y puntos con nombre (`Anchors`).
   - **Coordenadas:** se copian en píxeles del mapa de referencia (`docs/references/karakura_map.png`) con `px(x, y)`.
-  - **Generación:** un generador en Lune (`lune run tools/worldgen`) construye el modelo y lo guarda en `world/<Mapa>.rbxm`; Rojo lo sincroniza como `Workspace.Map`. También deja una vista cenital `world/<Mapa>_preview.png`.
+  - **Generación:** un generador en Lune (`lune run tools/worldgen`) construye el modelo y lo guarda en `world/<Mapa>.rbxm`, que se importa en Studio como `Workspace.Map` (ver la enmienda de abajo). También deja una vista cenital `world/<Mapa>_preview.png`.
   - **Relleno:** callejuelas, parcelas, casas, pisos, tiendas, tiendas 24 h, oficinas, postes con cables, farolas, semáforos, máquinas, coches y huertos. Se decide con una semilla fija: los mismos datos dan el mismo mapa.
   - **Uso en el juego:** enemigos, muñecos, zonas y marcadores de misión se colocan con `WorldMap.Anchor(nombre)`, sin copiar coordenadas. El mapa activo se elige en `Content/World`.
   - **Contrato con el cliente:** las etiquetas y atributos que comparten generador y cliente están en `Shared/Config/WorldTags`.
+- **Enmienda (2026-10-01): el mapa no se sincroniza con Rojo.**
+  - **Problema:** con `rojo serve` el mapa no aparecía en Studio. Son unas 27 600 instancias y unos 17 MB de datos, demasiado para la sincronización en vivo.
+  - **Solución:** el mapa se importa a mano. Se arrastra `world/<Mapa>.rbxm` a `Workspace` y se guarda con el lugar.
+  - **Rojo:** `Workspace` lleva `$ignoreUnknownInstances` para no borrar el mapa importado.
+  - **Aviso:** si falta `Workspace.Map`, `EnvironmentService` lo indica en Output.
 - **Arte en Studio:** `Workspace.MapDetails` es una carpeta que ni Rojo ni el generador tocan. El equipo puede añadir ahí detalles a mano, y regenerar el mapa no los borra.
 - **Rendimiento (móvil):**
   - Las piezas decorativas no chocan, no proyectan sombra y no las encuentran raycasts ni hitboxes.

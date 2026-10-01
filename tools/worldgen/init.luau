@@ -1,8 +1,8 @@
 --!strict
 
 -- Generador del mapa (D-043). Construye un modelo por cada mapa de
--- src/Shared/Content/Maps y lo guarda en world/<Mapa>.rbxm, que Rojo
--- sincroniza como Workspace.Map. También deja una vista cenital en
+-- src/Shared/Content/Maps y lo guarda en world/<Mapa>.rbxm, que se importa
+-- a mano en Studio como Workspace.Map. También deja una vista cenital en
 -- world/<Mapa>_preview.png.
 --
 --   lune run tools/worldgen            (todos los mapas)

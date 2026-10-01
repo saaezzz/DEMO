@@ -127,9 +127,14 @@ El mapa lo construye un **generador** a partir de datos: `src/Shared/Content/Map
 Las posiciones están en **píxeles del mapa de referencia** (`docs/references/karakura_map.png`), con
 `px(x, y)`: para mover algo, mira dónde está en la imagen.
 
+- **Poner el mapa en Studio** (Rojo no lo sincroniza, es demasiado grande):
+  1. Borra el `Map` viejo de `Workspace` (y el `Baseplate` si sigue ahí).
+  2. Arrastra `world/Karakura.rbxm` desde el explorador de archivos a la ventana de Studio. Debe quedar como `Workspace.Map`.
+  3. Guarda y publica el lugar.
+  Si falta el mapa, Output lo avisa al darle a Play.
 - **Cambiar el mapa** (Diseño/Programación): edita los datos y ejecuta `lune run tools/worldgen`.
-  Se regenera `world/Karakura.rbxm` (Rojo lo sincroniza) y `world/Karakura_preview.png` (vista desde arriba
-  para revisarlo sin abrir Studio).
+  Se regenera `world/Karakura.rbxm` (vuelve a importarlo como arriba) y `world/Karakura_preview.png` (vista
+  desde arriba para revisarlo sin abrir Studio).
   - Calles, ríos, vía y costa: listas de puntos.
   - Distritos: polígono, estilo (`Residential`, `Dense`, `Commercial`) y giro de sus callejuelas.
   - Lugares singulares (`Landmarks`): tipo (tienda, clínica, instituto, estación, ruinas…), posición,

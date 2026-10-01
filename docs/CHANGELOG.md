@@ -43,6 +43,7 @@ Las entradas nuevas van en `Unreleased`.
 - Script `Health` vacío en `StarterCharacterScripts` para desactivar la regeneración por defecto de Roblox (D-010).
 
 ### Changed
+- El mapa ya no se sincroniza con Rojo: se importa en Studio arrastrando `world/Karakura.rbxm` a `Workspace` (era demasiado grande para la sincronización en vivo). Output avisa si falta.
 - Enemigos, muñecos, zonas de Reishi y marcadores de misión se colocan con puntos del mapa (`WorldMap`). Los muñecos están en la galería subterránea y se aparece en la tienda de Urahara.
 - `StreamingEnabled` activado e iluminación `Future`; NPCs y personajes son modelos atómicos.
 - Perfil v3: añade `Stats` y `Milestones` con migración desde v2 (D-039).

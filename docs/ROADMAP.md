@@ -53,7 +53,7 @@ Orden de trabajo según la constitución (§6, §70). Prioridades: P0 = core, P1
 - [ ] Proyectiles físicos para flechas y Cero (ahora son instantáneos).
 
 ## Mapa principal: Karakura — HECHO (pendiente de verificación en Studio)
-- [x] Generador por datos y modelo sincronizado por Rojo (D-043).
+- [x] Generador por datos; el modelo se importa en Studio (D-043).
 - [x] Día y noche, luces de la ciudad, semáforos, tren y pasos a nivel (D-044).
 - [ ] Sustituir los lugares principales por modelos de Arte cuando existan.
 
