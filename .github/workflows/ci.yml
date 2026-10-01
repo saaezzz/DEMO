@@ -24,7 +24,7 @@ jobs:
           rokit install --no-trust-check
 
       - name: Formato (StyLua)
-        run: stylua --check src tests
+        run: stylua --check src tests tools
 
       - name: Lint (Selene)
         run: selene src
@@ -37,6 +37,9 @@ jobs:
 
       - name: Tests (Lune)
         run: lune run tests/runner
+
+      - name: Mapa (generador)
+        run: lune run tools/worldgen
 
       - name: Build (Rojo)
         run: rojo build default.project.json -o Demo_RPG.rbxlx

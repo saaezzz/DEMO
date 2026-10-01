@@ -1,7 +1,12 @@
 --!strict
 
 -- Contenido: muñecos de entrenamiento (M2). Sirven para probar el combate en
--- solitario: golpes, parry, esquiva y rotura de guardia.
+-- solitario: golpes, parry, esquiva y rotura de guardia. Están en la galería
+-- subterránea bajo la tienda de Urahara (D-043).
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local WorldMap = require(ReplicatedStorage.Shared.Modules.WorldMap)
 
 export type DummyBehavior =
 	"Passive" -- no hace nada
@@ -27,7 +32,7 @@ local TrainingDummies: { DummyDefinition } = {
 	{
 		Id = "Passive",
 		DisplayName = "Muñeco",
-		Position = Vector3.new(-12, 4, -30),
+		Position = WorldMap.Anchor("TrainingGround", Vector3.new(-14, 4, -40)),
 		Behavior = "Passive",
 		MaxHealth = 300,
 		MaxPosture = 100,
@@ -35,7 +40,7 @@ local TrainingDummies: { DummyDefinition } = {
 	{
 		Id = "Attacker",
 		DisplayName = "Muñeco atacante",
-		Position = Vector3.new(0, 4, -30),
+		Position = WorldMap.Anchor("TrainingGround", Vector3.new(0, 4, -40)),
 		Behavior = "Attacker",
 		MaxHealth = 300,
 		MaxPosture = 100,
@@ -47,7 +52,7 @@ local TrainingDummies: { DummyDefinition } = {
 	{
 		Id = "Guard",
 		DisplayName = "Muñeco en guardia",
-		Position = Vector3.new(12, 4, -30),
+		Position = WorldMap.Anchor("TrainingGround", Vector3.new(14, 4, -40)),
 		Behavior = "Guard",
 		MaxHealth = 300,
 		MaxPosture = 100,

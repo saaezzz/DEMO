@@ -126,6 +126,8 @@ local NpcFactory = {}
 function NpcFactory.Spawn(options: NpcOptions): Npc
 	local model = cloneArtModel(options.ModelAsset) or buildRig(options)
 	model.Name = options.Name
+	-- Con StreamingEnabled el modelo llega entero a los clientes o no llega.
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 	local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
 	local rootPart = model:FindFirstChild("HumanoidRootPart") :: BasePart
 	model.PrimaryPart = rootPart

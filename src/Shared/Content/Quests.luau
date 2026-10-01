@@ -6,6 +6,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local WorldMap = require(ReplicatedStorage.Shared.Modules.WorldMap)
 local QuestTypes = require(ReplicatedStorage.Shared.Types.QuestTypes)
 
 type QuestDefinition = QuestTypes.QuestDefinition
@@ -15,14 +16,14 @@ local Definitions: { [string]: QuestDefinition } = {
 		Id = "FirstHunt",
 		Title = "Primera cacería",
 		Type = "Hunt",
-		Description = "Unos Hollows débiles merodean al norte. Acaba con ellos.",
+		Description = "Unos Hollows débiles merodean por el parque Tsubakidai. Acaba con ellos.",
 		Objectives = {
 			{
 				Kind = "Kill",
 				Target = "WeakHollow",
 				Count = 3,
 				Description = "Derrota Hollows débiles",
-				Location = Vector3.new(-25, 4, -90),
+				Location = WorldMap.Anchor("TsubakidaiPark", Vector3.new(0, 4, 0)),
 			},
 		},
 		Rewards = { Experience = 60 },
@@ -32,14 +33,14 @@ local Definitions: { [string]: QuestDefinition } = {
 		Id = "GrowingThreat",
 		Title = "Amenaza creciente",
 		Type = "Hunt",
-		Description = "Han aparecido Hollows más fuertes. Cuidado con sus embestidas.",
+		Description = "Han aparecido Hollows más fuertes en las ruinas del Hospital Matsukura. Cuidado con sus embestidas.",
 		Objectives = {
 			{
 				Kind = "Kill",
 				Target = "StandardHollow",
 				Count = 2,
 				Description = "Derrota Hollows",
-				Location = Vector3.new(25, 4, -110),
+				Location = WorldMap.Anchor("MatsukuraRuins", Vector3.new(0, 4, 0)),
 			},
 		},
 		Rewards = { Experience = 150 },
@@ -49,14 +50,14 @@ local Definitions: { [string]: QuestDefinition } = {
 		Id = "EliteHunt",
 		Title = "El Hollow élite",
 		Type = "BossHunt",
-		Description = "Un Hollow élite domina la zona. Su golpe más lento rompe la guardia: esquívalo o haz parry.",
+		Description = "Un Hollow élite se ha instalado en los restos del edificio de carreras. Su golpe más lento rompe la guardia: esquívalo o haz parry.",
 		Objectives = {
 			{
 				Kind = "Kill",
 				Target = "EliteHollow",
 				Count = 1,
 				Description = "Derrota al Hollow élite",
-				Location = Vector3.new(0, 4, -160),
+				Location = WorldMap.Anchor("RacecourseRuins", Vector3.new(0, 4, 0)),
 			},
 		},
 		Rewards = { Experience = 300 },
@@ -66,14 +67,14 @@ local Definitions: { [string]: QuestDefinition } = {
 		Id = "GreatHollowHunt",
 		Title = "El Gran Hollow",
 		Type = "BossHunt",
-		Description = "Algo enorme acecha al fondo de la zona. Id en grupo si podéis: el círculo rojo avisa de su golpe en área.",
+		Description = "Algo enorme acecha en la orilla del río Karasu. Id en grupo si podéis: el círculo rojo avisa de su golpe en área.",
 		Objectives = {
 			{
 				Kind = "Kill",
 				Target = "GreatHollow",
 				Count = 1,
 				Description = "Derrota al Gran Hollow",
-				Location = Vector3.new(0, 6, -240),
+				Location = WorldMap.Anchor("KarasuRiverside", Vector3.new(0, 6, 0)),
 			},
 		},
 		Rewards = { Experience = 500 },

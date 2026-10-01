@@ -121,6 +121,8 @@ local function onCharacterAdded(player: Player, model: Model): ()
 	end
 
 	releaseCharacter(player)
+	-- Con StreamingEnabled, los demás clientes reciben el personaje entero.
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
 
 	-- La vida autoritativa vive en Character; el Humanoid solo la refleja.
 	local character = CharacterModule.new(buildAttributes(player, data))

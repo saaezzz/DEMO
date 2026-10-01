@@ -11,3 +11,7 @@ globalTypes.d.luau
 
 # Archivos de lugar generados con rojo build
 build/
+
+# Vistas de depuración del generador del mapa
+world/_*.png
+_pv.luau

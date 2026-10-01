@@ -5,7 +5,8 @@
 
 local fs = require("@lune/fs")
 
-local SOURCE_ROOT = "src"
+-- El juego y el generador del mapa.
+local SOURCE_ROOTS = { "src", "tools" }
 
 -- Ampliar estas listas al añadir contenido nuevo.
 -- Términos sin ambigüedad: se buscan sin distinguir mayúsculas.
@@ -36,6 +37,10 @@ local IP_TERMS = {
 	"pfeil",
 	"gillian",
 	"adjuchas",
+	"urahara",
+	"kurosaki",
+	"matsukura",
+	"naruki",
 }
 
 -- Términos que también son palabras comunes en español (arrancar, cero,
@@ -104,7 +109,11 @@ end
 return {
 	["el código fuera de Content no menciona términos de la IP"] = function()
 		local violations = {}
-		for _, path in collectSources(SOURCE_ROOT, {}) do
+		local sources = {}
+		for _, root in SOURCE_ROOTS do
+			collectSources(root, sources)
+		end
+		for _, path in sources do
 			local lineNumber = 0
 			for line in string.gmatch(fs.readFile(path) .. "\n", "(.-)\r?\n") do
 				lineNumber += 1
