@@ -23,6 +23,8 @@ local InventoryController = require(script.Controllers.InventoryController)
 local RaceSelectionController = require(script.Controllers.RaceSelectionController)
 local BossBarController = require(script.Controllers.BossBarController)
 local CharacterAnimationController = require(script.Controllers.CharacterAnimationController)
+local EnvironmentController = require(script.Controllers.EnvironmentController)
+local TrainController = require(script.Controllers.TrainController)
 
 Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
 
@@ -44,6 +46,8 @@ ServiceLoader.Run({
 	RaceSelectionController,
 	BossBarController,
 	CharacterAnimationController,
+	EnvironmentController,
+	TrainController,
 })
 
 Logger.new("Client"):Info("Controladores iniciados")

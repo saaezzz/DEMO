@@ -22,6 +22,7 @@ local MilestoneService = require(script.Services.MilestoneService)
 local TrainingService = require(script.Services.TrainingService)
 local EnemyService = require(script.Services.EnemyService)
 local AssetAuditService = require(script.Services.AssetAuditService)
+local EnvironmentService = require(script.Services.EnvironmentService)
 
 Logger.SetLevel(if RunService:IsStudio() then "Debug" else "Info")
 
@@ -42,6 +43,7 @@ ServiceLoader.Run({
 	TrainingService,
 	EnemyService,
 	MilestoneService,
+	EnvironmentService,
 	AssetAuditService,
 })
 
